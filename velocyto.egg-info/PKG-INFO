@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: velocyto
+Version: 0.9.5
+Summary: RNA velocity analysis for single cell RNA-seq data
+Home-page: https://github.com/linnarsson-lab/velocyto
+Author: Linnarsson Lab
+Author-email: sten.linnarsson@ki.se
+License: BSD2
+Description: UNKNOWN
+Platform: UNKNOWN

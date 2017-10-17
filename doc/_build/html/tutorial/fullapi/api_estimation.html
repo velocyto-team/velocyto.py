@@ -1,0 +1,565 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>velocyto.estimation module &mdash; velocyto 0.9.5 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="velocyto 0.9.5 documentation" href="../index.html"/>
+        <link rel="up" title="API" href="index.html"/>
+        <link rel="next" title="velocyto.neighbors module" href="api_neighbors.html"/>
+        <link rel="prev" title="velocyto.analysis module" href="api_analysis.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#command-line-api">Command Line API</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#library-api">Library API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="index.html#the-analysis-module">The Analysis module</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html#the-estimation-module">The Estimation module</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">velocyto.estimation module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#the-neighbors-module">The Neighbors module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#the-diffusion-module">The Diffusion module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#internals">Internals</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Authors and citations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">velocyto</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API</a> &raquo;</li>
+        
+      <li>velocyto.estimation module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/fullapi/api_estimation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-velocyto.estimation">
+<span id="velocyto-estimation-module"></span><h1>velocyto.estimation module<a class="headerlink" href="#module-velocyto.estimation" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="velocyto.estimation.clusters_stats">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">clusters_stats</code><span class="sig-paren">(</span><em>U: numpy.ndarray</em>, <em>S: numpy.ndarray</em>, <em>clusters_uid: numpy.ndarray</em>, <em>cluster_ix: numpy.ndarray</em>, <em>size_limit: int = 40</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[numpy.ndarray, numpy.ndarray]<a class="reference internal" href="../_modules/velocyto/estimation.html#clusters_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.clusters_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the averages per cluster</p>
+<p>If the cluster is too small (size&lt;size_limit) the average of the toal is reported instead</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.colDeltaCor">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">colDeltaCor</code><span class="sig-paren">(</span><em>emat: numpy.ndarray</em>, <em>dmat: numpy.ndarray</em>, <em>threads: int = None</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#colDeltaCor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.colDeltaCor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the correlation between the displacement (d[:,i])
+and the difference between a cell and every other (e - e[:, i])</p>
+<p>Parallel cython+OpenMP implemetation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>emat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene expression matrix</li>
+<li><strong>dmat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene velocity/displacement matrix</li>
+<li><strong>threads</strong> (<em>int</em>) – number of parallel threads to use</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.colDeltaCorLog10">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">colDeltaCorLog10</code><span class="sig-paren">(</span><em>emat: numpy.ndarray</em>, <em>dmat: numpy.ndarray</em>, <em>threads: int = None</em>, <em>psc: float = 1.0</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#colDeltaCorLog10"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.colDeltaCorLog10" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the correlation between the displacement (d[:,i])
+and the difference between a cell and every other (e - e[:, i])</p>
+<p>Parallel cython+OpenMP implemetation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>emat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene expression matrix</li>
+<li><strong>dmat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene velocity/displacement matrix</li>
+<li><strong>threads</strong> (<em>int</em>) – number of parallel threads to use</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.colDeltaCorLog10partial">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">colDeltaCorLog10partial</code><span class="sig-paren">(</span><em>emat: numpy.ndarray</em>, <em>dmat: numpy.ndarray</em>, <em>ixs: numpy.ndarray</em>, <em>threads: int = None</em>, <em>psc: float = 1.0</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#colDeltaCorLog10partial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.colDeltaCorLog10partial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the correlation between the displacement (d[:,i])
+and the difference between a cell and every other (e - e[:, i])</p>
+<p>Parallel cython+OpenMP implemetation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>emat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene expression matrix</li>
+<li><strong>dmat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene velocity/displacement matrix</li>
+<li><strong>ixs</strong> (<em>the neighborhood matrix</em><em> (</em><em>ncells</em><em>, </em><em>nneighbours</em><em>)</em>) – ixs[i, k] is the kth neighbour to the cell i</li>
+<li><strong>threads</strong> (<em>int</em>) – number of parallel threads to use</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.colDeltaCorSqrt">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">colDeltaCorSqrt</code><span class="sig-paren">(</span><em>emat: numpy.ndarray</em>, <em>dmat: numpy.ndarray</em>, <em>threads: int = None</em>, <em>psc: float = 0.0</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#colDeltaCorSqrt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.colDeltaCorSqrt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the correlation between the displacement (d[:,i])
+and the difference between a cell and every other (e - e[:, i])</p>
+<p>Parallel cython+OpenMP implemetation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>emat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene expression matrix</li>
+<li><strong>dmat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene velocity/displacement matrix</li>
+<li><strong>threads</strong> (<em>int</em>) – number of parallel threads to use</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.colDeltaCorSqrtpartial">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">colDeltaCorSqrtpartial</code><span class="sig-paren">(</span><em>emat: numpy.ndarray</em>, <em>dmat: numpy.ndarray</em>, <em>ixs: numpy.ndarray</em>, <em>threads: int = None</em>, <em>psc: float = 0.0</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#colDeltaCorSqrtpartial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.colDeltaCorSqrtpartial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the correlation between the displacement (d[:,i])
+and the difference between a cell and every other (e - e[:, i])</p>
+<p>Parallel cython+OpenMP implemetation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>emat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene expression matrix</li>
+<li><strong>dmat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene velocity/displacement matrix</li>
+<li><strong>ixs</strong> (<em>the neighborhood matrix</em><em> (</em><em>ncells</em><em>, </em><em>nneighbours</em><em>)</em>) – ixs[i, k] is the kth neighbour to the cell i</li>
+<li><strong>threads</strong> (<em>int</em>) – number of parallel threads to use</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.colDeltaCorpartial">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">colDeltaCorpartial</code><span class="sig-paren">(</span><em>emat: numpy.ndarray</em>, <em>dmat: numpy.ndarray</em>, <em>ixs: numpy.ndarray</em>, <em>threads: int = None</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#colDeltaCorpartial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.colDeltaCorpartial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the correlation between the displacement (d[:,i])
+and the difference between a cell and every other (e - e[:, i])</p>
+<p>Parallel cython+OpenMP implemetation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>emat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene expression matrix</li>
+<li><strong>dmat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene velocity/displacement matrix</li>
+<li><strong>ixs</strong> (<em>the neighborhood matrix</em><em> (</em><em>ncells</em><em>, </em><em>nneighbours</em><em>)</em>) – ixs[i, k] is the kth neighbour to the cell i</li>
+<li><strong>threads</strong> (<em>int</em>) – number of parallel threads to use</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.estimate_velocity">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">estimate_velocity</code><span class="sig-paren">(</span><em>U: numpy.ndarray</em>, <em>S: numpy.ndarray</em>, <em>steadystate: numpy.ndarray</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#estimate_velocity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.estimate_velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate velocity for all the genes using gene-relative model (numpy version)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>U</strong> (<em>np.ndarray</em><em> (</em><a class="reference internal" href="api_cli_internals.html#module-velocyto.genes" title="velocyto.genes"><em>genes</em></a><em>, </em><em>cells</em><em>)</em>) – The unspliced molecule count</li>
+<li><strong>S</strong> (<em>np.ndarray</em><em> (</em><a class="reference internal" href="api_cli_internals.html#module-velocyto.genes" title="velocyto.genes"><em>genes</em></a><em>, </em><em>cells</em><em>)</em>) – The spliced molecule count</li>
+<li><strong>steadystate</strong> (<em>np.ndarray</em><em>(</em><em>bool</em><em>)</em><em>, </em><em>shape=cells</em>) – A boolean array, True when the cell is a steady state cell</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>velcity</strong> (<em>np.ndarray (shape=S.shape)</em>) – The velocity for every gene.</li>
+<li><em>NOTE</em></li>
+<li><em>Special caseses</em> – if not np.any(S[gene, steadystate]): delta = NaN
+if not np.any(U[gene, steadystate]): delta = 0</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.fit_slope">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">fit_slope</code><span class="sig-paren">(</span><em>Y: numpy.ndarray</em>, <em>X: numpy.ndarray</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#fit_slope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.fit_slope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loop through the genes and fits the slope</p>
+<dl class="docutils">
+<dt>Y: np.ndarray, shape=(genes, cells)</dt>
+<dd>the dependent variable (unspliced)</dd>
+<dt>X: np.ndarray, shape=(genes, cells)</dt>
+<dd>the independent variable (spliced)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.fit_slope_multiq">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">fit_slope_multiq</code><span class="sig-paren">(</span><em>U: numpy.ndarray</em>, <em>S: numpy.ndarray</em>, <em>labels: numpy.ndarray</em>, <em>q_positive: bool = False</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[numpy.ndarray, numpy.ndarray]<a class="reference internal" href="../_modules/velocyto/estimation.html#fit_slope_multiq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.fit_slope_multiq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Neighbour wise fit of gamma with multiple qs
+input shoud be (cells, genes) sic!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>gammas</strong> (<em>np.ndarray = (genes)</em>)</li>
+<li><strong>qs</strong> (<em>np.ndarray, shape = (neighborhoods, genes)</em>)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.fit_slope_multiq_reg">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">fit_slope_multiq_reg</code><span class="sig-paren">(</span><em>U: numpy.ndarray</em>, <em>S: numpy.ndarray</em>, <em>CS: numpy.ndarray</em>, <em>labels: numpy.ndarray</em>, <em>graph_design: scipy.sparse.csr.csr_matrix</em>, <em>alpha: float</em>, <em>kind_objective: str = 'project_q'</em>, <em>q_positive: bool = False</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[numpy.ndarray, numpy.ndarray]<a class="reference internal" href="../_modules/velocyto/estimation.html#fit_slope_multiq_reg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.fit_slope_multiq_reg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Neighbour wise fit of gamma with multiple qs and regularization using the neighborhoods q smoothing
+input should be (cells, genes) sic!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>U</strong> (<em>np.ndarray</em><em> (</em><em>cells</em><em>, </em><a class="reference internal" href="api_cli_internals.html#module-velocyto.genes" title="velocyto.genes"><em>genes</em></a><em>)</em>) – Unspliced molecules table or correspondent non negative components</li>
+<li><strong>S</strong> (<em>np.ndarray</em><em> (</em><em>cells</em><em>, </em><a class="reference internal" href="api_cli_internals.html#module-velocyto.genes" title="velocyto.genes"><em>genes</em></a><em>)</em>) – Spliced molecules table or correspondent non negative components</li>
+<li><strong>CS</strong> (<em>np.ndarray</em><em>, </em><em>shape=</em><em>(</em><em>n_centroids</em><em>, </em><a class="reference internal" href="api_cli_internals.html#module-velocyto.genes" title="velocyto.genes"><em>genes</em></a><em>)</em>) – Centroids coordinates</li>
+<li><strong>labels</strong> (<em>np.ndarray</em>) – labels of the neighborhood, must be dense for 0 to n</li>
+<li><strong>graph_design</strong> (<em>sparse.csr_matrix</em>) – a sparse matrix with weights used in the regularization as values</li>
+<li><strong>alpha</strong> (<em>float</em>) – how strongly the regularization weights over the least squares</li>
+<li><strong>kind_objective</strong> (<em>str</em>) – <dl class="docutils">
+<dt>“project_q”: projects q on the vector that contains the centroid and</dt>
+<dd>then impose that q is similar to the mean of the projected vectors</dd>
+</dl>
+<p>”neighborhood”: then impose that q is similar to the mean of the neighbours
+In both cases the weights are determined by the input graph_design</p>
+</li>
+<li><strong>q_positive</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Wether to constrain q to positive values</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>gammas</strong> (<em>np.ndarray = (genes, neighborhoods)</em>)</li>
+<li><strong>qs</strong> (<em>np.ndarray, shape = (genes, neighborhoods)</em>)</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.fit_slope_offset">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">fit_slope_offset</code><span class="sig-paren">(</span><em>Y: numpy.ndarray</em>, <em>X: numpy.ndarray</em>, <em>fixperc_q: bool = False</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[numpy.ndarray, numpy.ndarray]<a class="reference internal" href="../_modules/velocyto/estimation.html#fit_slope_offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.fit_slope_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loop through the genes and fits the slope</p>
+<dl class="docutils">
+<dt>Y: np.ndarray, shape=(genes, cells)</dt>
+<dd>the dependent variable (unspliced)</dd>
+<dt>X: np.ndarray, shape=(genes, cells)</dt>
+<dd>the independent variable (spliced)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.fit_slope_weighted">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">fit_slope_weighted</code><span class="sig-paren">(</span><em>Y: numpy.ndarray</em>, <em>X: numpy.ndarray</em>, <em>W: numpy.ndarray</em>, <em>bounds: typing.Tuple[float</em>, <em>float] = (0</em>, <em>3)</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#fit_slope_weighted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.fit_slope_weighted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loop through the genes and fits the slope</p>
+<dl class="docutils">
+<dt>Y: np.ndarray, shape=(genes, cells)</dt>
+<dd>the dependent variable (unspliced)</dd>
+<dt>X: np.ndarray, shape=(genes, cells)</dt>
+<dd>the independent variable (spliced)</dd>
+<dt>W: np.ndarray, shape=(genes, cells)</dt>
+<dd>the weights that will scale the square residuals</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.fit_slope_weighted_offset">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">fit_slope_weighted_offset</code><span class="sig-paren">(</span><em>Y: numpy.ndarray</em>, <em>X: numpy.ndarray</em>, <em>W: numpy.ndarray</em>, <em>fixperc_q: bool = False</em>, <em>return_R2: bool = True</em>, <em>limit_gamma: bool = False</em><span class="sig-paren">)</span> &#x2192; typing.Any<a class="reference internal" href="../_modules/velocyto/estimation.html#fit_slope_weighted_offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.fit_slope_weighted_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loop through the genes and fits the slope</p>
+<dl class="docutils">
+<dt>Y: np.ndarray, shape=(genes, cells)</dt>
+<dd>the dependent variable (unspliced)</dd>
+<dt>X: np.ndarray, shape=(genes, cells)</dt>
+<dd>the independent variable (spliced)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.naive_slope">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">naive_slope</code><span class="sig-paren">(</span><em>y: numpy.ndarray</em>, <em>x: numpy.ndarray</em><span class="sig-paren">)</span> &#x2192; float<a class="reference internal" href="../_modules/velocyto/estimation.html#naive_slope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.naive_slope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Slope calculate by the ratio of 99th percentiles</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>y</strong> (<em>np.ndarray  shape=</em><em> (</em><em>cells</em><em>,</em><em>)</em>) – </li>
+<li><strong>x</strong> (<em>np.ndarray  shape=</em><em> (</em><em>cells</em><em>,</em><em>)</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">The slope</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api_neighbors.html" class="btn btn-neutral float-right" title="velocyto.neighbors module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api_analysis.html" class="btn btn-neutral" title="velocyto.analysis module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.9.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>velocyto.molitem &mdash; velocyto 0.9.5 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="velocyto 0.9.5 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fullapi/index.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Authors and citations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">velocyto</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>velocyto.molitem</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for velocyto.molitem</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">velocyto</span> <span class="k">as</span> <span class="nn">vcy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="Molitem"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.molitem.Molitem">[docs]</a><span class="k">class</span> <span class="nc">Molitem</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Keeps track of the alignments (to intervals of one gene) of all reads corresponding to the same molecule &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;gene&quot;</span><span class="p">,</span> <span class="s2">&quot;has_some_spliced_read&quot;</span><span class="p">,</span> <span class="s2">&quot;ivlhits&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gene</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Gene</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gene</span> <span class="o">=</span> <span class="n">gene</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_some_spliced_read</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># type: bool</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ivlhits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">gene</span><span class="o">.</span><span class="n">num_ivls</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Molitem.mark_hit_ivls"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.molitem.Molitem.mark_hit_ivls">[docs]</a>    <span class="k">def</span> <span class="nf">mark_hit_ivls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matchivls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">vcy</span><span class="o">.</span><span class="n">Interval</span><span class="p">],</span> <span class="n">read_is_spliced</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Add info for the alignment(s) of one read &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">matchivl</span> <span class="ow">in</span> <span class="n">matchivls</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ivlhits</span><span class="p">[</span><span class="n">matchivl</span><span class="o">.</span><span class="n">ivlidx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_some_spliced_read</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_some_spliced_read</span> <span class="ow">or</span> <span class="n">read_is_spliced</span></div>
+
+<div class="viewcode-block" id="Molitem.count"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.molitem.Molitem.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Call after all reads have been processed to annotate this molecule on the gene &quot;&quot;&quot;</span>
+        <span class="n">num_sure_exon_ivls</span> <span class="o">=</span> <span class="n">num_maybe_exon_ivls</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Loop trough the gene&#39;s intervals</span>
+        <span class="k">for</span> <span class="n">hit</span><span class="p">,</span> <span class="n">ivl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ivlhits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ivls</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">hit</span><span class="p">:</span>
+                <span class="c1"># if there is at least one evidence of sure intron mapping count as a unspliced molecule</span>
+                <span class="k">if</span> <span class="n">ivl</span><span class="o">.</span><span class="n">is_sure_valid_intron</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">unspliced_mol_counts</span><span class="p">[</span><span class="n">my_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">break</span>
+                <span class="n">num_sure_exon_ivls</span> <span class="o">+=</span> <span class="n">ivl</span><span class="o">.</span><span class="n">is_sure_exon</span>
+                <span class="n">num_maybe_exon_ivls</span> <span class="o">+=</span> <span class="n">ivl</span><span class="o">.</span><span class="n">is_maybe_exon</span>
+                <span class="c1"># NOTE here we could keep track of ivl.is_sure_intron for the purpose of excluding them in the following condition</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">num_sure_exon_ivls</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_some_spliced_read</span><span class="p">:</span>  <span class="c1"># NOTE: this condition might be reconsidered</span>
+            <span class="c1"># alternative might be if (num_sure_exon_ivls &gt; 0 and num_maybe_exon_ivls == 0) or self.has_some_spliced_read:  #</span>
+            <span class="c1"># Either all reads hit to sure exons, or all reads hit to sure/maybe exon and some read is spliced</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">spliced_mol_counts</span><span class="p">[</span><span class="n">my_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ambiguous_mol_counts</span><span class="p">[</span><span class="n">my_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span></div></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.9.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

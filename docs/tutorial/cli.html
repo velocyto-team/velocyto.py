@@ -1,0 +1,424 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CLI Usage Guide &mdash; velocyto 0.9.5 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="velocyto 0.9.5 documentation" href="../index.html"/>
+        <link rel="up" title="Tutorial" href="index.html"/>
+        <link rel="next" title="Analysis Pipeline" href="analysis.html"/>
+        <link rel="prev" title="Tutorial" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#running-the-cli">Running the CLI</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">CLI Usage Guide</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#preparation-of-the-intronic-exonic-intervals">Preparation of the intronic/exonic intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#prepare-repeats-annotation">Prepare repeats annotation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-velocyto">Run velocyto</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-on-a-single-or-multiple-10x-chromium-samples">Run on a single or multiple 10X Chromium samples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#about-the-output-loom-file">About the output .loom file</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#estimating-rna-velocity">Estimating RNA velocity</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../fullapi/index.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Authors and citations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">velocyto</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Tutorial</a> &raquo;</li>
+        
+      <li>CLI Usage Guide</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorial/cli.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cli-usage-guide">
+<span id="cli"></span><h1>CLI Usage Guide<a class="headerlink" href="#cli-usage-guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>After you have velocyto correctly installed on your machine the <code class="docutils literal"><span class="pre">velocyto</span></code> command will become available.
+<code class="docutils literal"><span class="pre">velocyto</span></code> is a command line tool with subcomands. You can get all the available commands typing <code class="docutils literal"><span class="pre">velocyto</span> <span class="pre">--help</span></code>. You will get the following output.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">velocyto</span> <span class="n">COMMAND</span> <span class="p">[</span><span class="n">ARGS</span><span class="p">]</span><span class="o">...</span>
+
+<span class="n">Options</span><span class="p">:</span>
+    <span class="o">--</span><span class="n">help</span>  <span class="n">Show</span> <span class="n">this</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span><span class="o">.</span>
+
+<span class="n">Commands</span><span class="p">:</span>
+    <span class="n">extract_intervals</span>   <span class="n">Transform</span> <span class="n">a</span> <span class="n">genome</span> <span class="n">annotation</span> <span class="o">.</span><span class="n">gtf</span> <span class="n">file</span> <span class="n">into</span> <span class="n">a</span> <span class="n">intervals</span> <span class="o">.</span><span class="n">txt</span> <span class="n">file</span><span class="o">.</span>
+    <span class="n">extract_repeats</span> <span class="n">Transform</span> <span class="n">a</span> <span class="n">repeats</span> <span class="o">.</span><span class="n">gtf</span> <span class="n">file</span> <span class="n">into</span> <span class="n">a</span> <span class="n">intervals</span> <span class="o">.</span><span class="n">gtf</span> <span class="n">file</span><span class="o">.</span>
+    <span class="n">multi10x</span>           <span class="n">Runs</span> <span class="n">the</span> <span class="n">velocity</span> <span class="n">analysis</span> <span class="n">on</span> <span class="n">multiple</span> <span class="n">a</span> <span class="n">Chromium</span> <span class="n">samples</span>
+    <span class="n">run</span>                <span class="n">Runs</span> <span class="n">the</span> <span class="n">velocity</span> <span class="n">analysis</span> <span class="n">outputting</span> <span class="n">a</span> <span class="n">loom</span> <span class="n">file</span>
+    <span class="n">run10x</span>             <span class="n">Runs</span> <span class="n">the</span> <span class="n">velocity</span> <span class="n">analysis</span> <span class="k">for</span> <span class="n">a</span> <span class="n">Chromium</span> <span class="n">Sample</span>
+</pre></div>
+</div>
+<p>You can further query for information on each subcommand by typing <code class="docutils literal"><span class="pre">velocyto</span> <span class="pre">COMMANDNAME</span> <span class="pre">--help</span></code>.</p>
+<p>Alternatively you can visit the online <a class="reference internal" href="../fullapi/cliapi.html#cliapi"><span class="std std-ref">api description page</span></a> that includes usage information for all the subcommands</p>
+</div>
+<div class="section" id="preparation-of-the-intronic-exonic-intervals">
+<h2>Preparation of the intronic/exonic intervals<a class="headerlink" href="#preparation-of-the-intronic-exonic-intervals" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This step need to be performed <strong>only once</strong> per genome annotation. Execution time is ~1h</p>
+</div>
+<p>The first step is to build your preprocessed annotation files starting from a genome annotation (.gtf file).
+For example if you use the default cellranger pipeline, this will be prepackaged and it can be downloaded <a class="reference external" href="https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/advanced/references">here</a>.
+The script will scan the annotations and annotate situations of overlapping.</p>
+<p>If <code class="code docutils literal"><span class="pre">genes.gtf</span></code> is your annotation file. The typical use of the command is is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">velocyto</span> <span class="n">extract_intervals</span> <span class="n">genes</span><span class="o">.</span><span class="n">gtf</span> <span class="o">-</span><span class="n">p</span> <span class="n">somepath</span><span class="o">/</span><span class="n">genomename</span>
+</pre></div>
+</div>
+<p>And the <a class="reference internal" href="../fullapi/cliapi.html#cliapi"><span class="std std-ref">full signature</span></a> is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">velocyto</span> <span class="n">extract_intervals</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span> <span class="n">GTF_FILE</span>
+
+<span class="n">Transform</span> <span class="n">a</span> <span class="n">genome</span> <span class="n">annotation</span> <span class="o">.</span><span class="n">gtf</span> <span class="n">file</span> <span class="n">into</span> <span class="n">a</span> <span class="n">intervals</span> <span class="o">.</span><span class="n">txt</span> <span class="n">file</span> <span class="n">required</span> <span class="n">to</span> <span class="n">run</span> <span class="n">velocyto</span><span class="o">.</span>
+
+<span class="n">GTF_FILE</span><span class="p">:</span> <span class="nb">input</span> <span class="n">file</span>
+
+<span class="n">Options</span><span class="p">:</span>
+    <span class="o">--</span><span class="n">dogenes</span> <span class="o">/</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">dogenes</span>  <span class="n">whether</span> <span class="n">to</span> <span class="n">process</span> <span class="n">gene</span> <span class="n">models</span>  <span class="p">[</span><span class="n">default</span><span class="p">:</span> <span class="kc">True</span><span class="p">]</span>
+    <span class="o">--</span><span class="n">dotrs</span> <span class="o">/</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">dotrs</span>      <span class="n">whether</span> <span class="n">to</span> <span class="n">process</span> <span class="n">transcript</span> <span class="n">models</span>  <span class="p">[</span><span class="n">default</span><span class="p">:</span> <span class="kc">True</span><span class="p">]</span>
+    <span class="o">-</span><span class="n">p</span><span class="p">,</span> <span class="o">--</span><span class="n">outfileprefix</span> <span class="n">PATH</span>  <span class="n">prefix</span> <span class="n">to</span> <span class="n">the</span> <span class="n">output</span> <span class="n">files</span> <span class="p">[</span><span class="n">REQUIRED</span><span class="p">]</span>
+    <span class="o">--</span><span class="n">help</span>                    <span class="n">Show</span> <span class="n">this</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span><span class="o">.</span>
+</pre></div>
+</div>
+<p><code class="code docutils literal"><span class="pre">--outfileprefix/-p</span> <span class="pre">PATH</span></code> is mandatory and it should be set something like somepath/genomename</p>
+<p>If the command runs correctly the file <code class="code docutils literal"><span class="pre">somepath/genomename_gene_ivls.txt</span></code> will be produced.
+At this point you are ready to produce a <a class="reference external" href="https://github.com/linnarsson-lab/loompy">.loom file</a> for all your datasets.</p>
+</div>
+<div class="section" id="prepare-repeats-annotation">
+<h2>Prepare repeats annotation<a class="headerlink" href="#prepare-repeats-annotation" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This step is optional but recommended!</p>
+</div>
+<p>Dowloaded an appropriate mask repeat annotation (for example <a class="reference external" href="https://genome.ucsc.edu/cgi-bin/hgTables?hgsid=611454127_NtvlaW6xBSIRYJEBI0iRDEWisITa&amp;clade=mammal&amp;org=Mouse&amp;db=mm10&amp;hgta_group=allTracks&amp;hgta_track=rmsk&amp;hgta_table=0&amp;hgta_regionType=genome&amp;position=chr12%3A56694976-56714605&amp;hgta_outputType=primaryTable&amp;hgta_outFileName=mm10_rmsk.gtf">from UCSC genome browser</a> and <strong>remember to select GTF</strong>  as output format).
+And run the following command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">velocyto</span> <span class="n">extract_intervals</span> <span class="n">mm10_rmsk</span><span class="o">.</span><span class="n">gtf</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="run-velocyto">
+<h2>Run velocyto<a class="headerlink" href="#run-velocyto" title="Permalink to this headline">¶</a></h2>
+<p>The general purpose command to start the pipeline for read counting is <code class="docutils literal"><span class="pre">velocyto</span> <span class="pre">run</span></code>. The <code class="docutils literal"><span class="pre">run</span></code> subcommand logic is compatible with both 10X Genomics v1/v2 and InDrops 3’ chemistry.
+However, for data generated by 10X Genomics platform using the <code class="docutils literal"><span class="pre">cellranger</span></code> pipeline, we suggest to use the shortcut <code class="docutils literal"><span class="pre">run10x</span></code> described below.</p>
+<p>A typical use of <code class="docutils literal"><span class="pre">run</span></code> is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">velocyto</span> <span class="n">run</span> <span class="o">-</span><span class="n">b</span> <span class="n">valid_barcodes</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_path</span> <span class="o">-</span><span class="n">m</span> <span class="n">mm10_rmsk</span><span class="o">.</span><span class="n">gtf</span> <span class="n">mapped_reads</span><span class="o">.</span><span class="n">bam</span> <span class="n">mm10_gene_ivls</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>The general signature for the <code class="docutils literal"><span class="pre">run</span></code> subcommand is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">velocyto</span> <span class="n">run</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span> <span class="n">BAMFILE</span> <span class="n">IVLFILE</span>
+
+<span class="n">Runs</span> <span class="n">the</span> <span class="n">velocity</span> <span class="n">analysis</span> <span class="n">outputting</span> <span class="n">a</span> <span class="n">loom</span> <span class="n">file</span>
+
+<span class="n">BAMFILE</span> <span class="n">bam</span> <span class="n">file</span> <span class="k">with</span> <span class="nb">sorted</span> <span class="n">reads</span>
+
+<span class="n">IVLFILE</span> <span class="n">text</span> <span class="n">file</span> <span class="n">generated</span> <span class="n">by</span> <span class="n">velocyto</span> <span class="n">extract_intervals</span>
+
+<span class="n">Options</span><span class="p">:</span>
+<span class="o">-</span><span class="n">b</span><span class="p">,</span> <span class="o">--</span><span class="n">bcfile</span> <span class="n">PATH</span>         <span class="n">Valid</span> <span class="n">barcodes</span> <span class="n">file</span><span class="p">,</span> <span class="n">to</span> <span class="nb">filter</span> <span class="n">the</span> <span class="n">bam</span><span class="o">.</span> <span class="n">If</span> <span class="o">--</span><span class="n">bcfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">specified</span> <span class="nb">all</span> <span class="n">the</span> <span class="n">cell</span> <span class="n">barcodes</span> <span class="n">will</span> <span class="n">be</span> <span class="n">included</span><span class="o">.</span> <span class="n">Cell</span> <span class="n">barcodes</span> <span class="n">should</span> <span class="n">be</span> <span class="n">specified</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">bcfile</span> <span class="k">as</span> <span class="n">the</span> <span class="n">CB</span> <span class="n">tag</span> <span class="n">of</span> <span class="n">each</span> <span class="n">read</span>
+<span class="o">-</span><span class="n">o</span><span class="p">,</span> <span class="o">--</span><span class="n">outputfolder</span> <span class="n">PATH</span>   <span class="n">Output</span> <span class="n">folder</span><span class="p">,</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">need</span> <span class="n">to</span> <span class="n">exist</span>
+<span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">sampleid</span> <span class="n">PATH</span>       <span class="n">The</span> <span class="n">sample</span> <span class="n">name</span> <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="n">retrieve</span> <span class="n">informations</span> <span class="kn">from</span> <span class="nn">metadatatable</span>
+<span class="o">-</span><span class="n">s</span><span class="p">,</span> <span class="o">--</span><span class="n">metadatatable</span> <span class="n">PATH</span>  <span class="n">Table</span> <span class="n">containing</span> <span class="n">metadata</span> <span class="n">of</span> <span class="n">the</span> <span class="n">various</span> <span class="n">samples</span> <span class="p">(</span><span class="n">csv</span> <span class="n">formatted</span><span class="p">,</span> <span class="p">[</span><span class="n">row</span><span class="p">:</span><span class="n">samples</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span><span class="n">entry</span><span class="p">])</span>
+<span class="o">-</span><span class="n">m</span><span class="p">,</span> <span class="o">--</span><span class="n">repmask</span> <span class="n">PATH</span>        <span class="o">.</span><span class="n">gtf</span> <span class="n">file</span> <span class="n">containing</span> <span class="n">intervals</span> <span class="nb">sorted</span> <span class="n">by</span> <span class="n">chromosome</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">position</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">by</span> <span class="n">running</span> <span class="n">sort</span> <span class="o">-</span><span class="n">k1</span><span class="p">,</span><span class="mi">1</span> <span class="o">-</span><span class="n">k7</span><span class="p">,</span><span class="mi">7</span> <span class="o">-</span><span class="n">k4</span><span class="p">,</span><span class="mi">4</span><span class="n">n</span> <span class="n">mm10_rmsk</span><span class="o">.</span><span class="n">gtf</span> <span class="o">&gt;</span> <span class="n">mm10_rmsk_sorted</span><span class="o">.</span><span class="n">gtf</span><span class="p">;</span> <span class="n">velocyto</span> <span class="n">extract_repeats</span> <span class="n">mm10_rmsk_sorted</span><span class="o">.</span><span class="n">gtf</span><span class="p">)</span>
+<span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">debug</span>               <span class="n">debug</span> <span class="n">mode</span><span class="o">.</span> <span class="n">It</span> <span class="n">will</span> <span class="n">generate</span> <span class="o">.</span><span class="n">sam</span> <span class="n">files</span> <span class="n">of</span> <span class="n">individual</span> <span class="n">reads</span> <span class="p">(</span><span class="ow">not</span> <span class="n">molecules</span><span class="p">)</span> <span class="n">that</span> <span class="n">are</span> <span class="n">identified</span> <span class="k">as</span> <span class="n">exons</span><span class="p">,</span> <span class="n">introns</span><span class="p">,</span> <span class="n">ambiguous</span> <span class="ow">and</span> <span class="n">chimeras</span>
+<span class="o">--</span><span class="n">help</span>                    <span class="n">Show</span> <span class="n">this</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span><span class="o">.</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Running velocyto run without specifying <code class="code docutils literal"><span class="pre">--bcfile</span></code> is not recommended:  it has not been appropriately tested yet.</p>
+</div>
+<p>The metadatatable is a csv file containing metadata of multiple samples. This will be transferred in the column attributes of the produced .loom file. It should be formatted as following:</p>
+</div>
+<div class="section" id="run-on-a-single-or-multiple-10x-chromium-samples">
+<h2>Run on a single or multiple 10X Chromium samples<a class="headerlink" href="#run-on-a-single-or-multiple-10x-chromium-samples" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">velocyto</span></code> supports a shortcut to run directly on one or more <cite>cellranger</cite> output folders (e.g. this is the folder containing the subfolder: <code class="docutils literal"><span class="pre">outs</span></code>, <code class="docutils literal"><span class="pre">outs/analys</span></code> and <code class="docutils literal"><span class="pre">outs/filtered_gene_bc_matrices</span></code>).</p>
+<p>For example if we want to run the pipeline on the folder <code class="docutils literal"><span class="pre">mypath/sample01</span></code>. We would do:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">velocyto</span> <span class="n">run10x</span> <span class="o">-</span><span class="n">m</span> <span class="n">mm10_rmsk</span><span class="o">.</span><span class="n">gtf</span> <span class="n">mypath</span><span class="o">/</span><span class="n">sample01</span> <span class="n">mm10_gene_ivls</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>The full signature of the command is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">velocyto</span> <span class="n">run10x</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span> <span class="n">SAMPLEFOLDER</span> <span class="n">IVLFILE</span>
+
+<span class="n">Runs</span> <span class="n">the</span> <span class="n">velocity</span> <span class="n">analysis</span> <span class="k">for</span> <span class="n">a</span> <span class="n">Chromium</span> <span class="mi">10</span><span class="n">X</span> <span class="n">Sample</span>
+
+<span class="mi">10</span><span class="n">XSAMPLEFOLDER</span> <span class="n">specifies</span> <span class="n">the</span> <span class="n">cellranger</span> <span class="n">sample</span> <span class="n">folder</span>
+
+<span class="n">IVLFILE</span> <span class="n">text</span> <span class="n">file</span> <span class="n">generated</span> <span class="n">by</span> <span class="n">velocyto</span> <span class="n">extract_intervals</span>
+
+<span class="n">Options</span><span class="p">:</span>
+<span class="o">-</span><span class="n">s</span><span class="p">,</span> <span class="o">--</span><span class="n">metadatatable</span> <span class="n">PATH</span>  <span class="n">Table</span> <span class="n">containing</span> <span class="n">metadata</span> <span class="n">of</span> <span class="n">the</span> <span class="n">various</span> <span class="n">samples</span> <span class="p">(</span><span class="n">csv</span> <span class="n">formatted</span><span class="p">,</span> <span class="p">[</span><span class="n">row</span><span class="p">:</span><span class="n">samples</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span><span class="n">entry</span><span class="p">])</span>
+<span class="o">-</span><span class="n">m</span><span class="p">,</span> <span class="o">--</span><span class="n">repmask</span> <span class="n">PATH</span>        <span class="o">.</span><span class="n">gtf</span> <span class="n">file</span> <span class="n">containing</span> <span class="n">intervals</span> <span class="nb">sorted</span> <span class="n">by</span> <span class="n">chromosome</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">position</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">by</span> <span class="n">running</span><span class="p">:</span> <span class="n">velocyto</span> <span class="n">extract_repeats</span> <span class="n">mm10_rmsk_sorted</span><span class="o">.</span><span class="n">gtf</span><span class="p">)</span>
+<span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">debug</span>               <span class="n">debug</span> <span class="n">mode</span><span class="o">.</span> <span class="n">It</span> <span class="n">will</span> <span class="n">generate</span> <span class="o">.</span><span class="n">sam</span> <span class="n">files</span> <span class="n">of</span> <span class="n">individual</span> <span class="n">reads</span> <span class="p">(</span><span class="ow">not</span> <span class="n">molecules</span><span class="p">)</span> <span class="n">that</span> <span class="n">are</span> <span class="n">identified</span> <span class="k">as</span> <span class="n">exons</span><span class="p">,</span> <span class="n">introns</span><span class="p">,</span> <span class="n">ambiguous</span> <span class="ow">and</span> <span class="n">chimeras</span>
+<span class="o">--</span><span class="n">help</span>                    <span class="n">Show</span> <span class="n">this</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>In addition to <code class="docutils literal"><span class="pre">run10x</span></code> the comand <code class="docutils literal"><span class="pre">multi10x</span></code> allows running many samples at the same time in parallel.
+For example the following commands will run all the samples present in <code class="docutils literal"><span class="pre">parentfolder</span></code>, parallelizing the processing to up 8 samples at a time.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">velocyto</span> <span class="n">multi10x</span> <span class="o">-</span><span class="n">n</span> <span class="mi">8</span> <span class="o">-</span><span class="n">l</span> <span class="n">logfolder</span> <span class="n">parentfolder</span> <span class="n">mm10_gene_ivls</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>The logs of each process will be found inside <code class="docutils literal"><span class="pre">logfolder</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">velocyto</span> <span class="n">multi10x</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span> <span class="n">PARENTFOLDER</span> <span class="n">IVLFILE</span>
+
+<span class="n">Runs</span> <span class="n">the</span> <span class="n">velocity</span> <span class="n">analysis</span> <span class="n">on</span> <span class="n">multiple</span> <span class="n">a</span> <span class="n">Chromium</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">parallel</span><span class="p">,</span> <span class="n">spawning</span> <span class="n">several</span> <span class="n">subprocesses</span>
+
+<span class="n">Options</span><span class="p">:</span>
+<span class="o">-</span><span class="n">n</span><span class="p">,</span> <span class="o">--</span><span class="n">number</span> <span class="n">INTEGER</span>      <span class="n">Number</span> <span class="n">of</span> <span class="n">processes</span> <span class="n">to</span> <span class="n">execute</span>
+<span class="o">-</span><span class="n">w</span><span class="p">,</span> <span class="o">--</span><span class="n">wait</span> <span class="n">INTEGER</span>        <span class="n">Delay</span> <span class="ow">in</span> <span class="n">seconds</span> <span class="n">between</span> <span class="n">the</span> <span class="n">executions</span> <span class="n">of</span> <span class="n">single</span> <span class="n">run</span> <span class="n">comands</span>
+<span class="o">-</span><span class="n">s</span><span class="p">,</span> <span class="o">--</span><span class="n">metadatatable</span> <span class="n">PATH</span>  <span class="n">Table</span> <span class="n">containing</span> <span class="n">metadata</span> <span class="n">of</span> <span class="n">the</span> <span class="n">various</span> <span class="n">samples</span> <span class="p">(</span><span class="n">csv</span> <span class="n">fortmated</span><span class="p">,</span> <span class="p">[</span><span class="n">row</span><span class="p">:</span><span class="n">samples</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span><span class="n">entry</span><span class="p">])</span>
+<span class="o">-</span><span class="n">m</span><span class="p">,</span> <span class="o">--</span><span class="n">repmask</span> <span class="n">PATH</span>        <span class="o">.</span><span class="n">gtf</span> <span class="n">file</span> <span class="n">containing</span> <span class="n">intrvals</span> <span class="nb">sorted</span> <span class="n">by</span> <span class="n">chromosome</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">position</span>
+                            <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">by</span> <span class="n">running</span> <span class="n">sort</span> <span class="o">-</span><span class="n">k1</span><span class="p">,</span><span class="mi">1</span> <span class="o">-</span><span class="n">k7</span><span class="p">,</span><span class="mi">7</span> <span class="o">-</span><span class="n">k4</span><span class="p">,</span><span class="mi">4</span><span class="n">n</span> <span class="n">mm10_rmsk</span><span class="o">.</span><span class="n">gtf</span> <span class="o">&gt;</span> <span class="n">mm10_rmsk_sorted</span><span class="o">.</span><span class="n">gtf</span><span class="p">;</span> <span class="n">velocyto</span> <span class="n">extract_repeats</span> <span class="n">mm10_rmsk_sorted</span><span class="o">.</span><span class="n">gtf</span><span class="p">)</span>
+<span class="o">-</span><span class="n">l</span><span class="p">,</span> <span class="o">--</span><span class="n">logfolder</span> <span class="n">PATH</span>      <span class="n">Folder</span> <span class="n">where</span> <span class="nb">all</span> <span class="n">the</span> <span class="n">log</span> <span class="n">files</span> <span class="n">will</span> <span class="n">be</span> <span class="n">generated</span>
+<span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">debug</span>               <span class="n">debug</span> <span class="n">mode</span><span class="o">.</span> <span class="n">It</span> <span class="n">will</span> <span class="n">generate</span> <span class="o">.</span><span class="n">sam</span> <span class="n">files</span> <span class="n">of</span> <span class="n">individual</span> <span class="n">reads</span> <span class="p">(</span><span class="ow">not</span> <span class="n">molecules</span><span class="p">)</span> <span class="n">that</span> <span class="n">are</span> <span class="n">identified</span> <span class="k">as</span> <span class="n">exons</span><span class="p">,</span> <span class="n">introns</span><span class="p">,</span> <span class="n">ambiguous</span> <span class="ow">and</span> <span class="n">chimeras</span>
+<span class="o">--</span><span class="n">help</span>                    <span class="n">Show</span> <span class="n">this</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span><span class="o">.</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Execution time is ~2h30m per sample but might vary significantly by sequencing depth and cpu power.</p>
+</div>
+</div>
+<div class="section" id="about-the-output-loom-file">
+<h2>About the output .loom file<a class="headerlink" href="#about-the-output-loom-file" title="Permalink to this headline">¶</a></h2>
+<p>The main result file is a 4-layered <a class="reference external" href="https://github.com/linnarsson-lab/loompy">loom file</a> : <cite>sample_id.loom</cite>.</p>
+<p>A valid .loom file is simply an HDF5 file that contains specific groups representing the main matrix as well as row and column attributes.
+Because of this, .loom files can be created and read by any language that supports HDF5.</p>
+<p>.loom files can be easily handled using the <a class="reference external" href="https://github.com/linnarsson-lab/loompy">loompy package</a></p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="analysis.html" class="btn btn-neutral float-right" title="Analysis Pipeline" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.9.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

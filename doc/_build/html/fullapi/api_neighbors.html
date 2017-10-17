@@ -1,0 +1,516 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>velocyto.neighbors module &mdash; velocyto 0.9.5 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="velocyto 0.9.5 documentation" href="../index.html"/>
+        <link rel="up" title="API" href="index.html"/>
+        <link rel="next" title="velocyto.diffusion module" href="api_diffusion.html"/>
+        <link rel="prev" title="velocyto.estimation module" href="api_estimation.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#command-line-api">Command Line API</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#library-api">Library API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="index.html#the-analysis-module">The Analysis module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#the-estimation-module">The Estimation module</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html#the-neighbors-module">The Neighbors module</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">velocyto.neighbors module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#the-diffusion-module">The Diffusion module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#internals">Internals</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Authors and citations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">velocyto</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API</a> &raquo;</li>
+        
+      <li>velocyto.neighbors module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/fullapi/api_neighbors.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-velocyto.neighbors">
+<span id="velocyto-neighbors-module"></span><h1>velocyto.neighbors module<a class="headerlink" href="#module-velocyto.neighbors" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="velocyto.neighbors.BalancedKNN">
+<em class="property">class </em><code class="descclassname">velocyto.neighbors.</code><code class="descname">BalancedKNN</code><span class="sig-paren">(</span><em>k: int = 50</em>, <em>sight_k: int = 100</em>, <em>maxl: int = 200</em>, <em>mode: str = 'distance'</em>, <em>metric: str = 'euclidean'</em>, <em>n_jobs: int = 4</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/neighbors.html#BalancedKNN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.BalancedKNN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Greedy algorythm to balance a K-nearest neighbour graph</p>
+<p>It has an API similar to scikit-learn</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (<em>int</em><em>  (</em><em>default=50</em><em>)</em>) – the number of neighbours in the final graph</li>
+<li><strong>sight_k</strong> (<em>int</em><em>  (</em><em>default=100</em><em>)</em>) – the number of neighbours in the initialization graph
+It correspondent to the farthest neighbour that a sample is allowed to connect to
+when no closest neighbours are allowed. If sight_k is reached then the matrix is filled
+with the sample itself</li>
+<li><strong>maxl</strong> (<em>int</em><em>  (</em><em>default=200</em><em>)</em>) – max degree of connectivity allowed. Avoids the presence of hubs in the graph, it is the
+maximum number of neighbours that are allowed to contact a node before the node is blocked</li>
+<li><strong>mode</strong> (<em>str</em><em> (</em><em>default=&quot;connectivity&quot;</em><em>)</em>) – decide wich kind of utput “distance” or “connectivity”</li>
+<li><strong>n_jobs</strong> (<em>int</em><em>  (</em><em>default=4</em><em>)</em>) – parallelization of the standard KNN search preformed at initialization</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="velocyto.neighbors.BalancedKNN.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>data: numpy.ndarray</em>, <em>sight_k: int = None</em><span class="sig-paren">)</span> &#x2192; typing.Any<a class="reference internal" href="../_modules/velocyto/neighbors.html#BalancedKNN.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.BalancedKNN.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits the model</p>
+<dl class="docutils">
+<dt>data: np.ndarray (samples, features)</dt>
+<dd>np</dd>
+<dt>sight_k: int</dt>
+<dd>the farthest point that a node is allowed to connect to when its closest neighbours are not allowed</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.neighbors.BalancedKNN.kneighbors">
+<code class="descname">kneighbors</code><span class="sig-paren">(</span><em>X: numpy.ndarray = None</em>, <em>maxl: int = None</em>, <em>mode: str = 'distance'</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[[numpy.ndarray, numpy.ndarray], numpy.ndarray]<a class="reference internal" href="../_modules/velocyto/neighbors.html#BalancedKNN.kneighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.BalancedKNN.kneighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the K-neighbors of a point.</p>
+<p>Returns indices of and distances to the neighbors of each point.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>array-like</em><em>, </em><em>shape</em><em> (</em><em>n_query</em><em>, </em><em>n_features</em><em>)</em><em>,</em>) – The query point or points.
+If not provided, neighbors of each indexed point are returned.
+In this case, the query point is not considered its own neighbor.</li>
+<li><strong>maxl</strong> (<em>int</em>) – max degree of connectivity allowed</li>
+<li><strong>mode</strong> (<em>&quot;distance&quot;</em><em> or </em><em>&quot;connectivity&quot;</em>) – Decides the kind of output</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>dist_new</strong> (<em>np.ndarray (samples, k+1)</em>) – distances to the NN</li>
+<li><strong>dsi_new</strong> (<em>np.ndarray (samples, k+1)</em>) – indexes of the NN, first column is the sample itself</li>
+<li><strong>l</strong> (<em>np.ndarray (samples)</em>) – l[i] is the number of connections from other samples to the sample i</li>
+<li><em>NOTE</em></li>
+<li><em>First column (0) correspond to the sample itself, the nearest nenigbour is at the second column (1)</em></li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.neighbors.BalancedKNN.kneighbors_graph">
+<code class="descname">kneighbors_graph</code><span class="sig-paren">(</span><em>X: numpy.ndarray = None</em>, <em>maxl: int = None</em>, <em>mode: str = 'distance'</em><span class="sig-paren">)</span> &#x2192; scipy.sparse.csr.csr_matrix<a class="reference internal" href="../_modules/velocyto/neighbors.html#BalancedKNN.kneighbors_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.BalancedKNN.kneighbors_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrun the K-neighbors graph as a sparse csr matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>array-like</em><em>, </em><em>shape</em><em> (</em><em>n_query</em><em>, </em><em>n_features</em><em>)</em><em>,</em>) – The query point or points.
+If not provided, neighbors of each indexed point are returned.
+In this case, the query point is not considered its own neighbor.</li>
+<li><strong>maxl</strong> (<em>int</em>) – max degree of connectivity allowed</li>
+<li><strong>mode</strong> (<em>&quot;distance&quot;</em><em> or </em><em>&quot;connectivity&quot;</em>) – Decides the kind of output</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>neighbor_graph</strong> (<em>scipy.sparse.csr_matrix</em>) – The values are either distances or connectivity dependig of the mode parameter</li>
+<li><strong>NOTE</strong> (<em>The diagonal will be zero even though the value 0 is actually stored</em>)</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.neighbors.BalancedKNN.n_samples">
+<code class="descname">n_samples</code><a class="headerlink" href="#velocyto.neighbors.BalancedKNN.n_samples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.neighbors.BalancedKNN.smooth_data">
+<code class="descname">smooth_data</code><span class="sig-paren">(</span><em>data_to_smooth: numpy.ndarray</em>, <em>X: numpy.ndarray = None</em>, <em>maxl: int = None</em>, <em>mutual: bool = False</em>, <em>only_increase: bool = True</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/neighbors.html#BalancedKNN.smooth_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.BalancedKNN.smooth_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the wights learned from knn to smooth any data matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data_to_smooth</strong> (<em>(</em><em>features</em><em>, </em><em>samples</em><em>) </em><em>!! NOTE !! this is different from the input</em><em> (</em><em>for speed issues</em><em>)</em>) – if the data is provided (samples, features), this will be detected and
+the correct operation performed at cost of some effciency
+In the case where samples == samples then the shape (features, samples) will be assumed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.neighbors.balance_knn_loop">
+<code class="descclassname">velocyto.neighbors.</code><code class="descname">balance_knn_loop</code><a class="reference internal" href="../_modules/velocyto/neighbors.html#balance_knn_loop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.balance_knn_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fast and greedy algorythm to balance a K-NN graph so that no node is the NN to more than maxl other nodes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dsi</strong> (<em>np.ndarray</em><em>  (</em><em>samples</em><em>, </em><em>K</em><em>)</em>) – distance sorted indexes (as returned by sklearn NN)</li>
+<li><strong>dist</strong> (<em>np.ndarray</em><em>  (</em><em>samples</em><em>, </em><em>K</em><em>)</em>) – the actual distance corresponding to the sorted indexes</li>
+<li><strong>lsi</strong> (<em>np.ndarray</em><em> (</em><em>samples</em><em>,</em><em>)</em>) – degree of connectivity (l) sorted indexes</li>
+<li><strong>maxl</strong> (<em>int</em>) – max degree of connectivity (from others to self) allowed</li>
+<li><strong>k</strong> (<em>int</em>) – number of neighbours in the final graph</li>
+<li><strong>return_distance</strong> (<em>bool</em>) – wether to return distance</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>dsi_new</strong> (<em>np.ndarray (samples, k+1)</em>) – indexes of the NN, first column is the sample itself</li>
+<li><strong>dist_new</strong> (<em>np.ndarray (samples, k+1)</em>) – distances to the NN</li>
+<li><strong>l</strong> (<em>np.ndarray (samples)</em>) – l[i] is the number of connections from other samples to the sample i</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.neighbors.connectivity_to_weights">
+<code class="descclassname">velocyto.neighbors.</code><code class="descname">connectivity_to_weights</code><span class="sig-paren">(</span><em>mknn: scipy.sparse.csr.csr_matrix</em>, <em>axis: int = 1</em><span class="sig-paren">)</span> &#x2192; scipy.sparse.lil.lil_matrix<a class="reference internal" href="../_modules/velocyto/neighbors.html#connectivity_to_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.connectivity_to_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a binary connectivity matrix to weights ready to be multiplied to smooth a data matrix</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.neighbors.convolve_by_sparse_weights">
+<code class="descclassname">velocyto.neighbors.</code><code class="descname">convolve_by_sparse_weights</code><span class="sig-paren">(</span><em>data: numpy.ndarray</em>, <em>w: scipy.sparse.csr.csr_matrix</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/neighbors.html#convolve_by_sparse_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.convolve_by_sparse_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the wights learned from knn to convolve any data matrix</p>
+<p>NOTE: A improved implementation could detect wich one is sparse and wich kind of sparse and perform faster computation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.neighbors.knn_balance">
+<code class="descclassname">velocyto.neighbors.</code><code class="descname">knn_balance</code><span class="sig-paren">(</span><em>dsi: numpy.ndarray</em>, <em>dist: numpy.ndarray = None</em>, <em>maxl: int = 200</em>, <em>k: int = 60</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[[numpy.ndarray, numpy.ndarray], numpy.ndarray]<a class="reference internal" href="../_modules/velocyto/neighbors.html#knn_balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.knn_balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Balance a K-NN graph so that no node is the NN to more than maxl other nodes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dsi</strong> (<em>np.ndarray</em><em>  (</em><em>samples</em><em>, </em><em>K</em><em>)</em>) – distance sorted indexes (as returned by sklearn NN)</li>
+<li><strong>dist</strong> (<em>np.ndarray</em><em>  (</em><em>samples</em><em>, </em><em>K</em><em>)</em>) – the actual distance corresponding to the sorted indexes</li>
+<li><strong>maxl</strong> (<em>int</em>) – max degree of connectivity allowed</li>
+<li><strong>k</strong> (<em>int</em>) – number of neighbours in the final graph</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>dist_new</strong> (<em>np.ndarray (samples, k+1)</em>) – distances to the NN</li>
+<li><strong>dsi_new</strong> (<em>np.ndarray (samples, k+1)</em>) – indexes of the NN, first column is the sample itself</li>
+<li><strong>l</strong> (<em>np.ndarray (samples)</em>) – l[i] is the number of connections from other samples to the sample i</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.neighbors.knn_distance_matrix">
+<code class="descclassname">velocyto.neighbors.</code><code class="descname">knn_distance_matrix</code><span class="sig-paren">(</span><em>data: numpy.ndarray</em>, <em>metric: str = None</em>, <em>k: int = 40</em>, <em>mode: str = 'connectivity'</em>, <em>n_jobs: int = 4</em><span class="sig-paren">)</span> &#x2192; scipy.sparse.csr.csr_matrix<a class="reference internal" href="../_modules/velocyto/neighbors.html#knn_distance_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.knn_distance_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a nearest neighbour distance matrix</p>
+<p>Notice that k is meant as the actual number of neighbors NOT INCLUDING itself
+To achieve that we call kneighbors_graph with X = None</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.neighbors.knn_smooth_weights">
+<code class="descclassname">velocyto.neighbors.</code><code class="descname">knn_smooth_weights</code><span class="sig-paren">(</span><em>matrix: numpy.ndarray</em>, <em>metric: str = 'euclidean'</em>, <em>k_search: int = 20</em>, <em>k_mutual: int = 10</em>, <em>n_jobs: int = 10</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[scipy.sparse.base.spmatrix, scipy.sparse.csr.csr_matrix]<a class="reference internal" href="../_modules/velocyto/neighbors.html#knn_smooth_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.knn_smooth_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the weights to smooth the dataset using efficient sparse matrix operations</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>matrix</strong> – (genes, cells)
+expression matrix</li>
+<li><strong>metric</strong> – </li>
+<li><strong>k_search</strong> – int
+the first k nearest neighbour search number of neighbours</li>
+<li><strong>k_mutual</strong> – int
+the number of mutual neighbours to select</li>
+<li><strong>n_jobs</strong> – </li>
+<li><strong>return_knn</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Retruns</dt>
+<dd>weights (, knn)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.neighbors.make_mutual">
+<code class="descclassname">velocyto.neighbors.</code><code class="descname">make_mutual</code><span class="sig-paren">(</span><em>knn: scipy.sparse.csr.csr_matrix</em><span class="sig-paren">)</span> &#x2192; scipy.sparse.coo.coo_matrix<a class="reference internal" href="../_modules/velocyto/neighbors.html#make_mutual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.make_mutual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes edges between neighbours that are not mutual</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.neighbors.min_n">
+<code class="descclassname">velocyto.neighbors.</code><code class="descname">min_n</code><span class="sig-paren">(</span><em>row_data: numpy.ndarray</em>, <em>row_indices: numpy.ndarray</em>, <em>n: int</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[numpy.ndarray, numpy.ndarray]<a class="reference internal" href="../_modules/velocyto/neighbors.html#min_n"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.min_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the smallest entry and smallest indices of a row</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.neighbors.take_top">
+<code class="descclassname">velocyto.neighbors.</code><code class="descname">take_top</code><span class="sig-paren">(</span><em>matrix: scipy.sparse.base.spmatrix</em>, <em>n: int</em><span class="sig-paren">)</span> &#x2192; scipy.sparse.lil.lil_matrix<a class="reference internal" href="../_modules/velocyto/neighbors.html#take_top"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.neighbors.take_top" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter the top nearest neighbours from a sprse distance matrix</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api_diffusion.html" class="btn btn-neutral float-right" title="velocyto.diffusion module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api_estimation.html" class="btn btn-neutral" title="velocyto.estimation module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.9.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

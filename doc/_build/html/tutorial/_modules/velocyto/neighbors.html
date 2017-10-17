@@ -1,0 +1,612 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>velocyto.neighbors &mdash; velocyto 0.9.5 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="velocyto 0.9.5 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fullapi/index.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Authors and citations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">velocyto</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>velocyto.neighbors</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for velocyto.neighbors</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="k">import</span> <span class="n">jit</span>
+<span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="k">import</span> <span class="n">kneighbors_graph</span><span class="p">,</span> <span class="n">NearestNeighbors</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">sparse</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="c1"># Mutual KNN functions</span>
+
+
+<div class="viewcode-block" id="balance_knn_loop"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.balance_knn_loop">[docs]</a><span class="nd">@jit</span><span class="p">(</span><span class="n">signature_or_function</span><span class="o">=</span><span class="s2">&quot;Tuple((float64[:,:], int64[:,:], int64[:]))(int64[:,:], float64[:, :], int64[:], int64, int64, boolean)&quot;</span><span class="p">,</span>
+     <span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">balance_knn_loop</span><span class="p">(</span><span class="n">dsi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dist</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">lsi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">maxl</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">return_distance</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Fast and greedy algorythm to balance a K-NN graph so that no node is the NN to more than maxl other nodes</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        dsi : np.ndarray  (samples, K)</span>
+<span class="sd">            distance sorted indexes (as returned by sklearn NN)</span>
+<span class="sd">        dist : np.ndarray  (samples, K)</span>
+<span class="sd">            the actual distance corresponding to the sorted indexes</span>
+<span class="sd">        lsi : np.ndarray (samples,)</span>
+<span class="sd">            degree of connectivity (l) sorted indexes</span>
+<span class="sd">        maxl : int</span>
+<span class="sd">            max degree of connectivity (from others to self) allowed</span>
+<span class="sd">        k : int</span>
+<span class="sd">            number of neighbours in the final graph</span>
+<span class="sd">        return_distance : bool</span>
+<span class="sd">            wether to return distance</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dsi_new : np.ndarray (samples, k+1)</span>
+<span class="sd">            indexes of the NN, first column is the sample itself</span>
+<span class="sd">        dist_new : np.ndarray (samples, k+1)</span>
+<span class="sd">            distances to the NN</span>
+<span class="sd">        l: np.ndarray (samples)</span>
+<span class="sd">            l[i] is the number of connections from other samples to the sample i</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">dsi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">k</span><span class="p">,</span> <span class="s2">&quot;sight needs to be bigger than k&quot;</span>
+    <span class="c1"># numba signature &quot;Tuple((int64[:,:], float32[:, :], int64[:]))(int64[:,:], int64[:], int64, int64, bool)&quot;</span>
+    <span class="n">dsi_new</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">dsi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>  <span class="c1"># maybe d.shape[0]</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dsi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_distance</span><span class="p">:</span>
+        <span class="n">dist_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dsi_new</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dsi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c1"># For every node</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="n">lsi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dsi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>  <span class="c1"># For every other node it is connected (sight)</span>
+            <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;=</span> <span class="n">k</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">dsi</span><span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">el</span> <span class="o">==</span> <span class="n">m</span><span class="p">:</span>
+                <span class="n">dsi_new</span><span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">l</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">maxl</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">dsi_new</span><span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span>
+            <span class="n">l</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">return_distance</span><span class="p">:</span>
+                <span class="n">dist_new</span><span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+            <span class="n">p</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">==</span> <span class="n">dsi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">p</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">):</span>
+            <span class="k">while</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">:</span>
+                <span class="n">dsi_new</span><span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
+                <span class="n">dist_new</span><span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="n">p</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">return_distance</span><span class="p">:</span>
+        <span class="n">dist_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">dsi_new</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dist_new</span><span class="p">,</span> <span class="n">dsi_new</span><span class="p">,</span> <span class="n">l</span></div>
+
+
+<div class="viewcode-block" id="knn_balance"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.knn_balance">[docs]</a><span class="k">def</span> <span class="nf">knn_balance</span><span class="p">(</span><span class="n">dsi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dist</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxl</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Balance a K-NN graph so that no node is the NN to more than maxl other nodes</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        dsi : np.ndarray  (samples, K)</span>
+<span class="sd">            distance sorted indexes (as returned by sklearn NN)</span>
+<span class="sd">        dist : np.ndarray  (samples, K)</span>
+<span class="sd">            the actual distance corresponding to the sorted indexes</span>
+<span class="sd">        maxl : int</span>
+<span class="sd">            max degree of connectivity allowed</span>
+<span class="sd">        k : int</span>
+<span class="sd">            number of neighbours in the final graph</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dist_new : np.ndarray (samples, k+1)</span>
+<span class="sd">            distances to the NN</span>
+<span class="sd">        dsi_new : np.ndarray (samples, k+1)</span>
+<span class="sd">            indexes of the NN, first column is the sample itself</span>
+<span class="sd">        l: np.ndarray (samples)</span>
+<span class="sd">            l[i] is the number of connections from other samples to the sample i</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">dsi</span><span class="o">.</span><span class="n">flat</span><span class="p">[:],</span> <span class="n">minlength</span><span class="o">=</span><span class="n">dsi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">lsi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;mergesort&quot;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">dsi</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float64&quot;</span><span class="p">)</span>
+        <span class="n">dist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">balance_knn_loop</span><span class="p">(</span><span class="n">dsi</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">lsi</span><span class="p">,</span> <span class="n">maxl</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">return_distance</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">balance_knn_loop</span><span class="p">(</span><span class="n">dsi</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">lsi</span><span class="p">,</span> <span class="n">maxl</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">return_distance</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BalancedKNN"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.BalancedKNN">[docs]</a><span class="k">class</span> <span class="nc">BalancedKNN</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Greedy algorythm to balance a K-nearest neighbour graph</span>
+
+<span class="sd">    It has an API similar to scikit-learn</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    k : int  (default=50)</span>
+<span class="sd">        the number of neighbours in the final graph</span>
+<span class="sd">    sight_k : int  (default=100)</span>
+<span class="sd">        the number of neighbours in the initialization graph</span>
+<span class="sd">        It correspondent to the farthest neighbour that a sample is allowed to connect to</span>
+<span class="sd">        when no closest neighbours are allowed. If sight_k is reached then the matrix is filled</span>
+<span class="sd">        with the sample itself</span>
+<span class="sd">    maxl : int  (default=200)</span>
+<span class="sd">         max degree of connectivity allowed. Avoids the presence of hubs in the graph, it is the</span>
+<span class="sd">         maximum number of neighbours that are allowed to contact a node before the node is blocked</span>
+<span class="sd">    mode : str (default=&quot;connectivity&quot;)</span>
+<span class="sd">        decide wich kind of utput &quot;distance&quot; or &quot;connectivity&quot;</span>
+<span class="sd">    n_jobs : int  (default=4)</span>
+<span class="sd">        parallelization of the standard KNN search preformed at initialization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">sight_k</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">maxl</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sight_k</span> <span class="o">=</span> <span class="n">sight_k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxl</span> <span class="o">=</span> <span class="n">maxl</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsi_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: np.ndarray</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bknn</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: sparse.csr_matrix</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<div class="viewcode-block" id="BalancedKNN.fit"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.BalancedKNN.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">sight_k</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Fits the model</span>
+
+<span class="sd">        data: np.ndarray (samples, features)</span>
+<span class="sd">            np</span>
+<span class="sd">        sight_k: int</span>
+<span class="sd">            the farthest point that a node is allowed to connect to when its closest neighbours are not allowed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fitdata</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">if</span> <span class="n">sight_k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sight_k</span> <span class="o">=</span> <span class="n">sight_k</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;First search the </span><span class="si">{self.sight_k}</span><span class="s2"> nearest neighbours for </span><span class="si">{self.n_samples}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">==</span> <span class="s2">&quot;correlation&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">NearestNeighbors</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sight_k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;brute&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nn</span> <span class="o">=</span> <span class="n">NearestNeighbors</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sight_k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">leaf_size</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fitdata</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="BalancedKNN.kneighbors"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.BalancedKNN.kneighbors">[docs]</a>    <span class="k">def</span> <span class="nf">kneighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxl</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;distance&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Finds the K-neighbors of a point.</span>
+
+<span class="sd">            Returns indices of and distances to the neighbors of each point.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            X : array-like, shape (n_query, n_features),</span>
+<span class="sd">                The query point or points.</span>
+<span class="sd">                If not provided, neighbors of each indexed point are returned.</span>
+<span class="sd">                In this case, the query point is not considered its own neighbor.</span>
+
+<span class="sd">            maxl: int</span>
+<span class="sd">                max degree of connectivity allowed</span>
+
+<span class="sd">            mode : &quot;distance&quot; or &quot;connectivity&quot;</span>
+<span class="sd">                Decides the kind of output</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            dist_new : np.ndarray (samples, k+1)</span>
+<span class="sd">                distances to the NN</span>
+<span class="sd">            dsi_new : np.ndarray (samples, k+1)</span>
+<span class="sd">                indexes of the NN, first column is the sample itself</span>
+<span class="sd">            l: np.ndarray (samples)</span>
+<span class="sd">                l[i] is the number of connections from other samples to the sample i</span>
+
+<span class="sd">            NOTE:</span>
+<span class="sd">            First column (0) correspond to the sample itself, the nearest nenigbour is at the second column (1)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="k">if</span> <span class="n">maxl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maxl</span> <span class="o">=</span> <span class="n">maxl</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;distance&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">kneighbors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">return_distance</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dsi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">kneighbors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">return_distance</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dsi</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Using the initialization network to find a </span><span class="si">{self.k}</span><span class="s2">-NN graph with maximum connectivity of </span><span class="si">{self.maxl}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsi_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">l</span> <span class="o">=</span> <span class="n">knn_balance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dsi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">maxl</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maxl</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsi_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">l</span></div>
+
+<div class="viewcode-block" id="BalancedKNN.kneighbors_graph"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.BalancedKNN.kneighbors_graph">[docs]</a>    <span class="k">def</span> <span class="nf">kneighbors_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxl</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;distance&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Retrun the K-neighbors graph as a sparse csr matrix</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            X : array-like, shape (n_query, n_features),</span>
+<span class="sd">                The query point or points.</span>
+<span class="sd">                If not provided, neighbors of each indexed point are returned.</span>
+<span class="sd">                In this case, the query point is not considered its own neighbor.</span>
+
+<span class="sd">            maxl: int</span>
+<span class="sd">                max degree of connectivity allowed</span>
+
+<span class="sd">            mode : &quot;distance&quot; or &quot;connectivity&quot;</span>
+<span class="sd">                Decides the kind of output</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            neighbor_graph : scipy.sparse.csr_matrix</span>
+<span class="sd">                The values are either distances or connectivity dependig of the mode parameter</span>
+
+<span class="sd">            NOTE: The diagonal will be zero even though the value 0 is actually stored</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dist_new</span><span class="p">,</span> <span class="n">dsi_new</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kneighbors</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">maxl</span><span class="o">=</span><span class="n">maxl</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning sparse matrix&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bknn</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">dist_new</span><span class="p">),</span>
+                                       <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">dsi_new</span><span class="p">),</span>
+                                       <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dist_new</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">dist_new</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dist_new</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>
+                                      <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bknn</span></div>
+
+<div class="viewcode-block" id="BalancedKNN.smooth_data"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.BalancedKNN.smooth_data">[docs]</a>    <span class="k">def</span> <span class="nf">smooth_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_to_smooth</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxl</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">mutual</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">only_increase</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Use the wights learned from knn to smooth any data matrix</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        data_to_smooth: (features, samples) !! NOTE !! this is different from the input (for speed issues)</span>
+<span class="sd">            if the data is provided (samples, features), this will be detected and</span>
+<span class="sd">            the correct operation performed at cost of some effciency</span>
+<span class="sd">            In the case where samples == samples then the shape (features, samples) will be assumed</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bknn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="p">(</span><span class="n">X</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">maxl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;graph was already fit with different parameters&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kneighbors_graph</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">maxl</span><span class="o">=</span><span class="n">maxl</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mutual</span><span class="p">:</span>
+            <span class="n">connectivity</span> <span class="o">=</span> <span class="n">make_mutual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bknn</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">connectivity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bknn</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">connectivity</span> <span class="o">=</span> <span class="n">connectivity</span><span class="o">.</span><span class="n">tolil</span><span class="p">()</span>
+        <span class="n">connectivity</span><span class="o">.</span><span class="n">setdiag</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">connectivity_to_weights</span><span class="p">(</span><span class="n">connectivity</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;weight matrix need to sum to one over the columns&quot;</span>
+        <span class="k">if</span> <span class="n">data_to_smooth</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">data_to_smooth</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">data_to_smooth</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">w</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">data_to_smooth</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Incorrect size of matrix, none of the axis correspond to the one of graph. </span><span class="si">{w.shape}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">only_increase</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">data_to_smooth</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span></div></div>
+
+
+<span class="c1"># Mutual KNN version</span>
+
+
+<div class="viewcode-block" id="knn_distance_matrix"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.knn_distance_matrix">[docs]</a><span class="k">def</span> <span class="nf">knn_distance_matrix</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;connectivity&#39;</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a nearest neighbour distance matrix</span>
+
+<span class="sd">    Notice that k is meant as the actual number of neighbors NOT INCLUDING itself</span>
+<span class="sd">    To achieve that we call kneighbors_graph with X = None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">&quot;correlation&quot;</span><span class="p">:</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="n">NearestNeighbors</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;correlation&quot;</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;brute&quot;</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">)</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">kneighbors_graph</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="n">NearestNeighbors</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">kneighbors_graph</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
+    
+
+<div class="viewcode-block" id="make_mutual"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.make_mutual">[docs]</a><span class="k">def</span> <span class="nf">make_mutual</span><span class="p">(</span><span class="n">knn</span><span class="p">:</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sparse</span><span class="o">.</span><span class="n">coo_matrix</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Removes edges between neighbours that are not mutual</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">knn</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">knn</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="connectivity_to_weights"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.connectivity_to_weights">[docs]</a><span class="k">def</span> <span class="nf">connectivity_to_weights</span><span class="p">(</span><span class="n">mknn</span><span class="p">:</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sparse</span><span class="o">.</span><span class="n">lil_matrix</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert a binary connectivity matrix to weights ready to be multiplied to smooth a data matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">mknn</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">:</span>
+        <span class="n">mknn</span> <span class="o">=</span> <span class="n">mknn</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">mknn</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mknn</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="min_n"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.min_n">[docs]</a><span class="k">def</span> <span class="nf">min_n</span><span class="p">(</span><span class="n">row_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">row_indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Find the smallest entry and smallest indices of a row</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">row_data</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[:</span><span class="n">n</span><span class="p">]</span>
+    <span class="c1"># i = row_data.argpartition(-n)[-n:]</span>
+    <span class="n">top_values</span> <span class="o">=</span> <span class="n">row_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">top_indices</span> <span class="o">=</span> <span class="n">row_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>  <span class="c1"># do the sparse indices matter?</span>
+    <span class="k">return</span> <span class="n">top_values</span><span class="p">,</span> <span class="n">top_indices</span></div>
+    
+
+<div class="viewcode-block" id="take_top"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.take_top">[docs]</a><span class="k">def</span> <span class="nf">take_top</span><span class="p">(</span><span class="n">matrix</span><span class="p">:</span> <span class="n">sparse</span><span class="o">.</span><span class="n">spmatrix</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sparse</span><span class="o">.</span><span class="n">lil_matrix</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Filter the top nearest neighbours from a sprse distance matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr_ll</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">tolil</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">arr_ll</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">min_n</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">arr_ll</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">arr_ll</span><span class="o">.</span><span class="n">rows</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">n</span><span class="p">)</span>
+        <span class="n">arr_ll</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">arr_ll</span><span class="o">.</span><span class="n">rows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">arr_ll</span></div>
+
+
+<span class="c1"># Common functions</span>
+
+<div class="viewcode-block" id="convolve_by_sparse_weights"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.convolve_by_sparse_weights">[docs]</a><span class="k">def</span> <span class="nf">convolve_by_sparse_weights</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Use the wights learned from knn to convolve any data matrix</span>
+
+<span class="sd">    NOTE: A improved implementation could detect wich one is sparse and wich kind of sparse and perform faster computation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">w_</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">w_</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;weight matrix need to sum to one over the columns&quot;</span>
+    <span class="k">return</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">w_</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="knn_smooth_weights"><a class="viewcode-back" href="../../fullapi/api_neighbors.html#velocyto.neighbors.knn_smooth_weights">[docs]</a><span class="k">def</span> <span class="nf">knn_smooth_weights</span><span class="p">(</span><span class="n">matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">,</span> <span class="n">k_search</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                       <span class="n">k_mutual</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">sparse</span><span class="o">.</span><span class="n">spmatrix</span><span class="p">,</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Find the weights to smooth the dataset using efficient sparse matrix operations</span>
+<span class="sd">    </span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        matrix: (genes, cells)</span>
+<span class="sd">            expression matrix</span>
+<span class="sd">        metric</span>
+<span class="sd">        k_search : int</span>
+<span class="sd">            the first k nearest neighbour search number of neighbours</span>
+<span class="sd">        k_mutual : int</span>
+<span class="sd">            the number of mutual neighbours to select</span>
+<span class="sd">        n_jobs</span>
+<span class="sd">        return_knn</span>
+<span class="sd">        </span>
+<span class="sd">    Retruns</span>
+<span class="sd">        weights (, knn)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">k_search</span> <span class="o">&gt;=</span> <span class="n">k_mutual</span><span class="p">,</span> <span class="s2">&quot;k_search needs to be bigger than k_mutual&quot;</span>
+    <span class="n">knn</span> <span class="o">=</span> <span class="n">knn_distance_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k_search</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">)</span>
+    <span class="n">mknn</span> <span class="o">=</span> <span class="n">make_mutual</span><span class="p">(</span><span class="n">knn</span><span class="p">)</span>
+    <span class="n">top_mknn</span> <span class="o">=</span> <span class="n">take_top</span><span class="p">(</span><span class="n">mknn</span><span class="p">,</span> <span class="n">k_mutual</span><span class="p">)</span>
+    <span class="n">top_mknn</span><span class="o">.</span><span class="n">setdiag</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">connectivity</span> <span class="o">=</span> <span class="n">top_mknn</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">connectivity_to_weights</span><span class="p">(</span><span class="n">connectivity</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">w</span><span class="p">,</span> <span class="n">knn</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.9.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
