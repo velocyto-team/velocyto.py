@@ -1037,7 +1037,7 @@ class VelocytoLoom:
         self.ts = bh_tsne.fit_transform(self.pcs[:, :n_pca_dim])
 
     def estimate_transition_prob(self, hidim: str="Sx_sz", embed: str="ts", transform: str="sqrt",
-                                 ndims: int=None, n_neighbors: int=80, psc: float = 1.0,
+                                 ndims: int=None, n_neighbors: int=None, psc: float = 1.0,
                                  knn_random: bool=False, sampled_fraction: float=0.3, delta_kind: str="clipped",
                                  sampling_pobs: Tuple[float, float]=(0.5, 0.1), max_dist_embed: float=None,
                                  n_jobs: int=4, random_seed: int=15071990) -> None:
@@ -1074,6 +1074,9 @@ class VelocytoLoom:
         Returns
         -------
         """
+
+        if n_neighbors is None:
+            n_neighbors = int(self.S.shape[1] / 5)
 
         if knn_random:
             np.random.seed(random_seed)
@@ -1326,6 +1329,68 @@ class VelocytoLoom:
         diffusor = Diffusion()
         self.diffused = diffusor.diffuse(starting_p, self.tr, n_steps=n_steps, mode="time_evolution")[0]
 
+    def default_filter_and_norm(self, min_expr_counts: int=None, min_cells_express: int=None,
+                                N: int=None, min_avg_U: float=None, min_avg_S: float=None) -> None:
+        if min_expr_counts is None:
+            min_expr_counts = max(20, min(100, self.S.shape[1] * 2.25e-3))
+        if min_cells_express is None:
+            min_cells_express = max(10, min(50, self.S.shape[1] * 1.5e-3))
+        if N is None:
+            N = max(1000, min((self.S.shape[1] / 1000)**(1 / 3) / 0.0008, 5000))
+        if min_avg_U is None:
+            min_avg_U = 0.01
+        if min_avg_S is None:
+            min_avg_S = 0.08
+
+        # This is called just to compute the initial cell size, normalized value will be recalculated
+        self.normalize("S", size=True, log=False)
+        self.normalize("U", size=True, log=False)
+
+        self.score_detection_levels(min_expr_counts=min_expr_counts, min_cells_express=min_cells_express)
+        self.filter_genes(by_detection_levels=True)
+
+        self.score_cv_vs_mean(N=N, max_expr_avg=40)
+        self.filter_genes(by_cv_vs_mean=True)
+
+        self.score_detection_levels(min_expr_counts=0, min_cells_express=0,
+                                    min_expr_counts_U=int(min_expr_counts / 2) + 1,
+                                    min_cells_express_U=int(min_cells_express / 2) + 1)
+        
+        if hasattr(self, "cluster_labels"):
+            self.score_cluster_expression(min_avg_U=min_avg_U, min_avg_S=min_avg_S)
+            self.filter_genes(by_detection_levels=True, by_cluster_expression=True)
+        else:
+            self.filter_genes(by_detection_levels=True)
+        self.normalize_by_total()
+        self.adjust_totS_totU(normalize_total=True)
+
+    def default_fit_preparation(self, k: int=None, n_comps: int=None) -> None:
+        self.perform_PCA()
+        # Choose the number of components to use for the kNN graph
+        if n_comps is None:
+            n_comps = np.where(np.diff(np.diff(np.cumsum(self.pca.explained_variance_ratio_)) > 0.002))[0][0]
+        if k is None:
+            k = min(1000, max(10, np.ceil(self.S.shape[1] * 0.02)))
+        self.knn_imputation(n_pca_dims=n_comps, k=k, balanced=True,
+                            b_sight=min(k * 8, self.S.shape[1] - 1),
+                            b_maxl=min(k * 4, self.S.shape[1] - 1))
+        self.normalize_median()
+
+    def _plot_phase_portrait(self, gene: str, gs_i: Any) -> None:
+        plt.subplot(gs_i)
+        ix = np.where(self.ra["Gene"] == gene)[0][0]
+        scatter_viz(self.Sx_sz[ix, :], self.Ux_sz[ix, :], c=self.colorandum, s=5, alpha=0.4)
+        plt.title(gene)
+        xnew = np.linspace(0, self.Sx_sz[ix, :].max())
+        plt.plot(xnew, self.gammas[ix] * xnew + self.q[ix], c="k")
+
+    def plot_phase_portraits(self, genes: List[str]) -> None:
+        n = len(genes)
+        sqrtn = np.ceil(np.sqrt(n))
+        gs = plt.GridSpec(sqrtn, np.ceil(n / sqrtn))
+        for i, gn in enumerate(genes):
+            self._plot_phase_portrait(gn, gs[i])
+    
     def plot_grid_arrows(self, quiver_scale: float=None, min_mass: float=1, min_magnitude: float=None,
                          scatter_kwargs_dict: Dict= None, plot_dots: bool=False, **quiver_kwargs: Any) -> None:
         # plt.figure(figsize=(10, 10))

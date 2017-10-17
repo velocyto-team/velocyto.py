@@ -32,13 +32,13 @@ After all the requirements are satisfied. You can just run:
 
 ::
 
-    git clone https://github.com/velocyto-team/velocyto.py.git
-    cd velocyto.py
-    pip install .
+    git clone https://github.com/linnarsson-lab/velocyto.git
+    cd velocyto/python
+    pip install -e .
 
 
 This command will install the python library ``velocyto`` and the homonymous command line tool.
-Adding the ``-e`` flag to the install comand will install the software in `development` mode, so to update you can simple do ``git pull``.
+The ``-e`` flags installs the software in `development` mode, so to update you can simple do ``git pull``.
 
 At this point you can test the installation was successful by running ``velocyto --help``.
 

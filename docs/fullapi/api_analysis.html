@@ -190,9 +190,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-velocyto.analysis">
-<span id="velocyto-analysis-module"></span><h1>velocyto.analysis module<a class="headerlink" href="#module-velocyto.analysis" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
+  <div class="section" id="velocyto-analysis-module">
+<h1>velocyto.analysis module<a class="headerlink" href="#velocyto-analysis-module" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-velocyto.analysis"><span id="analysisapi"></span></span><dl class="class">
 <dt id="velocyto.analysis.VelocytoLoom">
 <em class="property">class </em><code class="descclassname">velocyto.analysis.</code><code class="descname">VelocytoLoom</code><span class="sig-paren">(</span><em>loom_filepath: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
@@ -356,8 +356,18 @@ if .T is specified by axis=-1</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="velocyto.analysis.VelocytoLoom.default_filter_and_norm">
+<code class="descname">default_filter_and_norm</code><span class="sig-paren">(</span><em>min_expr_counts: int = None</em>, <em>min_cells_express: int = None</em>, <em>N: int = None</em>, <em>min_avg_U: float = None</em>, <em>min_avg_S: float = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.default_filter_and_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.default_filter_and_norm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.analysis.VelocytoLoom.default_fit_preparation">
+<code class="descname">default_fit_preparation</code><span class="sig-paren">(</span><em>k: int = None</em>, <em>n_comps: int = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.default_fit_preparation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.default_fit_preparation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.estimate_transition_prob">
-<code class="descname">estimate_transition_prob</code><span class="sig-paren">(</span><em>hidim: str = 'Sx_sz'</em>, <em>embed: str = 'ts'</em>, <em>transform: str = 'sqrt'</em>, <em>ndims: int = None</em>, <em>n_neighbors: int = 80</em>, <em>psc: float = 1.0</em>, <em>knn_random: bool = False</em>, <em>sampled_fraction: float = 0.3</em>, <em>delta_kind: str = 'clipped'</em>, <em>sampling_pobs: typing.Tuple[float</em>, <em>float] = (0.5</em>, <em>0.1)</em>, <em>max_dist_embed: float = None</em>, <em>n_jobs: int = 4</em>, <em>random_seed: int = 15071990</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.estimate_transition_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.estimate_transition_prob" title="Permalink to this definition">¶</a></dt>
+<code class="descname">estimate_transition_prob</code><span class="sig-paren">(</span><em>hidim: str = 'Sx_sz'</em>, <em>embed: str = 'ts'</em>, <em>transform: str = 'sqrt'</em>, <em>ndims: int = None</em>, <em>n_neighbors: int = None</em>, <em>psc: float = 1.0</em>, <em>knn_random: bool = False</em>, <em>sampled_fraction: float = 0.3</em>, <em>delta_kind: str = 'clipped'</em>, <em>sampling_pobs: typing.Tuple[float</em>, <em>float] = (0.5</em>, <em>0.1)</em>, <em>max_dist_embed: float = None</em>, <em>n_jobs: int = 4</em>, <em>random_seed: int = 15071990</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.estimate_transition_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.estimate_transition_prob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use correlation to estimate transition probabilities for every cells to its embedding neighborhood</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -759,6 +769,11 @@ Notice that 0 will be always set as the center of the colormap. (e.g. white in R
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.plot_pca_imputed">
 <code class="descname">plot_pca_imputed</code><span class="sig-paren">(</span><em>dim: typing.List[int] = [0, 1, 2], elev: float = 60, azim: float = -140</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.plot_pca_imputed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.plot_pca_imputed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.analysis.VelocytoLoom.plot_phase_portraits">
+<code class="descname">plot_phase_portraits</code><span class="sig-paren">(</span><em>genes: typing.List[str]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.plot_phase_portraits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.plot_phase_portraits" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
