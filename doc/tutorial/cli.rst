@@ -76,7 +76,7 @@ And run the following command:
 
 ::
 
-    velocyto extract_intervals mm10_rmsk.gtf
+    velocyto extract_repeats mm10_rmsk.gtf
 
 
 Run velocyto
@@ -181,9 +181,9 @@ The logs of each process will be found inside ``logfolder``.
 About the output .loom file
 ---------------------------
 
-The main result file is a 4-layered `loom file <https://github.com/linnarsson-lab/loompy>`_ : `sample_id.loom`. 
+The main result file is a 4-layered `loom file <http://loompy.org/loompy-docs/format/index.html>`_ : `sample_id.loom`. 
 
 A valid .loom file is simply an HDF5 file that contains specific groups representing the main matrix as well as row and column attributes.
 Because of this, .loom files can be created and read by any language that supports HDF5. 
 
-.loom files can be easily handled using the `loompy package <https://github.com/linnarsson-lab/loompy>`_
+.loom files can be easily handled using the `loompy package <http://loompy.org>`_.

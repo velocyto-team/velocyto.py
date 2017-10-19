@@ -253,7 +253,7 @@ At this point you are ready to produce a <a class="reference external" href="htt
 </div>
 <p>Dowloaded an appropriate mask repeat annotation (for example <a class="reference external" href="https://genome.ucsc.edu/cgi-bin/hgTables?hgsid=611454127_NtvlaW6xBSIRYJEBI0iRDEWisITa&amp;clade=mammal&amp;org=Mouse&amp;db=mm10&amp;hgta_group=allTracks&amp;hgta_track=rmsk&amp;hgta_table=0&amp;hgta_regionType=genome&amp;position=chr12%3A56694976-56714605&amp;hgta_outputType=primaryTable&amp;hgta_outFileName=mm10_rmsk.gtf">from UCSC genome browser</a> and <strong>remember to select GTF</strong>  as output format).
 And run the following command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">velocyto</span> <span class="n">extract_intervals</span> <span class="n">mm10_rmsk</span><span class="o">.</span><span class="n">gtf</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">velocyto</span> <span class="n">extract_repeats</span> <span class="n">mm10_rmsk</span><span class="o">.</span><span class="n">gtf</span>
 </pre></div>
 </div>
 </div>
@@ -341,10 +341,10 @@ For example the following commands will run all the samples present in <code cla
 </div>
 <div class="section" id="about-the-output-loom-file">
 <h2>About the output .loom file<a class="headerlink" href="#about-the-output-loom-file" title="Permalink to this headline">¶</a></h2>
-<p>The main result file is a 4-layered <a class="reference external" href="https://github.com/linnarsson-lab/loompy">loom file</a> : <cite>sample_id.loom</cite>.</p>
+<p>The main result file is a 4-layered <a class="reference external" href="http://loompy.org/loompy-docs/format/index.html">loom file</a> : <cite>sample_id.loom</cite>.</p>
 <p>A valid .loom file is simply an HDF5 file that contains specific groups representing the main matrix as well as row and column attributes.
 Because of this, .loom files can be created and read by any language that supports HDF5.</p>
-<p>.loom files can be easily handled using the <a class="reference external" href="https://github.com/linnarsson-lab/loompy">loompy package</a></p>
+<p>.loom files can be easily handled using the <a class="reference external" href="http://loompy.org">loompy package</a>.</p>
 </div>
 </div>
 
