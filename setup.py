@@ -29,7 +29,7 @@ else:
     if "darwin" in sys.platform:
         compiled = "velocyto/speedboosted.cpython-36m-darwin.so"
     elif "win" in sys.platform:
-        sys.stdout.write("Sorry man, we do not support (or like) Windows OS")
+        sys.stdout.write("Sorry, we do not support (or like) Windows OS")
         sys.exit()
     elif "linux" in sys.platform:
         compiled = "velocyto/speedboosted.cpython-36m-x86_64-linux-gnu.so"
