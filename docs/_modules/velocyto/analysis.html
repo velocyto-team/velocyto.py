@@ -209,17 +209,23 @@
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-
 <span class="sd">    S: np.ndarray</span>
 <span class="sd">        Expressed spliced molecules</span>
 <span class="sd">    U: np.ndarray</span>
 <span class="sd">        Unspliced molecule count</span>
 <span class="sd">    A: np.ndarray</span>
-<span class="sd">        Anbiguous molecule count</span>
+<span class="sd">        Ambiguous molecule count</span>
 <span class="sd">    ca: dict</span>
 <span class="sd">        Column attributes of the loom file</span>
 <span class="sd">    ra: dict</span>
 <span class="sd">        Row attributes of the loom file</span>
+<span class="sd">    loom_filepath: str</span>
+<span class="sd">        The original path the loom files has been read from</span>
+<span class="sd">    initial_cell_size: int</span>
+<span class="sd">        The sum of spliced molecules</span>
+<span class="sd">    initial_Ucell_size: int</span>
+<span class="sd">        The sum of unspliced molecules</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loom_filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -242,12 +248,16 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;The file did not specify the _Valid column attribute&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="VelocytoLoom.plot_fractions"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.plot_fractions">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fractions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save2file</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Plots a barplot of the abundance of spliced/unspliced of molecules in the dataset</span>
+        <span class="sd">&quot;&quot;&quot;Plots a barplot showing the abundance of spliced/unspliced molecules in the dataset</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
 <span class="sd">        save2file: str (default: None)</span>
 <span class="sd">            If not None specifies the file path to wich plots get saved</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Nothing, it plots a barplot</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">3.2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
         <span class="k">try</span><span class="p">:</span>
@@ -279,16 +289,16 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save2file</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="VelocytoLoom.filter_cells"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.filter_cells">[docs]</a>    <span class="k">def</span> <span class="nf">filter_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bool_array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Filter cells that will be kept in the analysis</span>
+        <span class="sd">&quot;&quot;&quot;Filter cells using a boolean array. </span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
 <span class="sd">        bool_array: np.ndarray (size )</span>
-<span class="sd">            array describing the cells to keep (True)</span>
+<span class="sd">            array describing the cells to keep (True).</span>
 
 <span class="sd">        Return</span>
 <span class="sd">        ------</span>
-<span class="sd">        Nothing but it remove some cells from S and U</span>
+<span class="sd">        Nothing but it removes some cells from S and U.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="n">bool_array</span><span class="p">]</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ca</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">bool_array</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ca</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
@@ -297,7 +307,22 @@
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="VelocytoLoom.set_clusters"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.set_clusters">[docs]</a>    <span class="k">def</span> <span class="nf">set_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">cluter_colors_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colormap</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="VelocytoLoom.set_clusters"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.set_clusters">[docs]</a>    <span class="k">def</span> <span class="nf">set_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">cluster_colors_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colormap</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Utility function to set cluster labels, names and colormap</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        cluster_labels: np.ndarray</span>
+
+<span class="sd">        cluter_colors_dict: dict</span>
+
+<span class="sd">        colormap:</span>
+<span class="sd">            Colormap object (e.g. from matpkotlib). It should be callable.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cluster_labels</span> <span class="o">=</span> <span class="n">cluster_labels</span>
         <span class="k">if</span> <span class="n">cluter_colors_dict</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">colorandum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cluter_colors_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cluster_labels</span><span class="p">])</span>
@@ -338,22 +363,24 @@
 <span class="sd">            The maximum average accepted before discarding from the the gene as house-keeping/outlier</span>
 <span class="sd">        svr_gamma: float</span>
 <span class="sd">            the gamma hyperparameter of the SVR</span>
-<span class="sd">        plot: bool</span>
-<span class="sd">            wether to show a plot</span>
+<span class="sd">        winsorize: bool</span>
+<span class="sd">            Wether to winsorize the data for the cv vs mean model</span>
+<span class="sd">        winsor_perc: tuple, default=(1, 99.5)</span>
+<span class="sd">            the up and lower bound of the winsorization</span>
+<span class="sd">        plot: bool, default=False</span>
+<span class="sd">            whether to show a plot</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        score: np.ndarray</span>
+<span class="sd">        Nothing but it creates the attributes</span>
+<span class="sd">        cv_mean_score: np.ndarray</span>
 <span class="sd">            How much the observed CV is higher than the one predicted by a noise model fit to the data</span>
-<span class="sd">            # the same array will be stored as the attribure `cv_mean_score`</span>
-<span class="sd">        selected: np.ndarray bool</span>
+<span class="sd">        cv_mean_selected: np.ndarray bool</span>
 <span class="sd">            on the basis of the N parameter</span>
-<span class="sd">            # the same array will be stored as the attribure `cv_mean_selected`</span>
 
 <span class="sd">        Note: genes excluded from the fit will have in the output the same score as the less noisy gene in the dataset.</span>
-<span class="sd">        NOTE: The function returns more genes than N in case more genes with the same score as present. This may result</span>
-<span class="sd">              in a cv vs mean plot that looks weirdly colored red/blue when looked at low magnification</span>
 
+<span class="sd">        To perform the filtering use the method `filter_genes`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">winsorize</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">min_expr_cells</span> <span class="o">&lt;=</span> <span class="p">((</span><span class="mi">100</span> <span class="o">-</span> <span class="n">winsor_perc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.01</span><span class="p">):</span>
@@ -393,29 +420,28 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cv_mean_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">detected_bool</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cv_mean_score</span><span class="p">[</span><span class="o">~</span><span class="n">detected_bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">score</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1e-16</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cv_mean_score</span><span class="p">[</span><span class="n">detected_bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cv_mean_selected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv_mean_score</span> <span class="o">&gt;=</span> <span class="n">nth_score</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv_mean_score</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv_mean_selected</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cv_mean_selected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv_mean_score</span> <span class="o">&gt;=</span> <span class="n">nth_score</span></div>
 
 <div class="viewcode-block" id="VelocytoLoom.score_cluster_expression"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.score_cluster_expression">[docs]</a>    <span class="k">def</span> <span class="nf">score_cluster_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_avg_U</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">min_avg_S</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.08</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Prepare filtering genes on the basis of knowledge on the cluster</span>
+        <span class="sd">&quot;&quot;&quot;Prepare filtering genes on the basis of cluster-wise expression threshold</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
 <span class="sd">        min_avg_U: float</span>
 <span class="sd">            Include genes that have unspliced average bigger than `min_avg_U` in at least one of the clusters</span>
-<span class="sd">        min_avg_U: float</span>
+<span class="sd">        min_avg_S: float</span>
 <span class="sd">            Include genes that have spliced average bigger than `min_avg_U` in at least one of the clusters</span>
 <span class="sd">        Note: the two conditions are combined by and &quot;&amp;&quot; logical operator</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
+<span class="sd">        Nothing but it creates the attribute</span>
 <span class="sd">        clu_avg_selected: np.ndarray bool</span>
 <span class="sd">            The gene cluster that is selected</span>
-<span class="sd">        Note: an attribute with the same name is created</span>
+<span class="sd">        To perform the filtering use the method `filter_genes`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">U_avgs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_avgs</span> <span class="o">=</span> <span class="n">clusters_stats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_uid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_ix</span><span class="p">,</span> <span class="n">size_limit</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clu_avg_selected</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U_avgs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_avg_U</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S_avgs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_avg_S</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clu_avg_selected</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clu_avg_selected</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U_avgs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_avg_U</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S_avgs</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_avg_S</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="VelocytoLoom.score_detection_levels"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.score_detection_levels">[docs]</a>    <span class="k">def</span> <span class="nf">score_detection_levels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_expr_counts</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">min_cells_express</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
                                <span class="n">min_expr_counts_U</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">min_cells_express_U</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -436,6 +462,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Nothing but an attribute self.detection_level_selected is created</span>
+<span class="sd">        To perform the filtering by detection levels use the method `filter_genes`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Some basic filtering</span>
         <span class="n">S_sum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -450,32 +477,29 @@
         <span class="sd">&quot;&quot;&quot;Filter genes taking care that all the matrixes and all the connected annotation get filtered accordingly</span>
 
 <span class="sd">        Attributes affected: .U, .S, .ra</span>
-<span class="sd">        if present also: .ei_stats_matrix, .ei_stats_ra</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
 <span class="sd">        by_detection_levels: bool, default=False</span>
 <span class="sd">            filter genes by the score_detection_levels result</span>
 
-<span class="sd">        by_cluster_expression: bool, default=True (NOTE: in legacy code was True)</span>
+<span class="sd">        by_cluster_expression: bool, default=False</span>
 <span class="sd">            filter genes by the score_cluster_expression result</span>
 
-<span class="sd">        by_cv_vs_mean: bool, default=True (NOTE: in legacy code was True)</span>
+<span class="sd">        by_cv_vs_mean: bool, default=False</span>
 <span class="sd">            filter genes by the score_cluster_expression result</span>
 
 <span class="sd">        by_custom_array, np.ndarray, default=None</span>
-<span class="sd">            provide a booelan or index array</span>
+<span class="sd">            provide a boolean or index array</span>
 
 <span class="sd">        keep_unfiltered: bool, default=False</span>
-<span class="sd">            wether to create attributes self.S_prefilter, self.U_prefilter, self.ra_prefilter,</span>
-<span class="sd">            optionally if present (self.ei_stats_matrix_prefilter, ei_stats_ra_prefilter)</span>
+<span class="sd">            whether to create attributes self.S_prefilter, self.U_prefilter, self.ra_prefilter,</span>
 <span class="sd">            (array will be made sparse to minimize memory footprint)</span>
 <span class="sd">            or just overwrite the previous arrays</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Nothing but it updates the self.S, self.U, self.ra attributes</span>
-<span class="sd">        (if present also self.ei_stats_matrix, ei_stats_ra)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">([</span><span class="n">by_detection_levels</span><span class="p">,</span> <span class="n">by_cluster_expression</span><span class="p">,</span>
                        <span class="n">by_cv_vs_mean</span><span class="p">,</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">by_custom_array</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)]),</span> <span class="s2">&quot;At least one of the filtering methods needs to be True&quot;</span>
@@ -512,19 +536,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="p">[</span><span class="n">tmp_filter</span><span class="p">,</span> <span class="p">:]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ra</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">tmp_filter</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ra</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
 
-<div class="viewcode-block" id="VelocytoLoom.custom_filter_genes"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.custom_filter_genes">[docs]</a>    <span class="k">def</span> <span class="nf">custom_filter_genes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">bool_filter</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">keep_unfiltered</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;It filter genes from multiple attributes, taking care if they are dictionaries or numpy arrays</span>
-<span class="sd">        and if the unfiltered version need to be mantained</span>
-
+<div class="viewcode-block" id="VelocytoLoom.custom_filter_attributes"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.custom_filter_attributes">[docs]</a>    <span class="k">def</span> <span class="nf">custom_filter_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">bool_filter</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Filter attributes given a boolean array. attr_names can be dictionaries or numpy arrays</span>
+<span class="sd">        </span>
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
-
 <span class="sd">        attr_names: List[str]</span>
 <span class="sd">            a list of the attributes to be modified. The can be</span>
-<span class="sd">            1d arrays</span>
-<span class="sd">            dictionary of 1d arrays</span>
-<span class="sd">            nd arrays, will be filtered by axis=0</span>
+<span class="sd">            1d arrays, dictionary of 1d arrays, ndarrays, will be filtered by axis=0</span>
 <span class="sd">            if .T is specified by axis=-1</span>
+<span class="sd">        bool_filter:</span>
+<span class="sd">            the boolean filter to be applied</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Nothing it filters the specified attributes</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">transpose_flag</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attr_names</span><span class="p">:</span>
@@ -548,6 +574,7 @@
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;The filtering of an object of type {type(obj)} is not defined&quot;</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_normalize_S</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pcount</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">relative_size</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_size</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Internal function for the spliced molecule filtering. The `normalize` method should be used as a standard interface&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">relative_size</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">cell_size</span> <span class="o">=</span> <span class="n">relative_size</span>
@@ -565,6 +592,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">S_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S_sz</span> <span class="o">+</span> <span class="n">pcount</span><span class="p">)</span>  <span class="c1"># np.sqrt(S_sz )# np.log2(S_sz + 1)</span>
 
     <span class="k">def</span> <span class="nf">_normalize_U</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pcount</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">use_S_size</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">relative_size</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_size</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Internal function for the unspliced molecule filtering. The `normalize` method should be used as a standard interface&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">use_S_size</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;cell_size&quot;</span><span class="p">):</span>
@@ -590,11 +618,12 @@
         <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">U_sz</span> <span class="o">=</span> <span class="n">norm_factor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">U_sz</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U_sz</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># it happened only once but it is here as a preacution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U_sz</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U_sz</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># it happened only once but it is here as a precaution</span>
         <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">U_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U_sz</span> <span class="o">+</span> <span class="n">pcount</span><span class="p">)</span>  <span class="c1"># np.sqrt(S_sz )# np.log2(S_sz + 1)</span>
 
     <span class="k">def</span> <span class="nf">_normalize_Sx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pcount</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">relative_size</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_size</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Internal function for the smoothed spliced molecule filtering. The `normalize` method should be used as a standard interface&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">relative_size</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">xcell_size</span> <span class="o">=</span> <span class="n">relative_size</span>
@@ -612,6 +641,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">Sx_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Sx_sz</span> <span class="o">+</span> <span class="n">pcount</span><span class="p">)</span>  <span class="c1"># np.sqrt(S_sz )# np.log2(S_sz + 1)</span>
 
     <span class="k">def</span> <span class="nf">_normalize_Ux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pcount</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">use_Sx_size</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">relative_size</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_size</span><span class="p">:</span> <span class="n">Any</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Internal function for the smoothed unspliced molecule filtering. The `normalize` method should be used as a standard interface&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">use_Sx_size</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;cell_size&quot;</span><span class="p">):</span>
@@ -643,7 +673,7 @@
 
 <div class="viewcode-block" id="VelocytoLoom.normalize"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pcount</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                   <span class="n">relative_size</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_S_size_for_U</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">target_size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Normalization for the count data</span>
+        <span class="sd">&quot;&quot;&quot;Normalization interface</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
@@ -658,7 +688,7 @@
 <span class="sd">        pcount: int, default: 1</span>
 <span class="sd">            The extra count added when logging (log2)</span>
 <span class="sd">        relative_size: np.ndarray, default=None</span>
-<span class="sd">            if None it calculate the sums the mulecules per cell (self.S.sum(0))</span>
+<span class="sd">            if None it calculate the sums the molecules per cell (self.S.sum(0))</span>
 <span class="sd">            if an array is provided it use it for the normalization</span>
 <span class="sd">        use_S_size_for_U: bool</span>
 <span class="sd">            U is size normalized using the sum of molecules of S</span>
@@ -686,24 +716,48 @@
         <span class="k">if</span> <span class="s2">&quot;Ux&quot;</span> <span class="o">==</span> <span class="n">which</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_Ux</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">,</span> <span class="n">pcount</span><span class="o">=</span><span class="n">pcount</span><span class="p">,</span> <span class="n">use_Sx_size</span><span class="o">=</span><span class="n">use_S_size_for_U</span><span class="p">,</span> <span class="n">relative_size</span><span class="o">=</span><span class="n">relative_size</span><span class="p">,</span> <span class="n">target_size</span><span class="o">=</span><span class="n">target_size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="VelocytoLoom.perform_PCA"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.perform_PCA">[docs]</a>    <span class="k">def</span> <span class="nf">perform_PCA</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;S_norm&quot;</span><span class="p">,</span> <span class="n">n_components</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">div_by_std</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">mult_by_scalefact</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">S_norm</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="p">)</span>
+<div class="viewcode-block" id="VelocytoLoom.perform_PCA"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.perform_PCA">[docs]</a>    <span class="k">def</span> <span class="nf">perform_PCA</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;S_norm&quot;</span><span class="p">,</span> <span class="n">n_components</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">div_by_std</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Perform PCA (cells as samples)</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        which: str, default=&quot;S_norm&quot;</span>
+<span class="sd">            The name of the attribute to use for the calculation (e.g. S_norm or Sx_norm)</span>
+<span class="sd">        n_components: int, default=None</span>
+<span class="sd">            Number of components to keep. If None all the components will be kept.</span>
+<span class="sd">        div_by_std: bool, default=False</span>
+<span class="sd">            Wether to divide by standard deviation</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Returns nothing but it creates the attributes:</span>
+<span class="sd">        pca: np.ndarray</span>
+<span class="sd">            a numpy array of shape (cells, npcs)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pca</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_components</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">div_by_std</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">S_norm</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">S_norm</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="c1"># elif mult_by_scalefact:</span>
-        <span class="c1">#     self.pcs = self.pca.fit_transform(self.S.T * self.gene_scale_fact)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">S_norm</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="VelocytoLoom.normalize_by_total"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.normalize_by_total">[docs]</a>    <span class="k">def</span> <span class="nf">normalize_by_total</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_perc_U</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skip_low_U_pop</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Normalize the cells using the (initial) total moluecules as size estimate</span>
+        <span class="sd">&quot;&quot;&quot;Normalize the cells using the (initial) total molecules as size estimate</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
 <span class="sd">        min_perc_U: float</span>
 <span class="sd">            the percentile to use as a minimum value allowed for the size normalization</span>
+<span class="sd">        plot: bool, default=False</span>
+<span class="sd">            whether</span>
+<span class="sd">        skip_low_U_pop: bool, default=True</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Returns nothing but it creates the attributes:</span>
+<span class="sd">        small_U_pop: np.ndarray</span>
+<span class="sd">            Cells with extremely low unspliced count</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">target_cell_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_cell_size</span><span class="p">)</span>
@@ -738,7 +792,26 @@
 <div class="viewcode-block" id="VelocytoLoom.adjust_totS_totU"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.adjust_totS_totU">[docs]</a>    <span class="k">def</span> <span class="nf">adjust_totS_totU</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">skip_low_U_pop</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalize_total</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                          <span class="n">fit_with_low_U</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">svr_C</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">svr_gamma</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">plot</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Fit a smooth line to the relation S_sz_tot and U_sz_tot</span>
+        <span class="sd">&quot;&quot;&quot; Adjust the spliced count on the base of the relation S_sz_tot and U_sz_tot</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        skip_low_U_pop: bool</span>
+
+<span class="sd">        normalize_total: bool</span>
+
+<span class="sd">        fit_with_low_U: bool</span>
+
+<span class="sd">        svr_C: float</span>
+
+<span class="sd">        svr_gamma: float</span>
+
+<span class="sd">        plot: bool</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Nothing but it creates the attributes:</span>
+<span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">svr</span> <span class="o">=</span> <span class="n">SVR</span><span class="p">(</span><span class="n">C</span><span class="o">=</span><span class="n">svr_C</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;rbf&quot;</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">svr_gamma</span><span class="p">)</span>
@@ -819,7 +892,7 @@
 <span class="sd">            Resulting in a reduction of the smoothing effect</span>
 <span class="sd">            E.g. if diag=8 and k=10 value of Si = (8 * S_i + sum(S_n, with n in 5nn of i)) / (8+5)</span>
 <span class="sd">        maximum: bool</span>
-<span class="sd">            wether to take the maximum value of the smoothing and the original matrix</span>
+<span class="sd">            whether to take the maximum value of the smoothing and the original matrix</span>
 <span class="sd">        metric: str</span>
 <span class="sd">            &quot;euclidean&quot; or &quot;correlation&quot;</span>
 <span class="sd">        k: int</span>
@@ -827,7 +900,7 @@
 <span class="sd">        n_pca_dims: int, default=None</span>
 <span class="sd">            number of pca to use for the knn distance metric. If None all pcs will be used. (used only if pca_space == True)</span>
 <span class="sd">        balanced: bool</span>
-<span class="sd">            wheter to use BalancedKNN verison</span>
+<span class="sd">            whether to use BalancedKNN verison</span>
 <span class="sd">        b_sight: int</span>
 <span class="sd">            the sight parameter of BalancedKNN (used only if balanced == True)</span>
 <span class="sd">        b_maxl: int</span>
@@ -879,7 +952,7 @@
 <span class="sd">            connectivity.setdiag(diagonal_value)</span>
 <span class="sd">            knn_smoothig_w = connectivity_to_weights(connectivity)</span>
 <span class="sd">        maximum: bool, default=False</span>
-<span class="sd">            wether to take the maximum value of the smoothing and the original matrix</span>
+<span class="sd">            whether to take the maximum value of the smoothing and the original matrix</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -908,9 +981,9 @@
 <span class="sd">            Resulting in a reduction of the smoothing effect</span>
 <span class="sd">            E.g. if diag=8 and k=10 value of Si = (8 * S_i + sum(S_n, with n in 5nn of i)) / (8+5)</span>
 <span class="sd">        scale_weights: bool, default=True</span>
-<span class="sd">            wether to scale weights by gene total expression/yield</span>
+<span class="sd">            whether to scale weights by gene total expression/yield</span>
 <span class="sd">        balanced: bool, dafault=True</span>
-<span class="sd">            wheter to use BalancedKNN verison</span>
+<span class="sd">            whether to use BalancedKNN verison</span>
 <span class="sd">        b_sight: int, default=100</span>
 <span class="sd">            the sight parameter of BalancedKNN (used only if balanced == True)</span>
 <span class="sd">        b_maxl: int, default=18</span>
@@ -977,7 +1050,7 @@
 <span class="sd">            &quot;maxmin_diag&quot;, &quot;maxmin&quot;, &quot;sum&quot;, &quot;prod&quot;, &quot;maxmin_weighted&quot; are supported</span>
 <span class="sd">            if a np.ndarray is porvided weights for every cell to use in the least squares fit</span>
 <span class="sd">        limit_gamma: np.ndarray, default=True</span>
-<span class="sd">            wether to limit gamma when unspliced is much higher than spliced</span>
+<span class="sd">            whether to limit gamma when unspliced is much higher than spliced</span>
 <span class="sd">        maxmin_perc: List[flaot], default=[2,98]</span>
 <span class="sd">            the percentile to use if the metho</span>
 
@@ -1235,9 +1308,9 @@
 <span class="sd">        n_neighbors: int, default=80</span>
 <span class="sd">            The number of neighbours to take into account</span>
 <span class="sd">        delta_kind: clipped, unclipped, residual</span>
-<span class="sd">            wether to clip the delta</span>
+<span class="sd">            whether to clip the delta</span>
 <span class="sd">        knn_random: bool, default=True</span>
-<span class="sd">            wheter to random sample the neighboroods to speedup calculation</span>
+<span class="sd">            whether to random sample the neighboroods to speedup calculation</span>
 <span class="sd">        max_dist_embed: float, default=None</span>
 <span class="sd">            CURRENTLY NOT USED</span>
 <span class="sd">            The maximum distance allowed</span>
@@ -1605,7 +1678,7 @@
 <span class="sd">        choice: int, default = 1000</span>
 <span class="sd">            the number of cells to randomly pick to plot the arrows</span>
 <span class="sd">        plot_scatter: bool, default = False</span>
-<span class="sd">            wether to plot the points</span>
+<span class="sd">            whether to plot the points</span>
 <span class="sd">        color_arrow: str, default = &quot;cluster</span>
 <span class="sd">            the color of the arrows, if &quot;cluster&quot; the arrows are colored the same as the cluster</span>
 <span class="sd">        epsilon: float, default = None</span>

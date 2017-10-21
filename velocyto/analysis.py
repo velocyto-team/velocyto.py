@@ -443,7 +443,7 @@ class VelocytoLoom:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.U_sz = norm_factor * self.U
-        self.U_sz[~np.isfinite(self.U_sz)] = 0  # it happened only once but it is here as a preacution
+        self.U_sz[~np.isfinite(self.U_sz)] = 0  # it happened only once but it is here as a precaution
         if log:
             self.U_norm = np.log2(self.U_sz + pcount)  # np.sqrt(S_sz )# np.log2(S_sz + 1)
 
@@ -617,7 +617,26 @@ class VelocytoLoom:
     def adjust_totS_totU(self, skip_low_U_pop: bool=True, normalize_total: bool=False,
                          fit_with_low_U: bool=True,
                          svr_C: float=100, svr_gamma: float=1e-6, plot: bool=False) -> None:
-        """ Fit a smooth line to the relation S_sz_tot and U_sz_tot
+        """ Adjust the spliced count on the base of the relation S_sz_tot and U_sz_tot
+
+        Arguments
+        ---------
+        skip_low_U_pop: bool
+
+        normalize_total: bool
+
+        fit_with_low_U: bool
+
+        svr_C: float
+
+        svr_gamma: float
+
+        plot: bool
+
+        Returns
+        -------
+        Nothing but it creates the attributes:
+        
         """
 
         svr = SVR(C=svr_C, kernel="rbf", gamma=svr_gamma)

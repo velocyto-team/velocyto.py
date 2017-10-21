@@ -3,6 +3,10 @@
 .AppleDouble
 .LSOverride
 
+# cache
+velocyto/__pycache__/*
+velocyto/__pycache__
+
 # mypy
 .mypy_cache/*
 

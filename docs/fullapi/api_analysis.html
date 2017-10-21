@@ -203,40 +203,50 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span> <span class="o">=</span> <span class="n">vcy</span><span class="o">.</span><span class="n">VelocytoLoom</span><span class="p">(</span><span class="s2">&quot;foo.loom&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="attribute">
-<dt id="velocyto.analysis.VelocytoLoom.S">
-<code class="descname">S</code><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.S" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.ndarray</em> – Expressed spliced molecules</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.analysis.VelocytoLoom.U">
-<code class="descname">U</code><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.U" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.ndarray</em> – Unspliced molecule count</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.analysis.VelocytoLoom.A">
-<code class="descname">A</code><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.A" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.ndarray</em> – Anbiguous molecule count</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.analysis.VelocytoLoom.ca">
-<code class="descname">ca</code><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.ca" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>dict</em> – Column attributes of the loom file</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.analysis.VelocytoLoom.ra">
-<code class="descname">ra</code><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.ra" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>dict</em> – Row attributes of the loom file</p>
-</dd></dl>
-
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>S</strong> (<em>np.ndarray</em>) – Expressed spliced molecules</li>
+<li><strong>U</strong> (<em>np.ndarray</em>) – Unspliced molecule count</li>
+<li><strong>A</strong> (<em>np.ndarray</em>) – Ambiguous molecule count</li>
+<li><strong>ca</strong> (<em>dict</em>) – Column attributes of the loom file</li>
+<li><strong>ra</strong> (<em>dict</em>) – Row attributes of the loom file</li>
+<li><strong>loom_filepath</strong> (<em>str</em>) – The original path the loom files has been read from</li>
+<li><strong>initial_cell_size</strong> (<em>int</em>) – The sum of spliced molecules</li>
+<li><strong>initial_Ucell_size</strong> (<em>int</em>) – The sum of unspliced molecules</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.adjust_totS_totU">
 <code class="descname">adjust_totS_totU</code><span class="sig-paren">(</span><em>skip_low_U_pop: bool = True</em>, <em>normalize_total: bool = False</em>, <em>fit_with_low_U: bool = True</em>, <em>svr_C: float = 100</em>, <em>svr_gamma: float = 1e-06</em>, <em>plot: bool = False</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.adjust_totS_totU"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.adjust_totS_totU" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fit a smooth line to the relation S_sz_tot and U_sz_tot</p>
+<dd><p>Adjust the spliced count on the base of the relation S_sz_tot and U_sz_tot</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>skip_low_U_pop</strong> (<em>bool</em>) – </li>
+<li><strong>normalize_total</strong> (<em>bool</em>) – </li>
+<li><strong>fit_with_low_U</strong> (<em>bool</em>) – </li>
+<li><strong>svr_C</strong> (<em>float</em>) – </li>
+<li><strong>svr_gamma</strong> (<em>float</em>) – </li>
+<li><strong>plot</strong> (<em>bool</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it creates the attributes</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -337,19 +347,26 @@ constant_unspliced</li>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="velocyto.analysis.VelocytoLoom.custom_filter_genes">
-<code class="descname">custom_filter_genes</code><span class="sig-paren">(</span><em>attr_names: typing.List[str], bool_filter: numpy.ndarray, keep_unfiltered: bool = False</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.custom_filter_genes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.custom_filter_genes" title="Permalink to this definition">¶</a></dt>
-<dd><p>It filter genes from multiple attributes, taking care if they are dictionaries or numpy arrays
-and if the unfiltered version need to be mantained</p>
+<dt id="velocyto.analysis.VelocytoLoom.custom_filter_attributes">
+<code class="descname">custom_filter_attributes</code><span class="sig-paren">(</span><em>attr_names: typing.List[str], bool_filter: numpy.ndarray</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.custom_filter_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.custom_filter_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter attributes given a boolean array. attr_names can be dictionaries or numpy arrays</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attr_names</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – a list of the attributes to be modified. The can be
-1d arrays
-dictionary of 1d arrays
-nd arrays, will be filtered by axis=0
-if .T is specified by axis=-1</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>attr_names</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – a list of the attributes to be modified. The can be
+1d arrays, dictionary of 1d arrays, ndarrays, will be filtered by axis=0
+if .T is specified by axis=-1</li>
+<li><strong>bool_filter</strong> – the boolean filter to be applied</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing it filters the specified attributes</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -383,8 +400,8 @@ If None the raw data will be used</li>
 <li><strong>ndims</strong> (<em>int</em><em>, </em><em>default=None</em>) – The number of dimensions of the high dimensional space to work with. If None all will be considered
 It makes sense only when using principal components</li>
 <li><strong>n_neighbors</strong> (<em>int</em><em>, </em><em>default=80</em>) – The number of neighbours to take into account</li>
-<li><strong>delta_kind</strong> (<em>clipped</em><em>, </em><em>unclipped</em><em>, </em><em>residual</em>) – wether to clip the delta</li>
-<li><strong>knn_random</strong> (<em>bool</em><em>, </em><em>default=True</em>) – wheter to random sample the neighboroods to speedup calculation</li>
+<li><strong>delta_kind</strong> (<em>clipped</em><em>, </em><em>unclipped</em><em>, </em><em>residual</em>) – whether to clip the delta</li>
+<li><strong>knn_random</strong> (<em>bool</em><em>, </em><em>default=True</em>) – whether to random sample the neighboroods to speedup calculation</li>
 <li><strong>max_dist_embed</strong> (<em>float</em><em>, </em><em>default=None</em>) – CURRENTLY NOT USED
 The maximum distance allowed
 If None it will be set to 0.25 * average_distance_two_points_taken_at_random</li>
@@ -406,16 +423,16 @@ this only applies to the knn search, by default half of the cps will be used for
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.filter_cells">
 <code class="descname">filter_cells</code><span class="sig-paren">(</span><em>bool_array: numpy.ndarray</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.filter_cells"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.filter_cells" title="Permalink to this definition">¶</a></dt>
-<dd><p>Filter cells that will be kept in the analysis</p>
+<dd><p>Filter cells using a boolean array.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bool_array</strong> (<em>np.ndarray</em><em> (</em><em>size</em><em> )</em>) – array describing the cells to keep (True)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bool_array</strong> (<em>np.ndarray</em><em> (</em><em>size</em><em> )</em>) – array describing the cells to keep (True).</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Nothing but it remove some cells from S and U</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Nothing but it removes some cells from S and U.</td>
 </tr>
 </tbody>
 </table>
@@ -425,29 +442,26 @@ this only applies to the knn search, by default half of the cps will be used for
 <dt id="velocyto.analysis.VelocytoLoom.filter_genes">
 <code class="descname">filter_genes</code><span class="sig-paren">(</span><em>by_detection_levels: bool = False</em>, <em>by_cluster_expression: bool = False</em>, <em>by_cv_vs_mean: bool = False</em>, <em>by_custom_array: typing.Any = None</em>, <em>keep_unfiltered: bool = False</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.filter_genes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.filter_genes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Filter genes taking care that all the matrixes and all the connected annotation get filtered accordingly</p>
-<p>Attributes affected: .U, .S, .ra
-if present also: .ei_stats_matrix, .ei_stats_ra</p>
+<p>Attributes affected: .U, .S, .ra</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>by_detection_levels</strong> (<em>bool</em><em>, </em><em>default=False</em>) – filter genes by the score_detection_levels result</li>
-<li><strong>by_cluster_expression</strong> (<em>bool</em><em>, </em><em>default=True</em><em> (</em><em>NOTE: in legacy code was True</em><em>)</em>) – filter genes by the score_cluster_expression result</li>
-<li><strong>by_cv_vs_mean</strong> (<em>bool</em><em>, </em><em>default=True</em><em> (</em><em>NOTE: in legacy code was True</em><em>)</em>) – filter genes by the score_cluster_expression result</li>
-<li><strong>np.ndarray</strong><strong>, </strong><strong>default=None</strong> (<em>by_custom_array</em><em>,</em>) – provide a booelan or index array</li>
-<li><strong>keep_unfiltered</strong> (<em>bool</em><em>, </em><em>default=False</em>) – wether to create attributes self.S_prefilter, self.U_prefilter, self.ra_prefilter,
-optionally if present (self.ei_stats_matrix_prefilter, ei_stats_ra_prefilter)
+<li><strong>by_cluster_expression</strong> (<em>bool</em><em>, </em><em>default=False</em>) – filter genes by the score_cluster_expression result</li>
+<li><strong>by_cv_vs_mean</strong> (<em>bool</em><em>, </em><em>default=False</em>) – filter genes by the score_cluster_expression result</li>
+<li><strong>np.ndarray</strong><strong>, </strong><strong>default=None</strong> (<em>by_custom_array</em><em>,</em>) – provide a boolean or index array</li>
+<li><strong>keep_unfiltered</strong> (<em>bool</em><em>, </em><em>default=False</em>) – whether to create attributes self.S_prefilter, self.U_prefilter, self.ra_prefilter,
 (array will be made sparse to minimize memory footprint)
 or just overwrite the previous arrays</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><em>Nothing but it updates the self.S, self.U, self.ra attributes</em></li>
-<li><em>(if present also self.ei_stats_matrix, ei_stats_ra)</em></li>
-</ul>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it updates the self.S, self.U, self.ra attributes</p>
 </td>
 </tr>
 </tbody>
@@ -496,7 +510,7 @@ or just overwrite the previous arrays</li>
 <li><strong>weights</strong> (<em>string</em><em> or </em><em>np.ndarray</em><em>, </em><em>default=&quot;maxmin_diag&quot;</em>) – the method to determine the weights of the least squares fit.
 “maxmin_diag”, “maxmin”, “sum”, “prod”, “maxmin_weighted” are supported
 if a np.ndarray is porvided weights for every cell to use in the least squares fit</li>
-<li><strong>limit_gamma</strong> (<em>np.ndarray</em><em>, </em><em>default=True</em>) – wether to limit gamma when unspliced is much higher than spliced</li>
+<li><strong>limit_gamma</strong> (<em>np.ndarray</em><em>, </em><em>default=True</em>) – whether to limit gamma when unspliced is much higher than spliced</li>
 <li><strong>maxmin_perc</strong> (<em>List</em><em>[</em><em>flaot</em><em>]</em><em>, </em><em>default=</em><em>[</em><em>2</em><em>,</em><em>98</em><em>]</em>) – the percentile to use if the metho</li>
 </ul>
 </td>
@@ -525,8 +539,8 @@ if a np.ndarray is porvided weights for every cell to use in the least squares f
 <li><strong>diag</strong> (<em>int</em><em>, </em><em>default=1</em>) – before smoothing this value is substituted in the diagonal of the knn contiguity matrix
 Resulting in a reduction of the smoothing effect
 E.g. if diag=8 and k=10 value of Si = (8 * S_i + sum(S_n, with n in 5nn of i)) / (8+5)</li>
-<li><strong>scale_weights</strong> (<em>bool</em><em>, </em><em>default=True</em>) – wether to scale weights by gene total expression/yield</li>
-<li><strong>balanced</strong> (<em>bool</em><em>, </em><em>dafault=True</em>) – wheter to use BalancedKNN verison</li>
+<li><strong>scale_weights</strong> (<em>bool</em><em>, </em><em>default=True</em>) – whether to scale weights by gene total expression/yield</li>
+<li><strong>balanced</strong> (<em>bool</em><em>, </em><em>dafault=True</em>) – whether to use BalancedKNN verison</li>
 <li><strong>b_sight</strong> (<em>int</em><em>, </em><em>default=100</em>) – the sight parameter of BalancedKNN (used only if balanced == True)</li>
 <li><strong>b_maxl</strong> (<em>int</em><em>, </em><em>default=18</em>) – the maxl patamenter of BalancedKNN (used only if balanced == True)</li>
 <li><strong>pca_space</strong> (<em>bool</em><em>, </em><em>default=False</em>) – if True the knn will be performed on self.pca
@@ -562,11 +576,11 @@ otherwise it will use self.S_norm (log2 size normalized data)</li>
 <li><strong>diag</strong> (<em>int</em>) – before smoothing this value is substituted in the diagonal of the knn contiguity matrix
 Resulting in a reduction of the smoothing effect
 E.g. if diag=8 and k=10 value of Si = (8 * S_i + sum(S_n, with n in 5nn of i)) / (8+5)</li>
-<li><strong>maximum</strong> (<em>bool</em>) – wether to take the maximum value of the smoothing and the original matrix</li>
+<li><strong>maximum</strong> (<em>bool</em>) – whether to take the maximum value of the smoothing and the original matrix</li>
 <li><strong>metric</strong> (<em>str</em>) – “euclidean” or “correlation”</li>
 <li><strong>k</strong> (<em>int</em>) – number of neighbours</li>
 <li><strong>n_pca_dims</strong> (<em>int</em><em>, </em><em>default=None</em>) – number of pca to use for the knn distance metric. If None all pcs will be used. (used only if pca_space == True)</li>
-<li><strong>balanced</strong> (<em>bool</em>) – wheter to use BalancedKNN verison</li>
+<li><strong>balanced</strong> (<em>bool</em>) – whether to use BalancedKNN verison</li>
 <li><strong>b_sight</strong> (<em>int</em>) – the sight parameter of BalancedKNN (used only if balanced == True)</li>
 <li><strong>b_maxl</strong> (<em>int</em>) – the maxl patamenter of BalancedKNN (used only if balanced == True)</li>
 <li><strong>n_jobs</strong> (<em>int</em><em>, </em><em>default 8</em>) – number of parallel jobs in knn calculation</li>
@@ -599,7 +613,7 @@ E.g. if diag=8 and k=10 value of Si = (8 * S_i + sum(S_n, with n in 5nn of i)) /
 This should be the result of somethign like:
 connectivity.setdiag(diagonal_value)
 knn_smoothig_w = connectivity_to_weights(connectivity)</li>
-<li><strong>maximum</strong> (<em>bool</em><em>, </em><em>default=False</em>) – wether to take the maximum value of the smoothing and the original matrix</li>
+<li><strong>maximum</strong> (<em>bool</em><em>, </em><em>default=False</em>) – whether to take the maximum value of the smoothing and the original matrix</li>
 </ul>
 </td>
 </tr>
@@ -617,7 +631,7 @@ knn_smoothig_w = connectivity_to_weights(connectivity)</li>
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.normalize">
 <code class="descname">normalize</code><span class="sig-paren">(</span><em>which: str = 'both'</em>, <em>size: bool = True</em>, <em>log: bool = True</em>, <em>pcount: float = 1</em>, <em>relative_size: numpy.ndarray = None</em>, <em>use_S_size_for_U: bool = False</em>, <em>target_size: typing.Tuple[float</em>, <em>float] = (None</em>, <em>None)</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.normalize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Normalization for the count data</p>
+<dd><p>Normalization interface</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -629,7 +643,7 @@ knn_smoothig_w = connectivity_to_weights(connectivity)</li>
 <li><strong>size</strong> (<em>bool</em>) – perform size normalization</li>
 <li><strong>log</strong> (<em>bool</em>) – perform log normalization (if size==True, this comes after the size normalization)</li>
 <li><strong>pcount</strong> (<em>int</em><em>, </em><em>default: 1</em>) – The extra count added when logging (log2)</li>
-<li><strong>relative_size</strong> (<em>np.ndarray</em><em>, </em><em>default=None</em>) – if None it calculate the sums the mulecules per cell (self.S.sum(0))
+<li><strong>relative_size</strong> (<em>np.ndarray</em><em>, </em><em>default=None</em>) – if None it calculate the sums the molecules per cell (self.S.sum(0))
 if an array is provided it use it for the normalization</li>
 <li><strong>use_S_size_for_U</strong> (<em>bool</em>) – U is size normalized using the sum of molecules of S</li>
 <li><strong>target_size</strong> (<em>float</em><em> or </em><em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>(</em><em>depending if the which parameter implies 1</em><em> or </em><em>more normalizations</em><em>)</em>) – the size of the cells after normalization will be set to.
@@ -652,12 +666,24 @@ If None the target size is the average of the cell sizes</li>
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.normalize_by_total">
 <code class="descname">normalize_by_total</code><span class="sig-paren">(</span><em>min_perc_U: float = 0.5</em>, <em>plot: bool = False</em>, <em>skip_low_U_pop: bool = True</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.normalize_by_total"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.normalize_by_total" title="Permalink to this definition">¶</a></dt>
-<dd><p>Normalize the cells using the (initial) total moluecules as size estimate</p>
+<dd><p>Normalize the cells using the (initial) total molecules as size estimate</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>min_perc_U</strong> (<em>float</em>) – the percentile to use as a minimum value allowed for the size normalization</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>min_perc_U</strong> (<em>float</em>) – the percentile to use as a minimum value allowed for the size normalization</li>
+<li><strong>plot</strong> (<em>bool</em><em>, </em><em>default=False</em>) – whether</li>
+<li><strong>skip_low_U_pop</strong> (<em>bool</em><em>, </em><em>default=True</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>Returns nothing but it creates the attributes</em></li>
+<li><strong>small_U_pop</strong> (<em>np.ndarray</em>) – Cells with extremely low unspliced count</li>
+</ul>
+</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -670,8 +696,29 @@ If None the target size is the average of the cell sizes</li>
 
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.perform_PCA">
-<code class="descname">perform_PCA</code><span class="sig-paren">(</span><em>which: str = 'S_norm'</em>, <em>n_components: int = None</em>, <em>div_by_std: bool = False</em>, <em>mult_by_scalefact: bool = False</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.perform_PCA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.perform_PCA" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">perform_PCA</code><span class="sig-paren">(</span><em>which: str = 'S_norm'</em>, <em>n_components: int = None</em>, <em>div_by_std: bool = False</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.perform_PCA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.perform_PCA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform PCA (cells as samples)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>which</strong> (<em>str</em><em>, </em><em>default=&quot;S_norm&quot;</em>) – The name of the attribute to use for the calculation (e.g. S_norm or Sx_norm)</li>
+<li><strong>n_components</strong> (<em>int</em><em>, </em><em>default=None</em>) – Number of components to keep. If None all the components will be kept.</li>
+<li><strong>div_by_std</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Wether to divide by standard deviation</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>Returns nothing but it creates the attributes</em></li>
+<li><strong>pca</strong> (<em>np.ndarray</em>) – a numpy array of shape (cells, npcs)</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.perform_PCA_imputed">
@@ -694,7 +741,7 @@ If None the target size is the average of the cell sizes</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>choice</strong> (<em>int</em><em>, </em><em>default = 1000</em>) – the number of cells to randomly pick to plot the arrows</li>
-<li><strong>plot_scatter</strong> (<em>bool</em><em>, </em><em>default = False</em>) – wether to plot the points</li>
+<li><strong>plot_scatter</strong> (<em>bool</em><em>, </em><em>default = False</em>) – whether to plot the points</li>
 <li><strong>color_arrow</strong> (<em>str</em><em>, </em><em>default = &quot;cluster</em>) – the color of the arrows, if “cluster” the arrows are colored the same as the cluster</li>
 <li><strong>epsilon</strong> (<em>float</em><em>, </em><em>default = None</em>) – the minimal size of the arrow that can be plotted before it becomes invisible</li>
 <li><strong>quiver_scale</strong> (<em>float</em>) – scale argument passed to the matplotlib quiver function</li>
@@ -745,12 +792,16 @@ Notice that 0 will be always set as the center of the colormap. (e.g. white in R
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.plot_fractions">
 <code class="descname">plot_fractions</code><span class="sig-paren">(</span><em>save2file: str = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.plot_fractions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.plot_fractions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots a barplot of the abundance of spliced/unspliced of molecules in the dataset</p>
+<dd><p>Plots a barplot showing the abundance of spliced/unspliced molecules in the dataset</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>save2file</strong> (<em>str</em><em> (</em><em>default: None</em><em>)</em>) – If not None specifies the file path to wich plots get saved</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Nothing, it plots a barplot</td>
 </tr>
 </tbody>
 </table>
@@ -879,21 +930,22 @@ if None is passed an array of 1/self.tr.shape[0] will be created</li>
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.score_cluster_expression">
 <code class="descname">score_cluster_expression</code><span class="sig-paren">(</span><em>min_avg_U: float = 0.02</em>, <em>min_avg_S: float = 0.08</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.score_cluster_expression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.score_cluster_expression" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prepare filtering genes on the basis of knowledge on the cluster</p>
+<dd><p>Prepare filtering genes on the basis of cluster-wise expression threshold</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>min_avg_U</strong> (<em>float</em>) – Include genes that have unspliced average bigger than <cite>min_avg_U</cite> in at least one of the clusters</li>
-<li><strong>min_avg_U</strong> – Include genes that have spliced average bigger than <cite>min_avg_U</cite> in at least one of the clusters</li>
+<li><strong>min_avg_S</strong> (<em>float</em>) – Include genes that have spliced average bigger than <cite>min_avg_U</cite> in at least one of the clusters</li>
 <li><strong>Note</strong> (<em>the two conditions are combined by and &quot;&amp;&quot; logical operator</em>) – </li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>Nothing but it creates the attribute</em></li>
 <li><strong>clu_avg_selected</strong> (<em>np.ndarray bool</em>) – The gene cluster that is selected</li>
-<li><strong>Note</strong> (<em>an attribute with the same name is created</em>)</li>
+<li>To perform the filtering use the method <cite>filter_genes</cite></li>
 </ul>
 </p>
 </td>
@@ -915,17 +967,18 @@ if None is passed an array of 1/self.tr.shape[0] will be created</li>
 <li><strong>min_expr_cells</strong> (<em>int</em>) – minimum number of cells that express that gene for it to be considered in the fit</li>
 <li><strong>max_expr_avg</strong> (<em>float</em>) – The maximum average accepted before discarding from the the gene as house-keeping/outlier</li>
 <li><strong>svr_gamma</strong> (<em>float</em>) – the gamma hyperparameter of the SVR</li>
-<li><strong>plot</strong> (<em>bool</em>) – wether to show a plot</li>
+<li><strong>winsorize</strong> (<em>bool</em>) – Wether to winsorize the data for the cv vs mean model</li>
+<li><strong>winsor_perc</strong> (<em>tuple</em><em>, </em><em>default=</em><em>(</em><em>1</em><em>, </em><em>99.5</em><em>)</em>) – the up and lower bound of the winsorization</li>
+<li><strong>plot</strong> (<em>bool</em><em>, </em><em>default=False</em>) – whether to show a plot</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><strong>score</strong> (<em>np.ndarray</em>) – How much the observed CV is higher than the one predicted by a noise model fit to the data
-# the same array will be stored as the attribure <cite>cv_mean_score</cite></li>
-<li><strong>selected</strong> (<em>np.ndarray bool</em>) – on the basis of the N parameter
-# the same array will be stored as the attribure <cite>cv_mean_selected</cite></li>
+<li><em>Nothing but it creates the attributes</em></li>
+<li><strong>cv_mean_score</strong> (<em>np.ndarray</em>) – How much the observed CV is higher than the one predicted by a noise model fit to the data</li>
+<li><strong>cv_mean_selected</strong> (<em>np.ndarray bool</em>) – on the basis of the N parameter</li>
 <li><strong>Note</strong> (<em>genes excluded from the fit will have in the output the same score as the less noisy gene in the dataset.</em>)</li>
-<li><strong>NOTE</strong> (<em>The function returns more genes than N in case more genes with the same score as present. This may result</em>) – in a cv vs mean plot that looks weirdly colored red/blue when looked at low magnification</li>
+<li>To perform the filtering use the method <cite>filter_genes</cite></li>
 </ul>
 </p>
 </td>
@@ -951,10 +1004,11 @@ if None is passed an array of 1/self.tr.shape[0] will be created</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but an attribute self.detection_level_selected is created</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>Nothing but an attribute self.detection_level_selected is created</em></li>
+<li>To perform the filtering by detection levels use the method <cite>filter_genes</cite></li>
+</ul>
+</p>
 </td>
 </tr>
 </tbody>
@@ -963,8 +1017,22 @@ if None is passed an array of 1/self.tr.shape[0] will be created</li>
 
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.set_clusters">
-<code class="descname">set_clusters</code><span class="sig-paren">(</span><em>cluster_labels: numpy.ndarray</em>, <em>cluter_colors_dict: typing.Dict[typing.Any</em>, <em>typing.List[float]] = None</em>, <em>colormap: typing.Any = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.set_clusters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.set_clusters" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">set_clusters</code><span class="sig-paren">(</span><em>cluster_labels: numpy.ndarray</em>, <em>cluster_colors_dict: typing.Dict[typing.Any</em>, <em>typing.List[float]] = None</em>, <em>colormap: typing.Any = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.set_clusters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.set_clusters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility function to set cluster labels, names and colormap</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cluster_labels</strong> (<em>np.ndarray</em>) – </li>
+<li><strong>cluter_colors_dict</strong> (<em>dict</em>) – </li>
+<li><strong>colormap</strong> – Colormap object (e.g. from matpkotlib). It should be callable.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
