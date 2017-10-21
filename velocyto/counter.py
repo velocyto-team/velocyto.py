@@ -270,7 +270,7 @@ class ExInCounter:
                 molitem = vcy.Molitem(matchgene)
                 molitems[bcumi] = molitem
 
-            # Add info about which interval was hit and wether it gives evidence of splicing
+            # Add info about which interval was hit and whether it gives evidence of splicing
             molitem.mark_hit_ivls(matchivls.keys(), r.is_spliced())
             
             if sam_output:
