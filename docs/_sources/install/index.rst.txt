@@ -20,7 +20,7 @@ To make sure you have all the dependencies first do:
 
 ::
 
-    conda install numpy scipy cython scikit-learn scikit-image h5py click
+    conda install numpy scipy cython scikit-learn h5py click
     pip install pysam loompy
 
 .. _command:
@@ -50,7 +50,7 @@ Install using PyPI wheels
 -------------------------
 
 .. note::
-   This installation modality is not currently available. The plan is make it available upon 1.0 release.
+   This installation method is not currently available. The plan is make it available upon 1.0 release.
 
 .. _conda:
 
@@ -58,4 +58,4 @@ Install using conda
 -------------------
 
 .. note::
-   This installation modality is not currently available. The plan is make it available upon 1.0 release.
+   This installation method is not currently available. The plan is make it available upon 1.0 release.

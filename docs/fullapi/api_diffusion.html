@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>velocyto.diffusion module &mdash; velocyto 0.9.5 documentation</title>
+  <title>velocyto.diffusion module &mdash; velocyto 0.9.6 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="velocyto 0.9.5 documentation" href="../index.html"/>
+    <link rel="top" title="velocyto 0.9.6 documentation" href="../index.html"/>
         <link rel="up" title="API" href="index.html"/>
         <link rel="next" title="CLI Internals" href="api_cli_internals.html"/>
         <link rel="prev" title="velocyto.neighbors module" href="api_neighbors.html"/> 
@@ -197,17 +197,17 @@
 <em class="property">class </em><code class="descclassname">velocyto.diffusion.</code><code class="descname">Diffusion</code> &#x2192; None<a class="reference internal" href="../_modules/velocyto/diffusion.html#Diffusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.diffusion.Diffusion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <dl class="method">
-<dt id="velocyto.diffusion.Diffusion.compute_transition_matrix">
-<code class="descname">compute_transition_matrix</code><span class="sig-paren">(</span><em>knn: scipy.sparse.coo.coo_matrix</em>, <em>x: numpy.ndarray</em>, <em>v: numpy.ndarray</em>, <em>epsilon: float = 0.0</em>, <em>reverse: bool = False</em><span class="sig-paren">)</span> &#x2192; scipy.sparse.csr.csr_matrix<a class="reference internal" href="../_modules/velocyto/diffusion.html#Diffusion.compute_transition_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.diffusion.Diffusion.compute_transition_matrix" title="Permalink to this definition">¶</a></dt>
+<dt id="velocyto.diffusion.Diffusion.compute_transition_matrix2">
+<code class="descname">compute_transition_matrix2</code><span class="sig-paren">(</span><em>x0: numpy.ndarray</em>, <em>v: numpy.ndarray</em>, <em>sigma: float = 0.0</em>, <em>reverse: bool = False</em><span class="sig-paren">)</span> &#x2192; scipy.sparse.csr.csr_matrix<a class="reference internal" href="../_modules/velocyto/diffusion.html#Diffusion.compute_transition_matrix2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.diffusion.Diffusion.compute_transition_matrix2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute a right-stochastic matrix representing transition probabilities from each node</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>KNN graph</strong> (<em>knn</em>) – </li>
-<li><strong>Embedding positions</strong> (<em>x</em>) – </li>
-<li><strong>Velocities on the embedding</strong> (<em>v</em>) – </li>
+<li><strong>Embedding positions</strong> (<em>x0</em>) – </li>
+<li><strong>Velocities on the embedding</strong><strong> (</strong><strong>n_cells</strong><strong>, </strong><strong>n_dims</strong> (<em>v</em>) – </li>
+<li><strong>The kernel size</strong> (<em>sigma</em>) – </li>
 <li><strong>Compute the reverse transition matrix</strong> (<em>reverse</em>) – </li>
 </ul>
 </td>
@@ -224,17 +224,17 @@ non-zero outgoing edges are normalized to a sum of 1.0.</dd>
 </dd></dl>
 
 <dl class="method">
-<dt id="velocyto.diffusion.Diffusion.compute_transition_matrix2">
-<code class="descname">compute_transition_matrix2</code><span class="sig-paren">(</span><em>x0: numpy.ndarray</em>, <em>v: numpy.ndarray</em>, <em>sigma: float = 0.0</em>, <em>reverse: bool = False</em><span class="sig-paren">)</span> &#x2192; scipy.sparse.csr.csr_matrix<a class="reference internal" href="../_modules/velocyto/diffusion.html#Diffusion.compute_transition_matrix2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.diffusion.Diffusion.compute_transition_matrix2" title="Permalink to this definition">¶</a></dt>
+<dt id="velocyto.diffusion.Diffusion.compute_transition_matrix">
+<code class="descname">compute_transition_matrix</code><span class="sig-paren">(</span><em>knn: scipy.sparse.coo.coo_matrix</em>, <em>x: numpy.ndarray</em>, <em>v: numpy.ndarray</em>, <em>epsilon: float = 0.0</em>, <em>reverse: bool = False</em><span class="sig-paren">)</span> &#x2192; scipy.sparse.csr.csr_matrix<a class="reference internal" href="../_modules/velocyto/diffusion.html#Diffusion.compute_transition_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.diffusion.Diffusion.compute_transition_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute a right-stochastic matrix representing transition probabilities from each node</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Embedding positions</strong> (<em>x0</em>) – </li>
-<li><strong>Velocities on the embedding</strong><strong> (</strong><strong>n_cells</strong><strong>, </strong><strong>n_dims</strong> (<em>v</em>) – </li>
-<li><strong>The kernel size</strong> (<em>sigma</em>) – </li>
+<li><strong>KNN graph</strong> (<em>knn</em>) – </li>
+<li><strong>Embedding positions</strong> (<em>x</em>) – </li>
+<li><strong>Velocities on the embedding</strong> (<em>v</em>) – </li>
 <li><strong>Compute the reverse transition matrix</strong> (<em>reverse</em>) – </li>
 </ul>
 </td>
@@ -303,7 +303,7 @@ non-zero outgoing edges are normalized to a sum of 1.0.</dd>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.9.5',
+            VERSION:'0.9.6',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

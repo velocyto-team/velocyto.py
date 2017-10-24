@@ -26,7 +26,7 @@ def balance_knn_loop(dsi: np.ndarray, dist: np.ndarray, lsi: np.ndarray, maxl: i
         k : int
             number of neighbours in the final graph
         return_distance : bool
-            wether to return distance
+            whether to return distance
 
         Returns
         -------

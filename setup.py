@@ -29,7 +29,7 @@ else:
     if "darwin" in sys.platform:
         compiled = "velocyto/speedboosted.cpython-36m-darwin.so"
     elif "win" in sys.platform:
-        sys.stdout.write("Sorry man, we do not support (or like) Windows OS")
+        sys.stdout.write("Sorry, we do not support (or like) Windows OS")
         sys.exit()
     elif "linux" in sys.platform:
         compiled = "velocyto/speedboosted.cpython-36m-x86_64-linux-gnu.so"
@@ -41,6 +41,7 @@ setup(
     packages=find_packages(),
     install_requires=['numpy',
                       'scipy',
+                      'cython',
                       'numba',
                       'scikit-learn',
                       'h5py',
@@ -60,5 +61,5 @@ setup(
     author_email="sten.linnarsson@ki.se",
     description="RNA velocity analysis for single cell RNA-seq data",
     license="BSD2",
-    url="https://github.com/linnarsson-lab/velocyto",
+    url="https://github.com/velocyto-team/velocyto.py",
 )
