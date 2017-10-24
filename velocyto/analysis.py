@@ -712,10 +712,13 @@ class VelocytoLoom:
         ax.view_init(elev=elev, azim=azim)
 
     def perform_PCA_imputed(self, n_components: int=None) -> None:
+        """Simply performs PCA of `Sx_norm` and save the result as  `pcax`"""
         self.pcax = PCA(n_components=n_components)
-        self.pcsx = self.pcax.fit_transform(self.Sx_norm.T)
+        self.pcax = self.pcax.fit_transform(self.Sx_norm.T)
 
     def plot_pca_imputed(self, dim: List[int]=[0, 1, 2], elev: float=60, azim: float=-140) -> None:
+        """Plot 3d PCA of the smoothed data
+        """
         fig = plt.figure(figsize=(8, 6))
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(self.pcsx[:, dim[0]],
@@ -724,45 +727,57 @@ class VelocytoLoom:
                    c=self.colorandum)
         ax.view_init(elev=elev, azim=azim)
 
-    def knn_imputation(self, pca_space: float=True, diag: float=1, k: int=50, n_pca_dims: int=None,
-                       maximum: bool=False, metric: str="euclidean", size_norm: bool=True,
-                       balanced: bool=False, b_sight: int=100, b_maxl: int=7, n_jobs: int=8) -> None:
-        """Performs k-nn imputation
+    def knn_imputation(self, k: int=None, pca_space: float=True, metric: str="euclidean", diag: float=1,
+                       n_pca_dims: int=None, maximum: bool=False, size_norm: bool=True,
+                       balanced: bool=False, b_sight: int=None, b_maxl: int=None, n_jobs: int=8) -> None:
+        """Performs k-nn smoothing of the data matrix
 
         Arguments
         ---------
+        k: int
+            number of neighbors. If None the default it is chosen to be `0.025 * Ncells`
         pca_space: bool, default=True
-            if True the knn will be performed on self.pca
-            otherwise it will use self.S_norm (log2 size normalized data)
-        diag: int
-            before smoothing this value is substituted in the diagonal of the knn contiguity matrix
-            Resulting in a reduction of the smoothing effect
-            E.g. if diag=8 and k=10 value of Si = (8 * S_i + sum(S_n, with n in 5nn of i)) / (8+5)
-        maximum: bool
-            whether to take the maximum value of the smoothing and the original matrix
+            if True the knn will be performed in PCA space (`pcs`)
+            otherwise it will use log2 size normalized data  (`S_norm`)
         metric: str
             "euclidean" or "correlation"
-        k: int
-            number of neighbours
+        diag: int, default=1
+            before smoothing this value is substituted in the diagonal of the knn contiguity matrix
+            Resulting in a reduction of the smoothing effect.
+            E.g. if diag=8 and k=10 value of Si = (8 * S_i + sum(S_n, with n in 5nn of i)) / (8+5)
+        maximum: bool, default=False
+            If True the maximum value of the smoothing and the original matrix entry is taken.
         n_pca_dims: int, default=None
             number of pca to use for the knn distance metric. If None all pcs will be used. (used only if pca_space == True)
         balanced: bool
-            whether to use BalancedKNN verison
+            whether to use BalancedKNN version
         b_sight: int
             the sight parameter of BalancedKNN (used only if balanced == True)
         b_maxl: int
-            the maxl patamenter of BalancedKNN (used only if balanced == True)
+            the maxl parameter of BalancedKNN (used only if balanced == True)
         n_jobs: int, default 8
             number of parallel jobs in knn calculation
 
         Returns
         -------
         Nothing but it creates the attributes:
-        `knn`: sparse matrix
-        `knn_smoothig_w`: the weights used for the smoothing
-        `Sx`, `Ux`: the imputed values
+        knn: scipy.sparse.csr_matrix 
+            knn contiguity matrix
+        knn_smoothig_w: scipy.sparse.lil_matrix
+            the weights used for the smoothing
+        Sx: np.ndarray
+            smoothed spliced
+        Ux: np.ndarray
+            smoothed unspliced
         
         """
+        N = self.S.shape[1]
+        if k is None:
+            k = int(N * 0.025)
+        if b_sight is None and balanced:
+            b_sight = np.maximum(int(k * 8), N - 1)
+        if b_maxl is None and balanced:
+            b_maxl = np.maximum(int(k * 4), N - 1)
         if pca_space:
             space = self.pcs[:, :n_pca_dims]
         else:
@@ -804,7 +819,10 @@ class VelocytoLoom:
         Returns
         -------
         Nothing but it creates the attributes:
-        Sx, Ux: the imputed values
+        Sx: np.ndarray
+            smoothed spliced
+        Ux: np.ndarray
+            smoothed unspliced
         """
         self.Sx = convolve_by_sparse_weights(self.S_sz, knn_smoothig_w)
         self.Ux = convolve_by_sparse_weights(self.U_sz, knn_smoothig_w)
@@ -812,41 +830,46 @@ class VelocytoLoom:
             self.Sx = np.maximum(self.S_sz, self.Sx)
             self.Ux = np.maximum(self.U_sz, self.Ux)
 
-    def gene_knn_imputation(self, metric: str="correlation", k: int=15, diag: float=1, scale_weights: bool=True,
-                            balanced: bool=True, b_sight: int=100, b_maxl: int=18,
-                            pca_space: float=False, n_jobs: int=8) -> None:
-        """Performs genes k-nn imputation
+    def gene_knn_imputation(self, k: int=15, pca_space: float=False, metric: str="correlation", diag: float=1,
+                            scale_weights: bool=True, balanced: bool=True, b_sight: int=100, b_maxl: int=18,
+                             n_jobs: int=8) -> None:
+        """Performs genes k-nn smoothing of the genes
 
         Arguments
         ---------
+        k: int, default=15
+            number of neighbors
+        pca_space: bool, default=False
+            if True the knn will be performed in PCA space (`pcs`)
+            otherwise it will use log2 size normalized data  (`S_norm`)
         metric: str, default="correlation"
             "euclidean" or "correlation"
-        k: int, defaut=15
-            number of neighbours
         diag: int, default=1
             before smoothing this value is substituted in the diagonal of the knn contiguity matrix
             Resulting in a reduction of the smoothing effect
             E.g. if diag=8 and k=10 value of Si = (8 * S_i + sum(S_n, with n in 5nn of i)) / (8+5)
         scale_weights: bool, default=True
             whether to scale weights by gene total expression/yield
-        balanced: bool, dafault=True
-            whether to use BalancedKNN verison
+        balanced: bool, default=True
+            whether to use BalancedKNN version
         b_sight: int, default=100
             the sight parameter of BalancedKNN (used only if balanced == True)
         b_maxl: int, default=18
-            the maxl patamenter of BalancedKNN (used only if balanced == True)
-        pca_space: bool, default=False
-            if True the knn will be performed on self.pca
-            otherwise it will use self.S_norm (log2 size normalized data)
+            the maxl parameter of BalancedKNN (used only if balanced == True)
         n_jobs: int, default=8
             number of parallel jobs in knn calculation
 
         Returns
         -------
         Nothing but it creates the attributes:
-        `gknn`: sparse matrix
-        `gknn_smoothig_w`: the weights used for the smoothing
-        `Sx`, `Ux`: the imputed values
+        gknn: scipy.sparse.csr_matrix 
+            genes knn contiguity matrix
+        gknn_smoothig_w: scipy.sparse.lil_matrix
+            the weights used for the smoothing of the genes
+        Sx: np.ndarray
+            smoothed spliced
+        Ux: np.ndarray
+            smoothed unspliced
         
         """
         if pca_space:
@@ -879,14 +902,13 @@ class VelocytoLoom:
 
         Arguments
         ---------
-
         steady_state_bool: np.ndarray, default=None
-            if a boolean array is specified gammas is fitting using only the corresponding cells
+            if a boolean array is specified, gamma is fitted using only the corresponding cells
         use_imputed_data: bool, default=True
             use knn smoothed data
         use_size_norm: bool, default=False
             use size normalized data for the fit
-        offset: bool, default=True
+        fit_offset: bool, default=True
             Fit with offset
         fixperc_q: bool, default=False
             (when fit_offset==False) Wether to fix the offset to a lower percentile of the unspliced
@@ -895,15 +917,21 @@ class VelocytoLoom:
         weights: string or np.ndarray, default="maxmin_diag"
             the method to determine the weights of the least squares fit.
             "maxmin_diag", "maxmin", "sum", "prod", "maxmin_weighted" are supported
-            if a np.ndarray is porvided weights for every cell to use in the least squares fit
+            if a 2d np.ndarray is provided the entry (i,j) is the weight of the cell j when fitting gamma to gene i 
         limit_gamma: np.ndarray, default=True
             whether to limit gamma when unspliced is much higher than spliced
         maxmin_perc: List[flaot], default=[2,98]
-            the percentile to use if the metho
+            the percentile to use if weights = "maxmin" or "maxmin_diag"
 
         Returns
         -------
-        Nothing it just creates the attributes: `gammas`, `q`, (`R2`, optional)
+        Nothing it just creates the attributes:
+        gammas: np.ndarray
+            the vector of the gammas fit to each gene
+        q: np.ndarray
+            the vector of offsets of the fit
+        R2: np.ndarray (optional)
+            The vector of squared coefficient of determination
 
         """
         if steady_state_bool:
@@ -987,18 +1015,19 @@ class VelocytoLoom:
                                         tmpS[:, self.steady_state])
 
     def filter_genes_good_fit(self, minR: float=0.1, min_gamma: float=0.01) -> None:
-        """Use the coefficient of determination to filter away that have an irregular/complex phase protrait
+        """Use the coefficient of determination to filter away genes that have an irregular/complex phase portrait
 
         Arguments
         ---------
         minR: float, default=0.1
             Minimum coefficient of determination allowed
-        min_gamma: float=0.01
+        min_gamma: float, default=0.01
             Filter away low gammas as a secondary filter
 
         Returns
         -------
-        Nothing but it filters out the genes that do not pass the sets
+        Nothing but modifies it filters out the genes that do not satisfy the conditions
+        This affects: "U", "U_sz", "U_norm", "Ux", "Ux_sz", "Ux_norm", "S", "S_sz", "S_norm", "Sx", "Sx_sz", "Sx_norm", "gammas", "q", "R2"
         """
 
         # NOTE Should be: tmp_filter = np.sqrt(self.R2) > minR but since the fit is weighted and constrained R2 can be negative
@@ -1017,7 +1046,7 @@ class VelocytoLoom:
                 setattr(self, name_attr, getattr(self, name_attr)[tmp_filter])
 
     def predict_U(self, which_gamma: str="gammas", which_S: str= "Sx_sz", which_offset: str="q") -> None:
-        """Predict U given the gamma model fit
+        """Predict U (gamma * S) given the gamma model fit
 
         Arguments
         ---------
@@ -1031,7 +1060,8 @@ class VelocytoLoom:
         Returns
         ------
         Noting but it creates the attribute
-         .Upred
+        Upred: np.ndarray
+           unspliced esimated as `gamma * S`
         """
         self.which_S_for_pred = which_S
         if which_offset is None:
@@ -1043,16 +1073,18 @@ class VelocytoLoom:
             self.Upred = getattr(self, which_gamma)[:, None] * getattr(self, which_S) + getattr(self, which_offset)[:, None]
 
     def calculate_velocity(self, kind: str="residual") -> None:
-        """Calculate velocity or related parameter parameter
+        """Calculate velocity
 
         Arguments
         ---------
-        kind: str, default="M-value"
-            "residual" calculates the velocity as U_measured) - U_predicted
+        kind: str, default="residual"
+            "residual" calculates the velocity as U_measured - U_predicted
         
         Results
         -------
-        Nothing but it creates the attribute: `velocity`
+        Nothing but it creates the attribute:
+        velocity: np.ndarray
+            U_measured - U_predicted
 
         """
         if kind == "residual":
@@ -1065,32 +1097,33 @@ class VelocytoLoom:
         else:
             raise NotImplementedError(f"Velocity calculation kind={kind} is not implemented")
 
-    def calculate_shift(self, kind: str="difference", assumption: str="constant_velocity",
+    def calculate_shift(self, assumption: str="constant_velocity", kind: str="difference",
                         delta_t: float=1, min_S: float=1e-4) -> None:
-        """Find the change in gene expression for every cell
+        """Find the change (deltaS) in gene expression for every cell
 
         Arguments
         ---------
-        kind: str, default="log2_ratio"
-            difference
-            log2_ratio
-            log2_ratioW
         assumption: str, default="constant_velocity"
-            constant_velocity
-            constant_unspliced
+            constant_velocity (described in the paper as Model I)
+            constant_unspliced (described in the paper as Model II)
+        delta_t: float, default=1
+            the time step for extrapolation
+        kind: str, default="difference"
+            For now only difference is supported. (DEPRECATED)
         min_S: float, default=min_S
-            constant small value added in case of log2_ratio estimation
+            constant small value added in case of log2_ratio estimation. (DEPRECATED)
 
         Returns
         -------
         Nothing it only creates the following attributes
-         .delta_S
+        delta_S: np.ndarray
+            The variation in gene expression
         """
         if assumption == "constant_velocity":
             if kind == "difference":
                 self.delta_S = delta_t * self.velocity
             else:
-                NotImplementedError(f"Kind {kind} is not implemented for assumpition {assumption}")
+                NotImplementedError(f"Kind {kind} is not implemented for assumption {assumption}")
         elif assumption == "constant_unspliced":
             # Ux_sz = self.Ux_sz - offset; Ux_sz[Ux_sz<0] = 0
             if kind == "difference":  # maybe I should say ratio see below
@@ -1099,13 +1132,27 @@ class VelocytoLoom:
                 egt = np.exp(-self.gammas * delta_t)[:, None]
                 self.delta_S = self.Sx_sz * egt + (1 - egt) * Ux_szo / self.gammas[:, None] - self.Sx_sz
             else:
-                NotImplementedError(f"Kind {kind} is not implemented for assumpition {assumption}")
+                NotImplementedError(f"Kind {kind} is not implemented for assumption {assumption}")
         else:
-            raise NotImplementedError(f"Assumpution {assumption} is not implemented")
+            raise NotImplementedError(f"Assumption {assumption} is not implemented")
 
     def extrapolate_cell_at_t(self, delta_t: float=1, clip: bool=True) -> None:
-        """Find the value for the cell after time delta_t
+        """Extrapolate the gene expression profile for each cell after delta_t
         
+        Arguments
+        ---------
+        delta_t: float, default=1
+            the time step considered for the extrapolation
+        clip: bool, default=True
+            If True negative values are clipped to zero
+
+        Returns
+        -------
+        Nothing but it creates the attributes:
+        Sx_sz_t: np.ndarray
+            the extrapolated expression profile
+        used_delta_t: float
+            stores delta_t for future usage
         """
         if self.which_S_for_pred == "Sx_sz":
             self.Sx_sz_t = self.Sx_sz + delta_t * self.delta_S
@@ -1118,11 +1165,11 @@ class VelocytoLoom:
                 self.Sx_t = np.clip(self.Sx_t, 0, None)
                 self.used_delta_t = delta_t
         else:
-            NotImplementedError("not implemented for other situation other than Sx or Sx_sz")
+            NotImplementedError("not implemented for other situations other than Sx or Sx_sz")
 
     def perform_TSNE(self, n_dims: int=2, perplexity: float=30, initial_pos: np.ndarray=None,
                      theta: float=0.5, n_pca_dim: int=None, max_iter: int=1000) -> None:
-        """Perform TSNE on the PCA using barnes hut approximation (C implementation)
+        """Perform TSNE on the PCA using barnes hut approximation
         """
         # Perform TSNE
         logging.debug("Running bhtsne")
@@ -1136,28 +1183,31 @@ class VelocytoLoom:
                                  knn_random: bool=False, sampled_fraction: float=0.3, delta_kind: str="clipped",
                                  sampling_pobs: Tuple[float, float]=(0.5, 0.1), max_dist_embed: float=None,
                                  n_jobs: int=4, random_seed: int=15071990) -> None:
-        """ Use correlation to estimate transition probabilities for every cells to its embedding neighborhood
+        """Use correlation to estimate transition probabilities for every cells to its embedding neighborhood
         
         Arguments
         ---------
-        hidim: str
+        hidim: str, dafault="Sx_sz"
             The name of the attribute containing the high dimensional space. It will be retrieved as getattr(self, hidim)
             The updated vector at time t is assumed to be getattr(self, hidim + "_t")
             Appending .T to the string will transpose the matrix (usefull in case we want to use S or Sx)
-        embed: str
+        embed: str, dafault="ts"
             The name of the attribute containing the embedding. It will be retrieved as getattr(self, embed)
-        transform: str, default=None
+        transform: str, default="sqrt"
             The transformation that is applies on the high dimensional space.
             If None the raw data will be used
         ndims: int, default=None
             The number of dimensions of the high dimensional space to work with. If None all will be considered
             It makes sense only when using principal components
-        n_neighbors: int, default=80
+        n_neighbors: int, default=None
             The number of neighbours to take into account
-        delta_kind: clipped, unclipped, residual
-            whether to clip the delta
+        psc: float, default=1
+            pseudocount added in variance normalizing tranform
         knn_random: bool, default=True
             whether to random sample the neighboroods to speedup calculation
+        delta_kind: clipped, unclipped, residual
+            whether to clip the delta
+        sampling_pobs: Tuple, default=(0.5, 1)
         max_dist_embed: float, default=None
             CURRENTLY NOT USED
             The maximum distance allowed
@@ -1310,7 +1360,7 @@ class VelocytoLoom:
             Or the difference vector is getattr(self, 'delta' + '_' + embed)
         smooth: float, smooth=0.5
             Higher value correspond to thaking in consideration further points
-            the standardad deviation of the gaussian karnel is smooth * stepsize
+            the standard deviation of the gaussian kernel is smooth * stepsize
         steps: tuple, detaul
             the number of steps in the grid for each axis
         n_neighbors:
@@ -1558,6 +1608,8 @@ class VelocytoLoom:
                               cmap_name: str="RdBu_r", plot_arrow: bool=True,
                               mark_cell: bool=True, head_width: int=3) -> None:
         """Plot the probability of a cell to transition to any other cell
+
+        This function is untested
         """
         cmap = plt.cm.get_cmap(name=cmap_name)
         colorandum = np.ones((self.embedding.shape[0], 4))
@@ -1574,21 +1626,29 @@ class VelocytoLoom:
                       self.delta_embedding[cell_ix, 0], self.delta_embedding[cell_ix, 1],
                       head_width=head_width, length_includes_head=True)
     
-    def plot_velocity_as_color(self, gene_name: str=None, cmap: Any= plt.cm.RdBu_r, gs: Any=None, which_tsne: str="ts", **kwargs: Dict) -> None:
-        """Plot velocity as color on the Tsne
+    def plot_velocity_as_color(self, gene_name: str=None, cmap: Any= plt.cm.RdBu_r,
+                               gs: Any=None, which_tsne: str="ts", **kwargs: Dict) -> None:
+        """Plot velocity as color on the Tsne embedding
 
         Arguments
         ---------
-        which_tsne: str
-            can be "tsW" or other tsne attribute accessible by getattr(self, which_tsne)
-        cmap: maplotlib.cm.Colormap
+        gene_name: str
+            The name of the gene, should be present in self.S
+        cmap: maplotlib.cm.Colormap, dafault=maplotlib.cm.RdBu_r
             Colormap to use, devergent are better, RdBu_r is default
             Notice that 0 will be always set as the center of the colormap. (e.g. white in RdBu_r)
+        gs: Gridspec subplot
+            Gridspec subplot to plot on.
+        which_tsne: str, default="ts"
+            the name of the attributed where the desired embedding is stored
+        **kwargs: dict
+            other keywords arguments will be passed to the plt.scatter call
 
         Returns
         -------
         Nothing
         """
+
         ix = np.where(self.ra["Gene"] == gene_name)[0][0]
         kwarg_plot = {"alpha": 0.5, "s": 8, "edgecolor": "0.8", "lw": 0.15}
         kwarg_plot.update(kwargs)
@@ -1616,16 +1676,24 @@ class VelocytoLoom:
         plt.axis("off")
         plt.title(f"{gene_name}")
 
-    def plot_expression_as_color(self, gene_name: str=None, imputed: bool= True, cmap: Any= plt.cm.Greens, gs: Any=None, which_tsne: str="ts", **kwargs: Dict) -> None:
-        """Plot expression (imputed) as color on the Tsne
+    def plot_expression_as_color(self, gene_name: str=None, imputed: bool= True, cmap: Any= plt.cm.Greens,
+                                 gs: Any=None, which_tsne: str="ts", **kwargs: Dict) -> None:
+        """Plot expression as color on the Tsne embedding
 
         Arguments
         ---------
         gene_name: str
             The name of the gene, should be present in self.S
-        cmap: maplotlib.cm.Colormap
-            Colormap to use, devergent are better, RdBu_r is default
-            Notice that 0 will be always set as the center of the colormap. (e.g. white in RdBu_r)
+        imputed: bool, default=True
+            whether to plot the smoothed or the raw data
+        cmap: maplotlib.cm.Colormap, dafault=maplotlib.cm.Greens
+            Colormap to use.
+        gs: Gridspec subplot
+            Gridspec subplot to plot on.
+        which_tsne: str, default="ts"
+            the name of the attributed where the desired embedding is stored
+        **kwargs: dict
+            other keywords arguments will be passed to the plt.scatter call
 
         Returns
         -------
@@ -1659,6 +1727,14 @@ class VelocytoLoom:
         plt.title(f"{gene_name}")
 
     def reload_raw(self, substitute: bool=False) -> None:
+        """Reload raw data as it was before filtering steps
+
+        Arguments
+        ---------
+        substitute: bool=False
+            if True `S, U, A, ca, ra` will be all overwritten
+            if False `S, U, A, ca, ra` will be loaded sepratelly as `raw_S, raw_U, raw_A, raw_ca, raw_ra`
+        """
         if substitute:
             ds = loompy.connect(self.loom_filepath)
             self.S = ds.layer["spliced"][:]
