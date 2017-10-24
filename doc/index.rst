@@ -13,7 +13,7 @@ Velocyto is a library for the analysis of RNA velocity.
 Velocyto includes a :ref:`command line tool <cli>` and an :ref:`analysis pipeline <analysis>`
 
 .. warning::
-   This documentation page refers to an alpha (0.9.5) version of the software. Use at your own risk. Please report issues on our `Github page <https://github.com/linnarsson-lab/velocito.py>`_.
+   This documentation page refers to an alpha (0.9.6) version of the software. Use at your own risk. Please report issues on our `Github page <https://github.com/velocyto-team/velocyto.py>`_.
 
 Contents
 ========
