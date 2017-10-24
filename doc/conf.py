@@ -182,7 +182,7 @@ texinfo_documents = [
 
 # --- Options for "Edit on GitHub" ---
 edit_on_github_project = 'velocyto-team/velocyto.py'
-edit_on_github_branch = 'master'
+edit_on_github_branch = 'master/doc'
 
 # --- Sort the autodocs by source (currently not workin not sure why)
 autodoc_member_order = 'bysource'

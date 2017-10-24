@@ -33,7 +33,7 @@ After all the requirements are satisfied. You can just run:
 ::
 
     git clone https://github.com/velocyto-team/velocyto.py.git
-    cd velocyto
+    cd velocyto.py
     pip install .
 
 
