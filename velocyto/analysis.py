@@ -29,8 +29,23 @@ class VelocytoLoom:
 
     Examples
     --------
+    A quick RNA velocity analysis can be performed as following
     >>> import velocyto as vcy
     >>> vlm = vcy.VelocytoLoom("foo.loom")
+    >>> vlm.normalize("S", size=True, log=True)
+    >>> vlm.default_filter_and_norm()
+    >>> vlm.default_fit_preparation()
+    >>> vlm.fit_gammas()
+    >>> vlm.predict_U()
+    >>> vlm.calculate_velocity()
+    >>> vlm.calculate_shift(assumption="constant_velocity")
+    >>> vlm.extrapolate_cell_at_t(delta_t=1)
+    >>> vlm.perform_TSNE()
+    >>> vlm.estimate_transition_prob(hidim="Sx_sz", embed="ts")
+    >>> vlm.calculate_embedding_shift(sigma_corr = 0.05)
+    >>> vlm.calculate_grid_arrows(smooth=0.8, steps=(40, 40), n_neighbors=300)
+    >>> vlm.plot_grid_arrows(scatter_kwargs_dict={"alpha":0.35, "lw":0.35, "edgecolor":"0.4", "s":38, "rasterized":True}, min_mass=24, angles='xy', scale_units='xy',
+                             headaxislength=2.75, headlength=5, headwidth=4.8, quiver_scale=0.47)
 
     Attributes
     ----------
@@ -132,20 +147,22 @@ class VelocytoLoom:
         except AttributeError:
             pass
 
-    def set_clusters(self, cluster_labels: np.ndarray, cluster_colors_dict: Dict[Any, List[float]]=None, colormap: Any=None) -> None:
+    def set_clusters(self, cluster_labels: np.ndarray, cluster_colors_dict: Dict[str, List[float]]=None, colormap: Any=None) -> None:
         """Utility function to set cluster labels, names and colormap
 
         Arguments
         ---------
         cluster_labels: np.ndarray
-
-        cluter_colors_dict: dict
-
-        colormap:
-            Colormap object (e.g. from matpkotlib). It should be callable.
+            A vector of strings containing the name of the cluster for each cells
+        cluster_colors_dict: dict[str, List[float]]
+            A mapping  cluster_name -> rgb_color_triplette for example "StemCell":[0.65,0.1,0.4]
+        colormap: 
+            (optional)
+            In alternative to cluster_colors_dict a colormap object (e.g. from matplotlib or similar callable) can be passed
 
         Returns
         -------
+        Notghing, the attributes `cluster_labels, colorandum, cluster_ix, cluster_uid` are created.
 
         """
         self.cluster_labels = cluster_labels
@@ -1322,6 +1339,21 @@ class VelocytoLoom:
             np.fill_diagonal(self.corrcoef, 0)
 
     def calculate_embedding_shift(self, sigma_corr: float=0.05) -> None:
+        """Use the transition probability to project the velocity direction on the embedding
+
+        Arguments
+        ---------
+        sigma_corr: float, default=0.05
+            the kernel scaling
+
+        Returns
+        -------
+        Nothing but it creates the following attributes:
+        transition_prob: np.ndarray
+            the transition probability calculated using the exponential kernel on the correlation coefficient
+        delta_embedding: np.ndarray
+            The resulting vector
+        """
         # Kernel evaluation
         logging.debug("Calculate transition probability")
 
@@ -1339,7 +1371,7 @@ class VelocytoLoom:
             self.delta_embedding = (self.transition_prob * unitary_vectors).sum(2)
             self.delta_embedding -= (self.embedding_knn.A * unitary_vectors).sum(2) / self.embedding_knn.sum(1).A.T
             self.delta_embedding = self.delta_embedding.T
-            # sparse matrix verison of the same code
+            # sparse matrix version of the same code
             # self.transition_prob = np.expm1(sparse.csr_matrix.multiply(self.embedding_knn, self.corrcoef) / sigma_corr) + self.embedding_knn[0,:].sum()
             # self.transition_prob.multiply(1. / sparse.csr_matrix.sum(mknn, axis=1))
         else:
@@ -1359,21 +1391,30 @@ class VelocytoLoom:
             The updated vector at time t is assumed to be getattr(self, embed + '_t')
             Or the difference vector is getattr(self, 'delta' + '_' + embed)
         smooth: float, smooth=0.5
-            Higher value correspond to thaking in consideration further points
+            Higher value correspond to taking in consideration further points
             the standard deviation of the gaussian kernel is smooth * stepsize
-        steps: tuple, detaul
+        steps: tuple, default
             the number of steps in the grid for each axis
         n_neighbors:
-            number of neighbours to use in the calculation, bigger number should not change too much the results..
+            number of neighbors to use in the calculation, bigger number should not change too much the results..
             ...as soon as smooth is small
-            Higher value correspond to slower exectution time
+            Higher value correspond to slower execution time
         n_jobs:
             number of processes for parallel computing
 
         Returns
         -------
         Nothing but it sets the attributes:
-        flow_embedding, flow_grid, flow, flow_magnitude
+        flow_embedding: np.ndarray
+            the coordinates of the embedding
+        flow_grid: np.ndarray
+            the gridpoints
+        flow: np.ndarray
+            vector field coordinates
+        flow_magnitude: np.ndarray
+            magnitude of each vector on the grid
+        total_p_mass: np.ndarray
+            density at each point of the grid
 
         """
         embedding = getattr(self, embed)
@@ -1414,7 +1455,7 @@ class VelocytoLoom:
         self.flow_norm_magnitude = np.linalg.norm(self.flow_norm, axis=1)
 
     def prepare_markov(self, sigma_D: np.ndarray, sigma_W: np.ndarray, direction: str="forward", cells_ixs: np.ndarray=None) -> None:
-        """Prepare a transition probability for Markov chain
+        """Prepare a transition probability for Markov process
 
         Arguments
         ---------
@@ -1426,6 +1467,12 @@ class VelocytoLoom:
             whether to diffuse forward of backwards
         cells_ixs: np.ndarray, default=None
             Cells to use, if None all the cells will be considered.
+
+        Returns
+        -------
+        Nothing but it creates the following attributes:
+        tr: np.ndarray
+            the transition probability matrix
         
         """
         if cells_ixs is None:
@@ -1455,7 +1502,7 @@ class VelocytoLoom:
         self.tr = scipy.sparse.csr_matrix(self.tr)
 
     def run_markov(self, starting_p: np.ndarray=None, n_steps: int=2500, mode: str="time_evolution") -> None:
-        """Run a markov process
+        """Run a Markov process
 
         Arguments
         ---------
@@ -1464,18 +1511,39 @@ class VelocytoLoom:
             if None is passed an array of 1/self.tr.shape[0] will be created
         n_steps: np.ndarray, default=2500
             Numbers of steps to be performed
+        mode: str, default="time_evolution"
+            this argument is passed to the Diffusion.diffuse call
 
         Returns
         -------
-        Nothing but it creates the attribute `diffused`
+        Nothing but it creates the attribute:
+        diffused: np.ndarray
+            The probability to be found at any of the states
         """
         if starting_p is None:
             starting_p = np.ones(self.tr.shape[0]) / self.tr.shape[0]
         diffusor = Diffusion()
-        self.diffused = diffusor.diffuse(starting_p, self.tr, n_steps=n_steps, mode="time_evolution")[0]
+        self.diffused = diffusor.diffuse(starting_p, self.tr, n_steps=n_steps, mode=mode)[0]
 
     def default_filter_and_norm(self, min_expr_counts: int=None, min_cells_express: int=None,
                                 N: int=None, min_avg_U: float=None, min_avg_S: float=None) -> None:
+        """Useful function to get started with velocyto: it performs initial filtering and feature selection, it uses some heuristics to determine the thresholds, results might be suboptimal.
+
+        See `the analysis quick start guide <http://velocyto.org/velocyto.py/tutorial/analysis.html>`_ for further info.
+
+        Arguments
+        ---------
+        min_expr_counts: int, default=None
+            filtering condition: the minimum spliced counts
+        min_cells_express: int, default=None
+            filtering condition: the minimum number of cells expressing the gene
+        N: int, default=None
+            number of genes selected by the feature selection procedure
+        min_avg_U: float, default=None
+            if cluster have been specified beforehand (using the function set_clusters) then this is the minimum average unspliced molecules per cluster
+        min_avg_S: float, default=None
+            if cluster have been specified beforehand (using the function set_clusters) then this is the minimum average spliced molecules per cluster
+        """
         if min_expr_counts is None:
             min_expr_counts = max(20, min(100, self.S.shape[1] * 2.25e-3))
         if min_cells_express is None:
@@ -1510,6 +1578,17 @@ class VelocytoLoom:
         self.adjust_totS_totU(normalize_total=True)
 
     def default_fit_preparation(self, k: int=None, n_comps: int=None) -> None:
+        """Useful function to get started with velocyto: it performs PCA and kNN smoothing, it uses some heuristics to determine the parameters, results might be suboptimal.
+
+        See `the analysis quick start guide <http://velocyto.org/velocyto.py/tutorial/analysis.html>`_ for further info.
+
+        Arguments
+        ---------
+        k: int, default=None
+            k in k-NearestNeighbours smoothing
+        n_comps: int, default=None
+            numbed of components in pca
+        """
         self.perform_PCA()
         # Choose the number of components to use for the kNN graph
         if n_comps is None:
@@ -1522,6 +1601,8 @@ class VelocytoLoom:
         self.normalize_median()
 
     def _plot_phase_portrait(self, gene: str, gs_i: Any) -> None:
+        """Plot spliced-unspliced scatterplot resembling phase portrait
+        """
         plt.subplot(gs_i)
         ix = np.where(self.ra["Gene"] == gene)[0][0]
         scatter_viz(self.Sx_sz[ix, :], self.Ux_sz[ix, :], c=self.colorandum, s=5, alpha=0.4)
@@ -1530,6 +1611,13 @@ class VelocytoLoom:
         plt.plot(xnew, self.gammas[ix] * xnew + self.q[ix], c="k")
 
     def plot_phase_portraits(self, genes: List[str]) -> None:
+        """Plot spliced-unspliced scatterplots resembling phase portraits
+
+        Arguments
+        ---------
+        genes: List[str]
+            A list of gene symbols.
+        """
         n = len(genes)
         sqrtn = np.ceil(np.sqrt(n))
         gs = plt.GridSpec(sqrtn, np.ceil(n / sqrtn))
@@ -1538,6 +1626,23 @@ class VelocytoLoom:
     
     def plot_grid_arrows(self, quiver_scale: float=None, min_mass: float=1, min_magnitude: float=None,
                          scatter_kwargs_dict: Dict= None, plot_dots: bool=False, **quiver_kwargs: Any) -> None:
+        """Plots vector field averaging velocity vectors on a grid
+
+        Arguments
+        ---------
+        quiver_scale: float, dafault=None
+            Rescaling factor applied to the arrow field to enhance visibility
+        min_mass: float, default=1
+            the minimum density around a grid point for it to be considered
+        min_magnitude: float, default=None
+            the minimum magnitude of the velocity to plot
+        scatter_kwargs_dict: dict, default=None
+            the keyword arguments to pass to scatter
+        plot_dots: bool, default= True
+            whether to plot the cell symbols
+        **quiver_kwargs: dict
+            keyword arguments to pass to quiver
+        """
         # plt.figure(figsize=(10, 10))
         scatter_dict = {"s": 20, "zorder": -1, "alpha": 0.2, "lw": 0, "c": self.colorandum}
         if scatter_kwargs_dict is not None:
