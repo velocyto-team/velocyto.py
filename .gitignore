@@ -7,13 +7,18 @@
 velocyto/__pycache__/*
 velocyto/__pycache__
 
+# eggs
 velocyto.egg-info/*
 velocyto.egg-info
+
+# build
+build/*
+build
 
 # mypy
 .mypy_cache/*
 
-#local vscode settings
+# local vscode settings
 .vscode/*
 
 # Don't commit the data
