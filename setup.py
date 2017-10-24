@@ -41,6 +41,7 @@ setup(
     packages=find_packages(),
     install_requires=['numpy',
                       'scipy',
+                      'cython',
                       'numba',
                       'scikit-learn',
                       'h5py',
