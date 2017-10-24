@@ -29,7 +29,6 @@ class VelocytoLoom:
 
     Examples
     --------
-    A quick RNA velocity analysis can be performed as following
     >>> import velocyto as vcy
     >>> vlm = vcy.VelocytoLoom("foo.loom")
     >>> vlm.normalize("S", size=True, log=True)

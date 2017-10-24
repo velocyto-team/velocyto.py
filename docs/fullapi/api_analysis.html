@@ -199,24 +199,24 @@
 <p>A convenient object to store the data of a velocyto loom file.</p>
 <p>Data will be stored in memory</p>
 <p class="rubric">Examples</p>
-<p>A quick RNA velocity analysis can be performed as following
-&gt;&gt;&gt; import velocyto as vcy
-&gt;&gt;&gt; vlm = vcy.VelocytoLoom(“foo.loom”)
-&gt;&gt;&gt; vlm.normalize(“S”, size=True, log=True)
-&gt;&gt;&gt; vlm.default_filter_and_norm()
-&gt;&gt;&gt; vlm.default_fit_preparation()
-&gt;&gt;&gt; vlm.fit_gammas()
-&gt;&gt;&gt; vlm.predict_U()
-&gt;&gt;&gt; vlm.calculate_velocity()
-&gt;&gt;&gt; vlm.calculate_shift(assumption=”constant_velocity”)
-&gt;&gt;&gt; vlm.extrapolate_cell_at_t(delta_t=1)
-&gt;&gt;&gt; vlm.perform_TSNE()
-&gt;&gt;&gt; vlm.estimate_transition_prob(hidim=”Sx_sz”, embed=”ts”)
-&gt;&gt;&gt; vlm.calculate_embedding_shift(sigma_corr = 0.05)
-&gt;&gt;&gt; vlm.calculate_grid_arrows(smooth=0.8, steps=(40, 40), n_neighbors=300)
-&gt;&gt;&gt; vlm.plot_grid_arrows(scatter_kwargs_dict={“alpha”:0.35, “lw”:0.35, “edgecolor”:”0.4”, “s”:38, “rasterized”:True}, min_mass=24, angles=’xy’, scale_units=’xy’,</p>
-<blockquote>
-<div>headaxislength=2.75, headlength=5, headwidth=4.8, quiver_scale=0.47)</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">velocyto</span> <span class="k">as</span> <span class="nn">vcy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span> <span class="o">=</span> <span class="n">vcy</span><span class="o">.</span><span class="n">VelocytoLoom</span><span class="p">(</span><span class="s2">&quot;foo.loom&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">default_filter_and_norm</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">default_fit_preparation</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">fit_gammas</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">predict_U</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">calculate_velocity</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">calculate_shift</span><span class="p">(</span><span class="n">assumption</span><span class="o">=</span><span class="s2">&quot;constant_velocity&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">extrapolate_cell_at_t</span><span class="p">(</span><span class="n">delta_t</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">perform_TSNE</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">estimate_transition_prob</span><span class="p">(</span><span class="n">hidim</span><span class="o">=</span><span class="s2">&quot;Sx_sz&quot;</span><span class="p">,</span> <span class="n">embed</span><span class="o">=</span><span class="s2">&quot;ts&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">calculate_embedding_shift</span><span class="p">(</span><span class="n">sigma_corr</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">calculate_grid_arrows</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span> <span class="n">n_neighbors</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vlm</span><span class="o">.</span><span class="n">plot_grid_arrows</span><span class="p">(</span><span class="n">scatter_kwargs_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span><span class="mf">0.35</span><span class="p">,</span> <span class="s2">&quot;lw&quot;</span><span class="p">:</span><span class="mf">0.35</span><span class="p">,</span> <span class="s2">&quot;edgecolor&quot;</span><span class="p">:</span><span class="s2">&quot;0.4&quot;</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span><span class="mi">38</span><span class="p">,</span> <span class="s2">&quot;rasterized&quot;</span><span class="p">:</span><span class="kc">True</span><span class="p">},</span> <span class="n">min_mass</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">angles</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">scale_units</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span>
+<span class="go">                         headaxislength=2.75, headlength=5, headwidth=4.8, quiver_scale=0.47)</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
