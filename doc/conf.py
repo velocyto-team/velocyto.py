@@ -20,6 +20,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('_ext'))
 
 
 # -- General configuration ------------------------------------------------
@@ -36,7 +37,8 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
-    'sphinx_click.ext']
+    'sphinx_click.ext',
+              'edit_on_github']
 
 napoleon_use_ivar = True
 
@@ -178,4 +180,9 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+# --- Options for "Edit on GitHub" ---
+edit_on_github_project = 'velocyto-team/velocyto.py'
+edit_on_github_branch = 'master'
+
+# --- Sort the autodocs by source (currently not workin not sure why)
 autodoc_member_order = 'bysource'
