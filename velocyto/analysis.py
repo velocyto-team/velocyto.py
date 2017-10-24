@@ -617,26 +617,28 @@ class VelocytoLoom:
     def adjust_totS_totU(self, skip_low_U_pop: bool=True, normalize_total: bool=False,
                          fit_with_low_U: bool=True,
                          svr_C: float=100, svr_gamma: float=1e-6, plot: bool=False) -> None:
-        """ Adjust the spliced count on the base of the relation S_sz_tot and U_sz_tot
+        """Adjust the spliced count on the base of the relation S_sz_tot and U_sz_tot
 
         Arguments
         ---------
-        skip_low_U_pop: bool
-
-        normalize_total: bool
-
-        fit_with_low_U: bool
-
+        skip_low_U_pop: bool, default=True
+            Do not normalize the low unspliced molecules cell population to avoid overinflated values
+        normalize_total: bool, default=False
+            If this is True the function results in a normalization by median of both U and S.
+            NOTE: Legacy compatibility, I might want to split this into a different function.
+        fit_with_low_U: bool, default=True
+            Wether to consider the low_U population for the fit
         svr_C: float
-
+            The C parameter of scikit-learn Support Vector Regression
         svr_gamma: float
-
+            The gamma parameter of scikit-learn Support Vector Regression
         plot: bool
+            Whether to plot the results of the fit
 
         Returns
         -------
-        Nothing but it creates the attributes:
-        
+        Nothing but it modifies the attributes:
+        U_sz: np.ndarray
         """
 
         svr = SVR(C=svr_C, kernel="rbf", gamma=svr_gamma)
@@ -665,6 +667,24 @@ class VelocytoLoom:
             plt.scatter(X, predicted, c="k", s=5, alpha=0.1)
 
     def normalize_median(self, which: str="imputed", skip_low_U_pop: bool=True) -> None:
+        """Normalize cell size to the median, for both S and U.
+
+        Arguments
+        ---------
+        which: str, default="imputed"
+            "imputed" or "renormalized"
+        skip_low_U_pop: bool=True
+            Whether to skip the low U population defined in normalize_by_total
+
+        Returns
+        -------
+        Nothing but it modifies the attributes:
+        S_sz: np.ndarray
+        U_sz: np.ndarray
+        or
+        Sx_sz: np.ndarray
+        Ux_sz: np.ndarray
+        """
         if which == "renormalize":
             self.S_sz = self.S_sz * (np.median(self.S_sz.sum(0)) / self.S_sz.sum(0))
             if skip_low_U_pop:
@@ -681,6 +701,8 @@ class VelocytoLoom:
                 self.Ux_sz = self.Ux * (np.median(self.Ux.sum(0)) / self.Ux.sum(0))
 
     def plot_pca(self, dim: List[int]=[0, 1, 2], elev: float=60, azim: float=-140) -> None:
+        """Plot 3d PCA
+        """
         fig = plt.figure(figsize=(8, 6))
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(self.pcs[:, dim[0]],

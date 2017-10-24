@@ -60,5 +60,5 @@ setup(
     author_email="sten.linnarsson@ki.se",
     description="RNA velocity analysis for single cell RNA-seq data",
     license="BSD2",
-    url="https://github.com/linnarsson-lab/velocyto",
+    url="https://github.com/velocyto-team/velocyto.py",
 )

@@ -7,6 +7,9 @@
 velocyto/__pycache__/*
 velocyto/__pycache__
 
+velocyto.egg-info/*
+velocyto.egg-info
+
 # mypy
 .mypy_cache/*
 
