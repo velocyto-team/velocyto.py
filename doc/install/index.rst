@@ -16,25 +16,40 @@ Requirements
 To run velocyto you will need python >=3.6.0 (we have no plans to support python<=3.5).
 We recommend to use `anaconda <https://www.continuum.io/downloads>`_ and the ``conda`` command to install dependencies limiting the use of ``pip`` to libraries not available on conda's main channel. (``pip`` can be used too but its dependency-managing migh be less robust). 
 
-To make sure you have all the dependencies first do:
+To make sure you have all the dependencies correctly installed, including libraries trickier to install do:
 
 ::
 
-    conda install numpy scipy cython numba matplotlib scikit-learn h5py click typing
-    pip install pysam loompy
+    conda install numpy scipy cython numba matplotlib scikit-learn h5py click
+
+.. _pypi:
+
+Install using PyPI
+------------------
+
+Just run:
+
+::
+
+    pip install velocyto
+
+`pysam` and `loompy` will be installed by ``pip`` as dependencies
+
+.. note::
+   For the cutting edge development version install from source (see below).
 
 .. _command:
 
-Install command
-~~~~~~~~~~~~~~~
+Install from source
+~~~~~~~~~~~~~~~~~~~
 
-After all the requirements are satisfied. You can just run:
+After making sure all the requirements are satisfied. You can just run:
 
 ::
 
     git clone https://github.com/velocyto-team/velocyto.py.git
     cd velocyto.py
-    pip install .
+    pip install -e .
 
 
 This command will install the python library ``velocyto`` and the homonymous command line tool.
@@ -44,13 +59,7 @@ At this point you can test the installation was successful by running ``velocyto
 
 To get started with ``velocyto`` you can follow :ref:`our guide <tutorial>`. 
 
-.. _pypi:
 
-Install using PyPI wheels
--------------------------
-
-.. note::
-   This installation method is not currently available. The plan is make it available upon 1.0 release.
 
 .. _conda:
 
