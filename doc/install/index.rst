@@ -20,7 +20,7 @@ To make sure you have all the dependencies first do:
 
 ::
 
-    conda install numpy scipy cython scikit-learn h5py click
+    conda install numpy scipy cython numba matplotlib scikit-learn h5py click typing
     pip install pysam loompy
 
 .. _command:

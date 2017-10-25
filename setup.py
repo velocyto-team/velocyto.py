@@ -16,7 +16,7 @@ if C_COMPILE:
         from Cython.Build import cythonize
         extensions = [Extension("velocyto.speedboosted",
                                 ["velocyto/speedboosted.pyx"],
-                                extra_compile_args=['-fopenmp'],
+                                extra_compile_args=['-fopenmp'],  # NOTE  -O3 -ffast-math -march=native
                                 extra_link_args=['-fopenmp'])]
         extensions = cythonize(extensions, include_path=[np.get_include()])
     else:
@@ -43,6 +43,7 @@ setup(
                       'scipy',
                       'cython',
                       'numba',
+                      'matplotlib',
                       'scikit-learn',
                       'h5py',
                       'loompy',
