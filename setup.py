@@ -60,6 +60,9 @@ setup(
     # metadata
     author="Linnarsson Lab",
     author_email="sten.linnarsson@ki.se",
+    url = "veloctyo.org",
+    download_url = "https://github.com/velocyto-team/velocyto.py/archive/0.9.6.tar.gz",
+    keywords = ["RNAseq", "singlecell", "bioinformatics", "transcriptomics"],
     description="RNA velocity analysis for single cell RNA-seq data",
     license="BSD2",
     url="https://github.com/velocyto-team/velocyto.py",
