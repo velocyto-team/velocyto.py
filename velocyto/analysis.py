@@ -1548,7 +1548,7 @@ class VelocytoLoom:
         if min_cells_express is None:
             min_cells_express = max(10, min(50, self.S.shape[1] * 1.5e-3))
         if N is None:
-            N = max(1000, min((self.S.shape[1] / 1000)**(1 / 3) / 0.0008, 5000))
+            N = max(1000, min(int((self.S.shape[1] / 1000)**(1 / 3) / 0.0008), 5000))
         if min_avg_U is None:
             min_avg_U = 0.01
         if min_avg_S is None:
