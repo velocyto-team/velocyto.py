@@ -165,20 +165,20 @@ class VelocytoLoom:
 
         """
         self.cluster_labels = cluster_labels
-        if cluter_colors_dict:
-            self.colorandum = np.array([cluter_colors_dict[i] for i in cluster_labels])
-            self.cluter_colors_dict = cluter_colors_dict
+        if cluster_colors_dict:
+            self.colorandum = np.array([cluster_colors_dict[i] for i in cluster_labels])
+            self.cluster_colors_dict = cluster_colors_dict
             self.colormap = None
         else:
             if colormap is None:
                 self.colorandum = colormap_fun(self.cluster_ix)
                 cluster_uid = self.cluster_uid
-                self.cluter_colors_dict = {cluster_uid[i]: colormap_fun(i) for i in range(len(cluster_uid))}
+                self.cluster_colors_dict = {cluster_uid[i]: colormap_fun(i) for i in range(len(cluster_uid))}
             else:
                 self.colormap = colormap
                 self.colorandum = self.colormap(self.cluster_ix)
                 cluster_uid = self.cluster_uid
-                self.cluter_colors_dict = {cluster_uid[i]: self.colormap(i) for i in range(len(cluster_uid))}
+                self.cluster_colors_dict = {cluster_uid[i]: self.colormap(i) for i in range(len(cluster_uid))}
 
     @property
     def cluster_uid(self) -> np.ndarray:
@@ -1599,10 +1599,13 @@ class VelocytoLoom:
                             b_maxl=min(k * 4, self.S.shape[1] - 1))
         self.normalize_median()
 
-    def _plot_phase_portrait(self, gene: str, gs_i: Any) -> None:
+    def _plot_phase_portrait(self, gene: str, gs_i: Any=None) -> None:
         """Plot spliced-unspliced scatterplot resembling phase portrait
         """
-        plt.subplot(gs_i)
+        if gene is None:
+            plt.subplot(111)
+        else:
+            plt.subplot(gs_i)
         ix = np.where(self.ra["Gene"] == gene)[0][0]
         scatter_viz(self.Sx_sz[ix, :], self.Ux_sz[ix, :], c=self.colorandum, s=5, alpha=0.4)
         plt.title(gene)
@@ -1618,8 +1621,8 @@ class VelocytoLoom:
             A list of gene symbols.
         """
         n = len(genes)
-        sqrtn = np.ceil(np.sqrt(n))
-        gs = plt.GridSpec(sqrtn, np.ceil(n / sqrtn))
+        sqrtn = int(np.ceil(np.sqrt(n)))
+        gs = plt.GridSpec(sqrtn, int(np.ceil(n / sqrtn)))
         for i, gn in enumerate(genes):
             self._plot_phase_portrait(gn, gs[i])
     
