@@ -71,7 +71,7 @@ Prepare repeats annotation
 .. note::
    This step is optional but recommended!
 
-Dowloaded an appropriate mask repeat annotation (for example `from UCSC genome browser <https://genome.ucsc.edu/cgi-bin/hgTables?hgsid=611454127_NtvlaW6xBSIRYJEBI0iRDEWisITa&clade=mammal&org=Mouse&db=mm10&hgta_group=allTracks&hgta_track=rmsk&hgta_table=0&hgta_regionType=genome&position=chr12%3A56694976-56714605&hgta_outputType=primaryTable&hgta_outFileName=mm10_rmsk.gtf>`_ and **remember to select GTF**  as output format).
+Dowloaded an appropriate mask repeat annotation (for example `from UCSC genome browser <https://genome.ucsc.edu/cgi-bin/hgTables?hgsid=611454127_NtvlaW6xBSIRYJEBI0iRDEWisITa&clade=mammal&org=Mouse&db=mm10&hgta_group=allTracks&hgta_track=rmsk&hgta_table=0&hgta_regionType=genome&position=chr12%3A56694976-56714605&hgta_outputType=primaryTable&hgta_outputType=gff&hgta_outFileName=mm10_rmsk.gtf>`_ and **remember to select GTF**  as output format).
 And run the following command:
 
 ::

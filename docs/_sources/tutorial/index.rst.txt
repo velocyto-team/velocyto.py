@@ -17,7 +17,7 @@ First make sure that velocyto is correctly installed following :ref:`this guide 
 Running the CLI
 ---------------
 This guide explains how to run the counting pipeline.
-This starts from .bam/.sam files and yields a `.loom file <https://github.com/linnarsson-lab/loompy>`_ with counts divided in the cathegories spliced/unspliced/ambiguous. 
+This starts from .bam/.sam files and yields a `.loom file <https://github.com/linnarsson-lab/loompy>`_ with counts divided in the categories spliced/unspliced/ambiguous. 
 
 .. toctree::
     cli
