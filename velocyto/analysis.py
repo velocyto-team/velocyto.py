@@ -1591,12 +1591,12 @@ class VelocytoLoom:
         self.perform_PCA()
         # Choose the number of components to use for the kNN graph
         if n_comps is None:
-            n_comps = np.where(np.diff(np.diff(np.cumsum(self.pca.explained_variance_ratio_)) > 0.002))[0][0]
+            n_comps = int(np.where(np.diff(np.diff(np.cumsum(self.pca.explained_variance_ratio_)) > 0.002))[0][0])
         if k is None:
-            k = min(1000, max(10, np.ceil(self.S.shape[1] * 0.02)))
+            k = int(min(1000, max(10, np.ceil(self.S.shape[1] * 0.02))))
         self.knn_imputation(n_pca_dims=n_comps, k=k, balanced=True,
-                            b_sight=min(k * 8, self.S.shape[1] - 1),
-                            b_maxl=min(k * 4, self.S.shape[1] - 1))
+                            b_sight=int(min(k * 8, self.S.shape[1] - 1)),
+                            b_maxl=int(min(k * 4, self.S.shape[1] - 1)))
         self.normalize_median()
 
     def _plot_phase_portrait(self, gene: str, gs_i: Any=None) -> None:
