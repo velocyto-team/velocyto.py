@@ -50,6 +50,7 @@ def _run(bamfile: str, ivlfile: str,
 
     if bcfile is None:
         logging.debug("Cell barcodes will be determined while reading the .bam file")
+        valid_bcs2idx = None
     else:
         # Get valid cell barcodes
         valid_bcs_list = [l.strip() for l in open(bcfile).readlines()]
