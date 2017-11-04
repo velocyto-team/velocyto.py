@@ -192,14 +192,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">is_sure_intron</span> <span class="o">=</span> <span class="n">ivltype</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;I--&#39;</span><span class="p">,</span> <span class="s1">&#39;I-i&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_sure_valid_intron</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_sure_intron</span>  <span class="c1"># NOTE This is just initialized and it will be adjusted later based on junction analysis</span>
     
-<div class="viewcode-block" id="Interval.add_read_inside"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.add_read_inside">[docs]</a>    <span class="k">def</span> <span class="nf">add_read_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ivlinside_read_counts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ivlidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span></div>
+<div class="viewcode-block" id="Interval.add_read_inside"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.add_read_inside">[docs]</a>    <span class="k">def</span> <span class="nf">add_read_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ivlinside_read_counts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ivlidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="Interval.add_read_spanning5end"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.add_read_spanning5end">[docs]</a>    <span class="k">def</span> <span class="nf">add_read_spanning5end</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ivljunction5_read_counts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ivlidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span></div>
+<div class="viewcode-block" id="Interval.add_read_spanning5end"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.add_read_spanning5end">[docs]</a>    <span class="k">def</span> <span class="nf">add_read_spanning5end</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ivljunction5_read_counts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ivlidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="Interval.add_read_spanning3end"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.add_read_spanning3end">[docs]</a>    <span class="k">def</span> <span class="nf">add_read_spanning3end</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ivljunction3_read_counts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ivlidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span></div>
+<div class="viewcode-block" id="Interval.add_read_spanning3end"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.add_read_spanning3end">[docs]</a>    <span class="k">def</span> <span class="nf">add_read_spanning3end</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ivljunction3_read_counts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ivlidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
 <div class="viewcode-block" id="Interval.ends_upstream_of"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.ends_upstream_of">[docs]</a>    <span class="k">def</span> <span class="nf">ends_upstream_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Read</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The following situation happens</span>
@@ -207,8 +207,8 @@
 <span class="sd">                                               *|||segment|||-?-||segment|||????????</span>
 <span class="sd">                ???????|||||Ivl|||||||||*</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">&lt;</span> <span class="n">read</span><span class="o">.</span><span class="n">pos</span></div>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">&lt;</span> <span class="n">read</span><span class="o">.</span><span class="n">pos</span>
 
 <div class="viewcode-block" id="Interval.starts_upstream_of"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.starts_upstream_of">[docs]</a>    <span class="k">def</span> <span class="nf">starts_upstream_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">segment</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The following situation happens</span>
@@ -216,8 +216,8 @@
 <span class="sd">                            *||||||segment|||||????????</span>
 <span class="sd">                *|||||||||||||Ivl||||||||||????????????</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Interval.contains"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.contains">[docs]</a>    <span class="k">def</span> <span class="nf">contains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">segment</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The following situation happens</span>
@@ -225,8 +225,8 @@
 <span class="sd">                     *||||||segment|||||*</span>
 <span class="sd">                *|||||||||||||Ivl||||||||||||||||*</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span></div>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Interval.start_overlaps_with_part_of"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.start_overlaps_with_part_of">[docs]</a>    <span class="k">def</span> <span class="nf">start_overlaps_with_part_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">segment</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">minimum_flanking</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="n">vcy</span><span class="o">.</span><span class="n">MIN_FLANK</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The following situation happens</span>
@@ -236,8 +236,8 @@
 
 <span class="sd">        where `---` idicates the minimum flanking</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">minimum_flanking</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">minimum_flanking</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span></div>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">minimum_flanking</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">minimum_flanking</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Interval.end_overlaps_with_part_of"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.Interval.end_overlaps_with_part_of">[docs]</a>    <span class="k">def</span> <span class="nf">end_overlaps_with_part_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">segment</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">minimum_flanking</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="n">vcy</span><span class="o">.</span><span class="n">MIN_FLANK</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The following situation happens</span>
@@ -247,8 +247,8 @@
 
 <span class="sd">        where `---` idicates the minimum flanking</span>
 <span class="sd">            </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">minimum_flanking</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">minimum_flanking</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span></div>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">minimum_flanking</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">minimum_flanking</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="n">Interval</span><span class="p">,</span> <span class="s2">&quot;Comparison can be only between two intervals&quot;</span>
@@ -259,8 +259,8 @@
     <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="n">Interval</span><span class="p">,</span> <span class="s2">&quot;Comparison can be only between two intervals&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">start</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">end</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">start</span></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">end</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">start</span>
 
 
 <div class="viewcode-block" id="IntervalsIndex"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.IntervalsIndex">[docs]</a><span class="k">class</span> <span class="nc">IntervalsIndex</span><span class="p">:</span>
@@ -321,8 +321,8 @@
             <span class="c1"># If one of the segments does not match inside a repeat we return false</span>
             <span class="k">if</span> <span class="n">segment_matchtype</span> <span class="o">^</span> <span class="n">vcy</span><span class="o">.</span><span class="n">MATCH_INSIDE</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
-        <span class="c1"># If I arrive at this point of the code all the segment matched inside</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+        <span class="c1"># If I arrive at this point of the code all the segment matched inside</span></div>
+        <span class="k">return</span> <span class="kc">True</span>
         
 <div class="viewcode-block" id="IntervalsIndex.find_overlapping_ivls"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.intervals.IntervalsIndex.find_overlapping_ivls">[docs]</a>    <span class="k">def</span> <span class="nf">find_overlapping_ivls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Read</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">set</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;Finds the overlap between Read and intervals</span>
@@ -377,8 +377,8 @@
                 <span class="c1"># move to the next interval</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">ivl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ivls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-    
-        <span class="k">return</span> <span class="n">matchgenes</span><span class="p">,</span> <span class="n">matchivls</span></div></div>
+    </div></div>
+        <span class="k">return</span> <span class="n">matchgenes</span><span class="p">,</span> <span class="n">matchivls</span>
 </pre></div>
 
            </div>

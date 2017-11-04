@@ -191,8 +191,8 @@
 <div class="viewcode-block" id="Molitem.mark_hit_ivls"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.molitem.Molitem.mark_hit_ivls">[docs]</a>    <span class="k">def</span> <span class="nf">mark_hit_ivls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matchivls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">vcy</span><span class="o">.</span><span class="n">Interval</span><span class="p">],</span> <span class="n">read_is_spliced</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Add info for the alignment(s) of one read &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">matchivl</span> <span class="ow">in</span> <span class="n">matchivls</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ivlhits</span><span class="p">[</span><span class="n">matchivl</span><span class="o">.</span><span class="n">ivlidx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">has_some_spliced_read</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_some_spliced_read</span> <span class="ow">or</span> <span class="n">read_is_spliced</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ivlhits</span><span class="p">[</span><span class="n">matchivl</span><span class="o">.</span><span class="n">ivlidx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_some_spliced_read</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_some_spliced_read</span> <span class="ow">or</span> <span class="n">read_is_spliced</span>
 
 <div class="viewcode-block" id="Molitem.count"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.molitem.Molitem.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Call after all reads have been processed to annotate this molecule on the gene &quot;&quot;&quot;</span>
@@ -211,8 +211,8 @@
             <span class="c1"># alternative might be if (num_sure_exon_ivls &gt; 0 and num_maybe_exon_ivls == 0) or self.has_some_spliced_read:  #</span>
             <span class="c1"># Either all reads hit to sure exons, or all reads hit to sure/maybe exon and some read is spliced</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">spliced_mol_counts</span><span class="p">[</span><span class="n">my_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ambiguous_mol_counts</span><span class="p">[</span><span class="n">my_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span></div></div>
+        <span class="k">else</span><span class="p">:</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gene</span><span class="o">.</span><span class="n">ambiguous_mol_counts</span><span class="p">[</span><span class="n">my_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 </pre></div>
 
            </div>
