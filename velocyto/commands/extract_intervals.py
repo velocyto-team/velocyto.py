@@ -70,7 +70,7 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
     regex_trname = re.compile('transcript_name "([^"]+)"')
     regex_geneid = re.compile('gene_id "([^"]+)"')
     regex_genename = re.compile('gene_name "([^"]+)"')
-    regex_exonno = re.compile('exon_number "([^"]+)"')
+    # regex_exonno = re.compile('exon_number "(([^"]+)|([^"]+))"')
 
     # Loop trough the .gtf file and get transcript models and assemble gene models by fusing exons
     # NOTE: the parsing could be done using pysam tabix
@@ -92,7 +92,7 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
             trname = regex_trname.search(tags).group(1)
             geneid = regex_geneid.search(tags).group(1)
             genename = regex_genename.search(tags).group(1)
-            exonno = regex_exonno.search(tags).group(1)
+            # exonno = regex_exonno.search(tags).group(1)
             start = int(start)
             end = int(end)
             chromstrand = chrom + strand
