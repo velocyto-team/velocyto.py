@@ -68,17 +68,52 @@ class ExInCounter:
 
         return segments, spliced, clip5, clip3
 
+    def peek(self, samfile: str, lines: int=10) -> None:
+        """Peeks into the samfile to determine if it is a cellranger or dropseq file
+        """
+        logging.debug(f"Peeking into {samfile}")
+        fin = pysam.AlignmentFile(samfile)  # type: pysam.AlignmentFile
+        cellranger: int = 0
+        dropseq: int = 0
+        failed: int = 0
+        for i, read in enumerate(fin):
+            if read.is_unmapped:
+                continue
+            if read.has_tag("CB") and read.has_tag("UB"):
+                cellranger += 1
+            elif read.has_tag("XC") and read.has_tag("XM"):
+                dropseq += 1
+            else:
+                logging.warn(f"Not found cell and umi barcode")
+                failed += 1
+            if cellranger > lines:
+                self.cellbarcode_str = "CB"
+                self.umibarcode_str = "UB"
+                break
+            elif dropseq > lines:
+                self.cellbarcode_str = "XC"
+                self.umibarcode_str = "XM"
+                break
+            elif failed > 5 * lines:
+                raise IOError("The bam file does not contain cell and umi barcodes appropriatelly formatted")
+            else:
+                pass
+        fin.close()
+
     def iter_unique_alignments(self, samfile: str, yield_line: bool=False) -> Iterable:
+        """Iterates over the bam/sam file
+        """
+        self.peek(samfile, lines=10)
         logging.debug(f"Reading {samfile}")
         fin = pysam.AlignmentFile(samfile)  # type: pysam.AlignmentFile
         for i, read in enumerate(fin):
             if read.is_unmapped:
                 continue
             try:
-                bc = read.get_tag("CB").rstrip("-1")
-                umi = read.get_tag("UB")
+                bc = read.get_tag(self.cellbarcode_str).rstrip("-1")  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dorpseq
+                umi = read.get_tag(self.umibarcode_str)
             except KeyError:
-                continue
+                continue  # NOTE: Here errors could go unnoticed
             if bc not in self.valid_bcs2idx:
                 if self.filter_mode:
                     continue
