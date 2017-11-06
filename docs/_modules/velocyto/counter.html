@@ -212,8 +212,8 @@
 <div class="viewcode-block" id="ExInCounter.process"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ivlfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">samfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Performs all steps in the right order &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">read_genes</span><span class="p">(</span><span class="n">ivlfile</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mark_up_introns</span><span class="p">(</span><span class="n">samfile</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">samfile</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mark_up_introns</span><span class="p">(</span><span class="n">samfile</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">samfile</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ExInCounter.parse_cigar_tuple"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.parse_cigar_tuple">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">parse_cigar_tuple</span><span class="p">(</span><span class="n">cigartuples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">],</span> <span class="n">pos</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
@@ -240,8 +240,8 @@
                 <span class="k">pass</span>  <span class="c1"># maybe there should be a limit lenght accepted?</span>
             <span class="k">elif</span> <span class="n">operation_id</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>  <span class="c1"># BAM_CHARD_CLIP</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Hard clip was encountered! All mapping are assumed soft clipped&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">segments</span><span class="p">,</span> <span class="n">spliced</span><span class="p">,</span> <span class="n">clip5</span><span class="p">,</span> <span class="n">clip3</span></div>
+</div>
+        <span class="k">return</span> <span class="n">segments</span><span class="p">,</span> <span class="n">spliced</span><span class="p">,</span> <span class="n">clip5</span><span class="p">,</span> <span class="n">clip3</span>
 
 <div class="viewcode-block" id="ExInCounter.iter_unique_alignments"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.iter_unique_alignments">[docs]</a>    <span class="k">def</span> <span class="nf">iter_unique_alignments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">yield_line</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Reading </span><span class="si">{samfile}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -280,8 +280,8 @@
             <span class="k">if</span> <span class="n">yield_line</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="n">bc</span><span class="p">,</span> <span class="n">umi</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">cigarstring</span><span class="p">,</span> <span class="n">segments</span><span class="p">,</span> <span class="n">clip5</span><span class="p">,</span> <span class="n">clip3</span><span class="p">,</span> <span class="n">spliced</span><span class="p">),</span> <span class="n">read</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">yield</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="n">bc</span><span class="p">,</span> <span class="n">umi</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">cigarstring</span><span class="p">,</span> <span class="n">segments</span><span class="p">,</span> <span class="n">clip5</span><span class="p">,</span> <span class="n">clip3</span><span class="p">,</span> <span class="n">spliced</span><span class="p">)</span>
-        <span class="n">fin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+                <span class="k">yield</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="n">bc</span><span class="p">,</span> <span class="n">umi</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">cigarstring</span><span class="p">,</span> <span class="n">segments</span><span class="p">,</span> <span class="n">clip5</span><span class="p">,</span> <span class="n">clip3</span><span class="p">,</span> <span class="n">spliced</span><span class="p">)</span></div>
+        <span class="n">fin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 <div class="viewcode-block" id="ExInCounter.read_repeats"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.read_repeats">[docs]</a>    <span class="k">def</span> <span class="nf">read_repeats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gtf_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Read masked repeats &quot;&quot;&quot;</span>
@@ -306,8 +306,8 @@
         <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">chromstrand</span><span class="p">,</span> <span class="n">ivls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_ivls_by_chromstrand</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">ivls</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>  <span class="c1"># relies on the __lt__ method of vcy.Interval</span>
-            <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ivls</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">n</span></div>
+            <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ivls</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">n</span>
 
 <div class="viewcode-block" id="ExInCounter.read_genes"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.read_genes">[docs]</a>    <span class="k">def</span> <span class="nf">read_genes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ivlfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Read genes and intervals &quot;&quot;&quot;</span>
@@ -340,8 +340,8 @@
         <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">chromstrand</span><span class="p">,</span> <span class="n">ivls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ivls_by_chromstrand</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">ivls</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>  <span class="c1"># relies on the __lt__ method of vcy.Interval</span>
-            <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ivls</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">n</span></div>
+            <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ivls</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">n</span>
 
 <div class="viewcode-block" id="ExInCounter.mark_up_introns"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.mark_up_introns">[docs]</a>    <span class="k">def</span> <span class="nf">mark_up_introns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Mark up introns that have reads across junctions to exons ?and count last exon reads? &quot;&quot;&quot;</span>
@@ -381,8 +381,8 @@
                     <span class="n">matchivl</span><span class="o">.</span><span class="n">add_read_spanning3end</span><span class="p">()</span>
 
         <span class="c1"># Validate the intron intervals on the basis of occurrences of Exon/Intron spanning reads</span>
-        <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">:</span>
-            <span class="n">gene</span><span class="o">.</span><span class="n">validate_intron_ivls</span><span class="p">()</span>  <span class="c1"># NOTE: this condition might be stricter than we want</span></div>
+        <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">:</span></div>
+            <span class="n">gene</span><span class="o">.</span><span class="n">validate_intron_ivls</span><span class="p">()</span>  <span class="c1"># NOTE: this condition might be stricter than we want</span>
 
         <span class="c1"># NOTE: did we properly deal with the reads added to the genes so that self.count() does not get confused?</span>
 
@@ -468,8 +468,8 @@
         <span class="c1"># After the whole file has been read, do the actual counting</span>
         <span class="k">for</span> <span class="n">bcumi</span><span class="p">,</span> <span class="n">molitem</span> <span class="ow">in</span> <span class="n">molitems</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">bc</span> <span class="o">=</span> <span class="n">bcumi</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">bclen</span><span class="p">]</span>  <span class="c1"># extract the bc part from the bc+umi</span>
-            <span class="n">bcidx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_bcs2idx</span><span class="p">[</span><span class="n">bc</span><span class="p">]</span>
-            <span class="n">molitem</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">bcidx</span><span class="p">)</span></div></div>
+            <span class="n">bcidx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_bcs2idx</span><span class="p">[</span><span class="n">bc</span><span class="p">]</span></div></div>
+            <span class="n">molitem</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">bcidx</span><span class="p">)</span>
 </pre></div>
 
            </div>

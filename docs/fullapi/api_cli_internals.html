@@ -211,10 +211,15 @@ This function and objects are not meant for interactive usage.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="velocyto.counter.ExInCounter.count">
-<code class="descname">count</code><span class="sig-paren">(</span><em>samfile: str, sam_output: typing.Tuple[[typing.Any, typing.Any, typing.Any, typing.Any], typing.Any] = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.count" title="Permalink to this definition">¶</a></dt>
-<dd><p>Do the counting of molecules</p>
+<dt id="velocyto.counter.ExInCounter.process">
+<code class="descname">process</code><span class="sig-paren">(</span><em>ivlfile: str</em>, <em>samfile: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs all steps in the right order</p>
 </dd></dl>
+
+<dl class="staticmethod">
+<dt id="velocyto.counter.ExInCounter.parse_cigar_tuple">
+<em class="property">static </em><code class="descname">parse_cigar_tuple</code><span class="sig-paren">(</span><em>pos: int</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[[typing.List[typing.Tuple[int, int]], bool, int], int]<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.parse_cigar_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.parse_cigar_tuple" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="velocyto.counter.ExInCounter.iter_unique_alignments">
@@ -222,20 +227,9 @@ This function and objects are not meant for interactive usage.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="velocyto.counter.ExInCounter.mark_up_introns">
-<code class="descname">mark_up_introns</code><span class="sig-paren">(</span><em>samfile: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.mark_up_introns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.mark_up_introns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mark up introns that have reads across junctions to exons ?and count last exon reads?</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="velocyto.counter.ExInCounter.parse_cigar_tuple">
-<em class="property">static </em><code class="descname">parse_cigar_tuple</code><span class="sig-paren">(</span><em>cigartuples: typing.List[typing.Tuple], pos: int</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[[typing.List[typing.Tuple[int, int]], bool, int], int]<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.parse_cigar_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.parse_cigar_tuple" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="velocyto.counter.ExInCounter.process">
-<code class="descname">process</code><span class="sig-paren">(</span><em>ivlfile: str</em>, <em>samfile: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.process" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs all steps in the right order</p>
+<dt id="velocyto.counter.ExInCounter.read_repeats">
+<code class="descname">read_repeats</code><span class="sig-paren">(</span><em>gtf_file: str</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.read_repeats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.read_repeats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read masked repeats</p>
 </dd></dl>
 
 <dl class="method">
@@ -245,9 +239,15 @@ This function and objects are not meant for interactive usage.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="velocyto.counter.ExInCounter.read_repeats">
-<code class="descname">read_repeats</code><span class="sig-paren">(</span><em>gtf_file: str</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.read_repeats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.read_repeats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read masked repeats</p>
+<dt id="velocyto.counter.ExInCounter.mark_up_introns">
+<code class="descname">mark_up_introns</code><span class="sig-paren">(</span><em>samfile: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.mark_up_introns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.mark_up_introns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark up introns that have reads across junctions to exons ?and count last exon reads?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>samfile: str, sam_output: typing.Tuple[[typing.Any, typing.Any, typing.Any, typing.Any], typing.Any] = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do the counting of molecules</p>
 </dd></dl>
 
 </dd></dl>
@@ -499,19 +499,19 @@ This function and objects are not meant for interactive usage.</p>
 
 <dl class="method">
 <dt id="velocyto.genes.Gene.get_spliced_mol_counts">
-<code class="descname">get_spliced_mol_counts</code><span class="sig-paren">(</span><em>gene</em>, <em>bcidx: int</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/genes.html#Gene.get_spliced_mol_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.genes.Gene.get_spliced_mol_counts" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_spliced_mol_counts</code><span class="sig-paren">(</span><em>bcidx: int</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/genes.html#Gene.get_spliced_mol_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.genes.Gene.get_spliced_mol_counts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Molecule counts that are exonic in all transcript models [ordered by barcode index]</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="velocyto.genes.Gene.get_ambiguous_mol_counts">
-<code class="descname">get_ambiguous_mol_counts</code><span class="sig-paren">(</span><em>gene</em>, <em>bcidx: int</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/genes.html#Gene.get_ambiguous_mol_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.genes.Gene.get_ambiguous_mol_counts" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_ambiguous_mol_counts</code><span class="sig-paren">(</span><em>bcidx: int</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/genes.html#Gene.get_ambiguous_mol_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.genes.Gene.get_ambiguous_mol_counts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Molecule counts that are exonic in some but not all transcript models [ordered by barcode index]</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="velocyto.genes.Gene.get_unspliced_mol_counts">
-<code class="descname">get_unspliced_mol_counts</code><span class="sig-paren">(</span><em>gene</em>, <em>bcidx: int</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/genes.html#Gene.get_unspliced_mol_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.genes.Gene.get_unspliced_mol_counts" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_unspliced_mol_counts</code><span class="sig-paren">(</span><em>bcidx: int</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/genes.html#Gene.get_unspliced_mol_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.genes.Gene.get_unspliced_mol_counts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Molecule counts that are intronic by all transcript models [ordered by barcode index]</p>
 </dd></dl>
 
@@ -598,6 +598,31 @@ either flanking exon is sure an exon and has &gt;= 1 read spanning junction</p>
 <em class="property">class </em><code class="descclassname">velocyto.intervals.</code><code class="descname">Interval</code><span class="sig-paren">(</span><em>start: str</em>, <em>end: str</em>, <em>gene: velocyto.genes.Gene</em>, <em>ivlidx: int</em>, <em>ivltype: str</em>, <em>is_last3prime: bool</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/intervals.html#Interval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.intervals.Interval" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Holds an exon/intron interval read from the interval file</p>
+<dl class="attribute">
+<dt id="velocyto.intervals.Interval.start">
+<code class="descname">start</code><a class="headerlink" href="#velocyto.intervals.Interval.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.intervals.Interval.end">
+<code class="descname">end</code><a class="headerlink" href="#velocyto.intervals.Interval.end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.intervals.Interval.gene">
+<code class="descname">gene</code><a class="headerlink" href="#velocyto.intervals.Interval.gene" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.intervals.Interval.ivlidx">
+<code class="descname">ivlidx</code><a class="headerlink" href="#velocyto.intervals.Interval.ivlidx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.intervals.Interval.ivltype">
+<code class="descname">ivltype</code><a class="headerlink" href="#velocyto.intervals.Interval.ivltype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="velocyto.intervals.Interval.is_last3prime">
 <code class="descname">is_last3prime</code><a class="headerlink" href="#velocyto.intervals.Interval.is_last3prime" title="Permalink to this definition">¶</a></dt>
@@ -694,31 +719,6 @@ either flanking exon is sure an exon and has &gt;= 1 read spanning junction</p>
 <p>where <cite>—</cite> idicates the minimum flanking</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="velocyto.intervals.Interval.end">
-<code class="descname">end</code><a class="headerlink" href="#velocyto.intervals.Interval.end" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.intervals.Interval.gene">
-<code class="descname">gene</code><a class="headerlink" href="#velocyto.intervals.Interval.gene" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.intervals.Interval.ivlidx">
-<code class="descname">ivlidx</code><a class="headerlink" href="#velocyto.intervals.Interval.ivlidx" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.intervals.Interval.ivltype">
-<code class="descname">ivltype</code><a class="headerlink" href="#velocyto.intervals.Interval.ivltype" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.intervals.Interval.start">
-<code class="descname">start</code><a class="headerlink" href="#velocyto.intervals.Interval.start" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -786,53 +786,13 @@ it is one of vcy.MATCH_INSIDE (1), vcy.MATCH_OVER5END (2), vcy.MATCH_OVER3END (4
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="velocyto.read.Read.umi">
+<code class="descname">umi</code><a class="headerlink" href="#velocyto.read.Read.umi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="velocyto.read.Read.chrom">
 <code class="descname">chrom</code><a class="headerlink" href="#velocyto.read.Read.chrom" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.read.Read.cigar">
-<code class="descname">cigar</code><a class="headerlink" href="#velocyto.read.Read.cigar" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.read.Read.clip3">
-<code class="descname">clip3</code><a class="headerlink" href="#velocyto.read.Read.clip3" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.read.Read.clip5">
-<code class="descname">clip5</code><a class="headerlink" href="#velocyto.read.Read.clip5" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="velocyto.read.Read.end">
-<code class="descname">end</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/read.html#Read.end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.read.Read.end" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="velocyto.read.Read.is_spliced">
-<code class="descname">is_spliced</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/read.html#Read.is_spliced"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.read.Read.is_spliced" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.read.Read.pos">
-<code class="descname">pos</code><a class="headerlink" href="#velocyto.read.Read.pos" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.read.Read.segments">
-<code class="descname">segments</code><a class="headerlink" href="#velocyto.read.Read.segments" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="velocyto.read.Read.spliced">
-<code class="descname">spliced</code><a class="headerlink" href="#velocyto.read.Read.spliced" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="velocyto.read.Read.start">
-<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/read.html#Read.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.read.Read.start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -841,8 +801,48 @@ it is one of vcy.MATCH_INSIDE (1), vcy.MATCH_OVER5END (2), vcy.MATCH_OVER3END (4
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="velocyto.read.Read.umi">
-<code class="descname">umi</code><a class="headerlink" href="#velocyto.read.Read.umi" title="Permalink to this definition">¶</a></dt>
+<dt id="velocyto.read.Read.pos">
+<code class="descname">pos</code><a class="headerlink" href="#velocyto.read.Read.pos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.cigar">
+<code class="descname">cigar</code><a class="headerlink" href="#velocyto.read.Read.cigar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.segments">
+<code class="descname">segments</code><a class="headerlink" href="#velocyto.read.Read.segments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.clip5">
+<code class="descname">clip5</code><a class="headerlink" href="#velocyto.read.Read.clip5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.clip3">
+<code class="descname">clip3</code><a class="headerlink" href="#velocyto.read.Read.clip3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.spliced">
+<code class="descname">spliced</code><a class="headerlink" href="#velocyto.read.Read.spliced" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.read.Read.is_spliced">
+<code class="descname">is_spliced</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/read.html#Read.is_spliced"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.read.Read.is_spliced" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.read.Read.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/read.html#Read.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.read.Read.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.read.Read.end">
+<code class="descname">end</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/read.html#Read.end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.read.Read.end" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

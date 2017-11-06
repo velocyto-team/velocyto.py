@@ -195,13 +195,6 @@
   <div class="section" id="module-velocyto.estimation">
 <span id="velocyto-estimation-module"></span><h1>velocyto.estimation module<a class="headerlink" href="#module-velocyto.estimation" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="velocyto.estimation.clusters_stats">
-<code class="descclassname">velocyto.estimation.</code><code class="descname">clusters_stats</code><span class="sig-paren">(</span><em>U: numpy.ndarray</em>, <em>S: numpy.ndarray</em>, <em>clusters_uid: numpy.ndarray</em>, <em>cluster_ix: numpy.ndarray</em>, <em>size_limit: int = 40</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[numpy.ndarray, numpy.ndarray]<a class="reference internal" href="../_modules/velocyto/estimation.html#clusters_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.clusters_stats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the averages per cluster</p>
-<p>If the cluster is too small (size&lt;size_limit) the average of the toal is reported instead</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="velocyto.estimation.colDeltaCor">
 <code class="descclassname">velocyto.estimation.</code><code class="descname">colDeltaCor</code><span class="sig-paren">(</span><em>emat: numpy.ndarray</em>, <em>dmat: numpy.ndarray</em>, <em>threads: int = None</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#colDeltaCor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.colDeltaCor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the correlation between the displacement (d[:,i])
@@ -214,6 +207,28 @@ and the difference between a cell and every other (e - e[:, i])</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>emat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene expression matrix</li>
 <li><strong>dmat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene velocity/displacement matrix</li>
+<li><strong>threads</strong> (<em>int</em>) – number of parallel threads to use</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.colDeltaCorpartial">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">colDeltaCorpartial</code><span class="sig-paren">(</span><em>emat: numpy.ndarray</em>, <em>dmat: numpy.ndarray</em>, <em>ixs: numpy.ndarray</em>, <em>threads: int = None</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#colDeltaCorpartial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.colDeltaCorpartial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the correlation between the displacement (d[:,i])
+and the difference between a cell and every other (e - e[:, i])</p>
+<p>Parallel cython+OpenMP implemetation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>emat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene expression matrix</li>
+<li><strong>dmat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene velocity/displacement matrix</li>
+<li><strong>ixs</strong> (<em>the neighborhood matrix</em><em> (</em><em>ncells</em><em>, </em><em>nneighbours</em><em>)</em>) – ixs[i, k] is the kth neighbour to the cell i</li>
 <li><strong>threads</strong> (<em>int</em>) – number of parallel threads to use</li>
 </ul>
 </td>
@@ -309,28 +324,6 @@ and the difference between a cell and every other (e - e[:, i])</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="velocyto.estimation.colDeltaCorpartial">
-<code class="descclassname">velocyto.estimation.</code><code class="descname">colDeltaCorpartial</code><span class="sig-paren">(</span><em>emat: numpy.ndarray</em>, <em>dmat: numpy.ndarray</em>, <em>ixs: numpy.ndarray</em>, <em>threads: int = None</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#colDeltaCorpartial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.colDeltaCorpartial" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the correlation between the displacement (d[:,i])
-and the difference between a cell and every other (e - e[:, i])</p>
-<p>Parallel cython+OpenMP implemetation</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>emat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene expression matrix</li>
-<li><strong>dmat</strong> (<em>np.ndarray</em><em> (</em><em>ngenes</em><em>, </em><em>ncells</em><em>)</em>) – gene velocity/displacement matrix</li>
-<li><strong>ixs</strong> (<em>the neighborhood matrix</em><em> (</em><em>ncells</em><em>, </em><em>nneighbours</em><em>)</em>) – ixs[i, k] is the kth neighbour to the cell i</li>
-<li><strong>threads</strong> (<em>int</em>) – number of parallel threads to use</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="velocyto.estimation.fit_slope">
 <code class="descclassname">velocyto.estimation.</code><code class="descname">fit_slope</code><span class="sig-paren">(</span><em>Y: numpy.ndarray</em>, <em>X: numpy.ndarray</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/estimation.html#fit_slope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.fit_slope" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loop through the genes and fits the slope</p>
@@ -378,6 +371,13 @@ and the difference between a cell and every other (e - e[:, i])</p>
 <dt>X: np.ndarray, shape=(genes, cells)</dt>
 <dd>the independent variable (spliced)</dd>
 </dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.estimation.clusters_stats">
+<code class="descclassname">velocyto.estimation.</code><code class="descname">clusters_stats</code><span class="sig-paren">(</span><em>U: numpy.ndarray</em>, <em>S: numpy.ndarray</em>, <em>clusters_uid: numpy.ndarray</em>, <em>cluster_ix: numpy.ndarray</em>, <em>size_limit: int = 40</em><span class="sig-paren">)</span> &#x2192; typing.Tuple[numpy.ndarray, numpy.ndarray]<a class="reference internal" href="../_modules/velocyto/estimation.html#clusters_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.estimation.clusters_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the averages per cluster</p>
+<p>If the cluster is too small (size&lt;size_limit) the average of the toal is reported instead</p>
 </dd></dl>
 
 </div>
