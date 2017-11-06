@@ -36,7 +36,7 @@ Just run:
 `pysam` will be installed by ``pip`` as dependencies
 
 .. tip::
-    ``velocyto 0.9.x`` is an alpha release and it is updated often. If you installed with pip make sure you run ``pip update velocyto`` often.
+    ``velocyto 0.9.x`` is an alpha release and it is updated often. If you installed with pip make sure you run ``pip install -U --no-deps velocyto`` often.
 
 .. _command:
 
