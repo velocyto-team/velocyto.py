@@ -95,14 +95,25 @@ class Gene:
         i = len(self.ivls) - 1 if self.strand == '+' else 0
         return self.ivls[i]
 
-    def validate_intron_ivls(self) -> None:
+    def validate_intron_ivls(self, rule: str="strict") -> None:
         """ Annotate the introns that can safely be used for intron molecule counting =>
-        either flanking exon is sure an exon and has >= 1 read spanning junction """
+        either flanking exon is sure an exon and has >= 1 read spanning junction 
+        
+        Now supports two different heursitics
+
+        "strict" and "permissive"
+        """
         for i in range(1, len(self.ivls) - 2):
             if self.ivls[i].is_sure_intron:
-                self.ivls[i].is_sure_valid_intron = \
-                    self.ivls[i - 1].is_sure_exon and self.ivljunction5_read_counts[i] > 0 or \
-                    self.ivls[i + 1].is_sure_exon and self.ivljunction5_read_counts[i + 1] > 0
+                if rule == "strict":
+                    self.ivls[i].is_sure_valid_intron = \
+                        self.ivls[i - 1].is_sure_exon and self.ivljunction5_read_counts[i] > 0 or \
+                        self.ivls[i + 1].is_sure_exon and self.ivljunction5_read_counts[i + 1] > 0
+                elif rule == "permissive":
+                    self.ivls[i].is_sure_valid_intron = True
+                else:
+                    raise IOError(f"rule {rule} is not supported")
+
 
     def add_read_stats(self, read: vcy.Read) -> None:
         if self.strand == '+':

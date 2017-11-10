@@ -203,7 +203,7 @@ class ExInCounter:
             n += len(ivls)
         return n
 
-    def mark_up_introns(self, samfile: str) -> None:
+    def mark_up_introns(self, samfile: str, intron_validation: str) -> None:
         """ Mark up introns that have reads across junctions to exons ?and count last exon reads? """
         # Read the file
         currchrom = ""
@@ -242,7 +242,7 @@ class ExInCounter:
 
         # Validate the intron intervals on the basis of occurrences of Exon/Intron spanning reads
         for gene in self.genes:
-            gene.validate_intron_ivls()  # NOTE: this condition might be stricter than we want
+            gene.validate_intron_ivls(rule=intron_validation)  # NOTE: this condition might be stricter than we want
 
         # NOTE: did we properly deal with the reads added to the genes so that self.count() does not get confused?
 

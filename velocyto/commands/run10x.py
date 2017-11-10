@@ -46,12 +46,15 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
                               file_okay=True,
                               dir_okay=False,
                               readable=True))
+@click.option("--introns", "-z",
+              help="introns validation heuristic mode. if `strict` if will require exon-intron spanning evidence; if `permissive` it does not check for spanning",
+              default="strict")
 @click.option("--debug", "-d",
               help="debug mode. It will generate .sam files of individual reads (not molecules) that are identified as exons, introns, ambiguous and chimeras",
               default=False,
               is_flag=True)
 def run10x(samplefolder: str, ivlfile: str,
-           metadatatable: str, repmask: str,
+           metadatatable: str, repmask: str, introns: str,
            debug: bool) -> None:
     """Runs the velocity analysis for a Chromium 10X Sample
 
@@ -85,4 +88,6 @@ def run10x(samplefolder: str, ivlfile: str,
     except Exception:
         logging.error("Some IO problem in loading cellranger tsne/pca/kmeans files occurred!")
 
-    return _run(bamfile, ivlfile, bcfile, outputfolder, sampleid, metadatatable, repmask, debug, additional_ca)
+    return _run(bamfile=bamfile, ivlfile=ivlfile, bcfile=bcfile, outputfolder=outputfolder,
+                sampleid=sampleid, metadatatable=metadatatable, repmask=repmask,
+                debug=debug, intron_validation=introns, additional_ca=additional_ca)
