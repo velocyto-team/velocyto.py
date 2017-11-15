@@ -211,6 +211,7 @@ def _run(*, bamfile: str, ivlfile: str,
     ds.set_layer(name="spliced", matrix=spliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
     ds.set_layer(name="unspliced", matrix=unspliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
     ds.set_layer(name="ambiguous", matrix=ambiguous, dtype=vcy.LOOM_NUMERIC_DTYPE)
+    ds.attrs["velocyto.__version__"] = vcy.__version__
     ds.close()
 
     logging.debug("Terminated Succesfully!")
