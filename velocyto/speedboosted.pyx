@@ -209,9 +209,9 @@ def _colDeltaCorSqrt(double[:, ::1] e,
                 for i in range(cols):
                     t_tmp[t] = e[j, i] - e[j, c]
                     if t_tmp[t] > 0:
-                        t_A[t, j, i] = log10(fabs(t_tmp[t]) + 1)
+                        t_A[t, j, i] = log10(fabs(t_tmp[t]) + psc)
                     else:
-                        t_A[t, j, i] = -log10(fabs(t_tmp[t]) + 1)
+                        t_A[t, j, i] = -log10(fabs(t_tmp[t]) + psc)
                     
             
             #muA = A.mean(0)

@@ -128,7 +128,7 @@ class VelocytoLoom:
             plt.savefig(save2file, bbox_inches="tight")
 
     def filter_cells(self, bool_array: np.ndarray) -> None:
-        """Filter cells using a boolean array. 
+        """Filter cells using a boolean array.
 
         Arguments
         ---------
@@ -155,7 +155,7 @@ class VelocytoLoom:
             A vector of strings containing the name of the cluster for each cells
         cluster_colors_dict: dict[str, List[float]]
             A mapping  cluster_name -> rgb_color_triplette for example "StemCell":[0.65,0.1,0.4]
-        colormap: 
+        colormap:
             (optional)
             In alternative to cluster_colors_dict a colormap object (e.g. from matplotlib or similar callable) can be passed
 
@@ -730,7 +730,7 @@ class VelocytoLoom:
     def perform_PCA_imputed(self, n_components: int=None) -> None:
         """Simply performs PCA of `Sx_norm` and save the result as  `pcax`"""
         self.pcax = PCA(n_components=n_components)
-        self.pcax = self.pcax.fit_transform(self.Sx_norm.T)
+        self.pcsx = self.pcax.fit_transform(self.Sx_norm.T)
 
     def plot_pca_imputed(self, dim: List[int]=[0, 1, 2], elev: float=60, azim: float=-140) -> None:
         """Plot 3d PCA of the smoothed data
@@ -777,7 +777,7 @@ class VelocytoLoom:
         Returns
         -------
         Nothing but it creates the attributes:
-        knn: scipy.sparse.csr_matrix 
+        knn: scipy.sparse.csr_matrix
             knn contiguity matrix
         knn_smoothig_w: scipy.sparse.lil_matrix
             the weights used for the smoothing
@@ -848,7 +848,7 @@ class VelocytoLoom:
 
     def gene_knn_imputation(self, k: int=15, pca_space: float=False, metric: str="correlation", diag: float=1,
                             scale_weights: bool=True, balanced: bool=True, b_sight: int=100, b_maxl: int=18,
-                             n_jobs: int=8) -> None:
+                            n_jobs: int=8) -> None:
         """Performs genes k-nn smoothing of the genes
 
         Arguments
@@ -878,7 +878,7 @@ class VelocytoLoom:
         Returns
         -------
         Nothing but it creates the attributes:
-        gknn: scipy.sparse.csr_matrix 
+        gknn: scipy.sparse.csr_matrix
             genes knn contiguity matrix
         gknn_smoothig_w: scipy.sparse.lil_matrix
             the weights used for the smoothing of the genes
@@ -933,7 +933,7 @@ class VelocytoLoom:
         weights: string or np.ndarray, default="maxmin_diag"
             the method to determine the weights of the least squares fit.
             "maxmin_diag", "maxmin", "sum", "prod", "maxmin_weighted" are supported
-            if a 2d np.ndarray is provided the entry (i,j) is the weight of the cell j when fitting gamma to gene i 
+            if a 2d np.ndarray is provided the entry (i,j) is the weight of the cell j when fitting gamma to gene i
         limit_gamma: np.ndarray, default=True
             whether to limit gamma when unspliced is much higher than spliced
         maxmin_perc: List[flaot], default=[2,98]
