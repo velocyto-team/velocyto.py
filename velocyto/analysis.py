@@ -1198,7 +1198,7 @@ class VelocytoLoom:
                                  ndims: int=None, n_neighbors: int=None, psc: float = 1.0,
                                  knn_random: bool=False, sampled_fraction: float=0.3, delta_kind: str="clipped",
                                  sampling_pobs: Tuple[float, float]=(0.5, 0.1), max_dist_embed: float=None,
-                                 n_jobs: int=4, random_seed: int=15071990) -> None:
+                                 n_jobs: int=4, threads: int=None, random_seed: int=15071990) -> None:
         """Use correlation to estimate transition probabilities for every cells to its embedding neighborhood
         
         Arguments
@@ -1230,7 +1230,11 @@ class VelocytoLoom:
             If None it will be set to 0.25 * average_distance_two_points_taken_at_random
         n_jobs: int, default=4
             number of jobs to calkulate knn
-            this only applies to the knn search, by default half of the cps will be used for the actual correlation computation
+            this only applies to the knn search, for the more time consuming correlation computation see threads
+        threads: int, default=None
+            The threads will be used for the actual correlation computation by default half of the total.
+        random_seed: int, default=15071990
+            Random seed to make knn_random mode reproducible
         
         Returns
         -------
@@ -1286,16 +1290,16 @@ class VelocytoLoom:
             logging.debug(f"Correlation Calculation '{self.corr_calc}'")
             if transform == "log":
                 delta_hi_dim = hi_dim_t - hi_dim
-                self.corrcoef = colDeltaCorLog10partial(hi_dim, np.log10(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), neigh_ixs, psc=psc)
+                self.corrcoef = colDeltaCorLog10partial(hi_dim, np.log10(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), neigh_ixs, threads=threads, psc=psc)
             elif transform == "logratio":
                 log2hidim = np.log2(hi_dim + 1)
                 delta_hi_dim = np.log2(np.abs(hi_dim_t) + 1) - log2hidim
-                self.corrcoef = colDeltaCorpartial(log2hidim, delta_hi_dim, neigh_ixs)
+                self.corrcoef = colDeltaCorpartial(log2hidim, delta_hi_dim, neigh_ixs, threads=threads)
             elif transform == "linear":
-                self.corrcoef = colDeltaCorpartial(hi_dim, hi_dim_t - hi_dim, neigh_ixs)
+                self.corrcoef = colDeltaCorpartial(hi_dim, hi_dim_t - hi_dim, neigh_ixs, threads=threads)
             elif transform == "sqrt":
                 delta_hi_dim = hi_dim_t - hi_dim
-                self.corrcoef = colDeltaCorSqrtpartial(hi_dim, np.sqrt(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), neigh_ixs, psc=psc)
+                self.corrcoef = colDeltaCorSqrtpartial(hi_dim, np.sqrt(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), neigh_ixs, threads=threads, psc=psc)
             else:
                 raise NotImplementedError(f"tranform={transform} is not a valid parameter")
             np.fill_diagonal(self.corrcoef, 0)
@@ -1322,11 +1326,11 @@ class VelocytoLoom:
             logging.debug("Correlation Calculation 'full'")
             if transform == "log":
                 delta_hi_dim = hi_dim_t - hi_dim
-                self.corrcoef = colDeltaCorLog10(hi_dim, np.log10(np.abs(delta_hi_dim) + 1) * np.sign(delta_hi_dim))
+                self.corrcoef = colDeltaCorLog10(hi_dim, np.log10(np.abs(delta_hi_dim) + 1) * np.sign(delta_hi_dim), threads=threads)
             elif transform == "logratio":
                 log2hidim = np.log2(hi_dim + 1)
                 delta_hi_dim = np.log2(np.abs(hi_dim_t) + 1) - log2hidim
-                self.corrcoef = colDeltaCor(log2hidim, delta_hi_dim)
+                self.corrcoef = colDeltaCor(log2hidim, delta_hi_dim, threads=threads)
             elif transform == "linear":
                 self.corrcoef = colDeltaCor(hi_dim, hi_dim_t - hi_dim)
             elif transform == "sqrt":
