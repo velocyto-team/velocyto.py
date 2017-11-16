@@ -19,6 +19,7 @@ from .estimation import fit_slope, fit_slope_offset, fit_slope_weighted, fit_slo
 from .estimation import clusters_stats
 from .estimation import colDeltaCor, colDeltaCorLog10, colDeltaCorpartial, colDeltaCorSqrtpartial, colDeltaCorLog10partial
 from .diffusion import Diffusion
+from .serialization import dump_hdf5, load_hdf5
 from typing import *
 
 
@@ -85,6 +86,26 @@ class VelocytoLoom:
                 logging.warn(f"fraction of _Valid cells is {np.mean(self.ca['_Valid'])} but all will be taken in consideration")
         except KeyError:
             logging.debug("The file did not specify the _Valid column attribute")
+
+    def to_hdf5(self, filename: str, **kwargs: Dict[str, Any]) -> None:
+        """Serialize the VelocytoLoom object in its current state
+
+        Arguments
+        ---------
+        filename:
+            The name of the file that will be generated (the suffix hdf5 is suggested but not enforced)
+        **kwargs:
+            The fucntion accepts the arguments of `dump_hdf5`
+
+        Returns
+        -------
+        Nothing. It saves a file that can be used to recreate the object in another session.
+
+        Note
+        ----
+        The object can be reloaded calling ``load_velocyto_hdf5(filename)``
+        """
+        dump_hdf5(self, filename, **kwargs)
 
     def plot_fractions(self, save2file: str=None) -> None:
         """Plots a barplot showing the abundance of spliced/unspliced molecules in the dataset
@@ -1955,3 +1976,22 @@ def scale_to_match_median(sparse_matrix: sparse.csr_matrix, genes_total: np.ndar
 def gaussian_kernel(X: np.ndarray, mu: float=0, sigma: float=1) -> np.ndarray:
     """Compute gaussian kernel"""
     return np.exp(-(X - mu)**2 / (2 * sigma**2)) / np.sqrt(2 * np.pi * sigma**2)
+
+
+def load_velocyto_hdf5(filename: str) -> VelocytoLoom:
+    """Loads a Velocyto loom object from an hdf5 file
+
+    Arguments
+    ---------
+    filename: str
+        The name of the serialized file
+
+    Returns
+    -------
+    A VelocytoLoom object
+
+    Note
+    ----
+    The hdf5 file must have been created using ``VelocytoLoom.to_hdf5`` or the ``dump_hdf5`` function
+    """
+    return load_hdf5(filename, obj_class=VelocytoLoom)
