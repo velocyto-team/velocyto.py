@@ -164,7 +164,7 @@ class VelocytoLoom:
         Notghing, the attributes `cluster_labels, colorandum, cluster_ix, cluster_uid` are created.
 
         """
-        self.cluster_labels = cluster_labels
+        self.cluster_labels = np.array(cluster_labels)
         if cluster_colors_dict:
             self.colorandum = np.array([cluster_colors_dict[i] for i in cluster_labels])
             self.cluster_colors_dict = cluster_colors_dict
