@@ -38,6 +38,12 @@ The Diffusion module
 .. toctree::
     api_diffusion
 
+The Estimation module
+~~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+    api_serialization
+
 Internals
 ---------
 

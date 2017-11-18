@@ -216,6 +216,16 @@ For example, one of the first checks is spliced/unspliced fractions of the datas
 </pre></div>
 </div>
 <p>The unspliced fraction should be ~10% of all the molecules.</p>
+<p>You can save the results of your analysis in a serialized object at any time by running:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">vlm</span><span class="o">.</span><span class="n">dump_hdf5</span><span class="p">(</span><span class="s2">&quot;my_velocyto_analysis&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In another session you can reload the vlm object by running:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">load_velocyto_hdf5</span><span class="p">(</span><span class="s2">&quot;my_velocyto_analysis.hdf5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is similar to what the <code class="docutils literal"><span class="pre">pickle</span></code> module in python standard library is doing but here only the attribute of the <code class="docutils literal"><span class="pre">VelocytoLoom</span></code> object are seved and stored as a hdf5 file.
+Notice that the size on disk of the serialized file can change depending on the step of the analysis the object is saved (e.g. pre/post filtering or before/after calculating distance matrixes).</p>
 </div>
 <div class="section" id="preliminary-filtering">
 <h2>Preliminary Filtering<a class="headerlink" href="#preliminary-filtering" title="Permalink to this headline">¶</a></h2>
