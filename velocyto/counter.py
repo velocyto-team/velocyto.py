@@ -68,7 +68,7 @@ class ExInCounter:
 
         return segments, spliced, clip5, clip3
 
-    def peek(self, samfile: str, lines: int=10) -> None:
+    def peek(self, samfile: str, lines: int=30) -> None:
         """Peeks into the samfile to determine if it is a cellranger or dropseq file
         """
         logging.debug(f"Peeking into {samfile}")
@@ -84,7 +84,7 @@ class ExInCounter:
             elif read.has_tag("XC") and read.has_tag("XM"):
                 dropseq += 1
             else:
-                logging.warn(f"Not found cell and umi barcode")
+                logging.warn(f"Not found cell and umi barcode in entry {i} of the bam file")
                 failed += 1
             if cellranger > lines:
                 self.cellbarcode_str = "CB"
