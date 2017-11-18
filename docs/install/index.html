@@ -95,14 +95,9 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#install-from-source">Install from source</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#requirements">Requirements</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#install-using-pypi">Install using PyPI</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#command">Install from source</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-using-pypi">Install using PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-from-source">Install from source</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-using-conda">Install using conda</a></li>
 </ul>
 </li>
@@ -188,16 +183,14 @@
             
   <div class="section" id="installation-guide">
 <span id="install"></span><h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="install-from-source">
-<span id="fromsource"></span><h2>Install from source<a class="headerlink" href="#install-from-source" title="Permalink to this headline">¶</a></h2>
+<p>Instructions for installing the python library <code class="docutils literal"><span class="pre">velocyto</span></code> and the command line tool of the same name.</p>
 <div class="section" id="requirements">
-<span id="require"></span><h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<span id="require"></span><h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p>To run velocyto you will need python &gt;=3.6.0 (we have no plans to support python&lt;=3.5).
-We recommend to use <a class="reference external" href="https://www.continuum.io/downloads">anaconda</a> and the <code class="docutils literal"><span class="pre">conda</span></code> command to install dependencies limiting the use of <code class="docutils literal"><span class="pre">pip</span></code> to libraries not available on conda’s main channel. (<code class="docutils literal"><span class="pre">pip</span></code> can be used too but its dependency-managing migh be less robust).</p>
-<p>To make sure you have all the dependencies correctly installed, including libraries trickier to install do:</p>
+We recommend to use <a class="reference external" href="https://www.continuum.io/downloads">anaconda</a> and the <code class="docutils literal"><span class="pre">conda</span></code> command to install dependencies limiting the use of <code class="docutils literal"><span class="pre">pip</span></code> to libraries not available on conda’s main channel. (<code class="docutils literal"><span class="pre">pip</span></code> can be used too but its dependency-managing might be less robust).</p>
+<p>To make sure you have all the dependencies correctly installed, including libraries trickier to install, run:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">numpy</span> <span class="n">scipy</span> <span class="n">cython</span> <span class="n">numba</span> <span class="n">matplotlib</span> <span class="n">scikit</span><span class="o">-</span><span class="n">learn</span> <span class="n">h5py</span> <span class="n">click</span> <span class="n">loompy</span>
 </pre></div>
-</div>
 </div>
 </div>
 <div class="section" id="install-using-pypi">
@@ -206,33 +199,34 @@ We recommend to use <a class="reference external" href="https://www.continuum.io
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">velocyto</span>
 </pre></div>
 </div>
-<p><cite>pysam</cite> will be installed by <code class="docutils literal"><span class="pre">pip</span></code> as dependencies</p>
+<p><cite>pysam</cite> will be installed by <code class="docutils literal"><span class="pre">pip</span></code> as a dependency</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last"><code class="docutils literal"><span class="pre">velocyto</span> <span class="pre">0.9.x</span></code> is an alpha release and it is updated often. If you installed with pip make sure you run <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-U</span> <span class="pre">--no-deps</span> <span class="pre">velocyto</span></code> often.</p>
 </div>
-<div class="section" id="command">
-<span id="id1"></span><h3>Install from source<a class="headerlink" href="#command" title="Permalink to this headline">¶</a></h3>
-<p>After making sure all the requirements are satisfied. You can just run:</p>
+<p>You can test whether the installation was successful by running <code class="docutils literal"><span class="pre">velocyto</span> <span class="pre">--help</span></code>.</p>
+<p>To get started with <code class="docutils literal"><span class="pre">velocyto</span></code> you can follow <a class="reference internal" href="../tutorial/index.html#tutorial"><span class="std std-ref">our guide</span></a>.</p>
+</div>
+<div class="section" id="install-from-source">
+<span id="fromsource"></span><h2>Install from source<a class="headerlink" href="#install-from-source" title="Permalink to this headline">¶</a></h2>
+<p>Make sure all the requirements are satisfied, and that <cite>git</cite> is installed on your system. After doing so, run the following commands to complete the installation:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">velocyto</span><span class="o">-</span><span class="n">team</span><span class="o">/</span><span class="n">velocyto</span><span class="o">.</span><span class="n">py</span><span class="o">.</span><span class="n">git</span>
 <span class="n">cd</span> <span class="n">velocyto</span><span class="o">.</span><span class="n">py</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>  <span class="c1"># installs in development mode, making symlinks to the current directory</span>
 </pre></div>
 </div>
-<p>This command will install the python library <code class="docutils literal"><span class="pre">velocyto</span></code> and the homonymous command line tool.</p>
-<p>At this point you can test the installation was successful by running <code class="docutils literal"><span class="pre">velocyto</span> <span class="pre">--help</span></code>.</p>
-<p>To get started with <code class="docutils literal"><span class="pre">velocyto</span></code> you can follow <a class="reference internal" href="../tutorial/index.html#tutorial"><span class="std std-ref">our guide</span></a>.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last"><code class="docutils literal"><span class="pre">velocyto</span> <span class="pre">0.9.x</span></code> is an alpha release, we recommend to pull the latest bufixes and feature improvements often. Adding the <code class="docutils literal"><span class="pre">-e</span></code> flags installs the software in <cite>development</cite> mode, you can simple do <code class="docutils literal"><span class="pre">git</span> <span class="pre">pull</span></code> to update the library.</p>
+<p class="last"><code class="docutils literal"><span class="pre">velocyto</span> <span class="pre">0.9.x</span></code> is an alpha release, we recommend pulling in the latest bufixes and feature improvements often. Adding the <code class="docutils literal"><span class="pre">-e</span></code> flag installs the software in <cite>development</cite> mode, after which you can simply use <code class="docutils literal"><span class="pre">git</span> <span class="pre">pull</span></code> to update the library.</p>
 </div>
-</div>
+<p>You can test whether the installation was successful by running <code class="docutils literal"><span class="pre">velocyto</span> <span class="pre">--help</span></code>.</p>
+<p>To get started with <code class="docutils literal"><span class="pre">velocyto</span></code> you can follow <a class="reference internal" href="../tutorial/index.html#tutorial"><span class="std std-ref">our guide</span></a>.</p>
 </div>
 <div class="section" id="install-using-conda">
 <span id="conda"></span><h2>Install using conda<a class="headerlink" href="#install-using-conda" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This installation method is not currently available. The plan is make it available upon 1.0 release.</p>
+<p class="last">This installation method is not currently available. The plan is make it available upon the 1.0 release.</p>
 </div>
 </div>
 </div>

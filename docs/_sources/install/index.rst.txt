@@ -3,24 +3,22 @@
 Installation Guide
 ==================
 
-.. _fromsource:
-
-Install from source
--------------------
+Instructions for installing the python library ``velocyto`` and the command line tool of the same name.
 
 .. _require:
 
 Requirements
-~~~~~~~~~~~~
+------------
 
 To run velocyto you will need python >=3.6.0 (we have no plans to support python<=3.5).
-We recommend to use `anaconda <https://www.continuum.io/downloads>`_ and the ``conda`` command to install dependencies limiting the use of ``pip`` to libraries not available on conda's main channel. (``pip`` can be used too but its dependency-managing migh be less robust). 
+We recommend to use `anaconda <https://www.continuum.io/downloads>`_ and the ``conda`` command to install dependencies limiting the use of ``pip`` to libraries not available on conda's main channel. (``pip`` can be used too but its dependency-managing might be less robust). 
 
-To make sure you have all the dependencies correctly installed, including libraries trickier to install do:
+To make sure you have all the dependencies correctly installed, including libraries trickier to install, run:
 
 ::
 
     conda install numpy scipy cython numba matplotlib scikit-learn h5py click loompy
+
 
 .. _pypi:
 
@@ -33,17 +31,22 @@ Just run:
 
     pip install velocyto
 
-`pysam` will be installed by ``pip`` as dependencies
+`pysam` will be installed by ``pip`` as a dependency
 
 .. tip::
     ``velocyto 0.9.x`` is an alpha release and it is updated often. If you installed with pip make sure you run ``pip install -U --no-deps velocyto`` often.
 
-.. _command:
+You can test whether the installation was successful by running ``velocyto --help``.
+
+To get started with ``velocyto`` you can follow :ref:`our guide <tutorial>`. 
+
+
+.. _fromsource:
 
 Install from source
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
-After making sure all the requirements are satisfied. You can just run:
+Make sure all the requirements are satisfied, and that `git` is installed on your system. After doing so, run the following commands to complete the installation:
 
 ::
 
@@ -51,15 +54,12 @@ After making sure all the requirements are satisfied. You can just run:
     cd velocyto.py
     pip install -e .  # installs in development mode, making symlinks to the current directory
 
+.. tip::
+    ``velocyto 0.9.x`` is an alpha release, we recommend pulling in the latest bufixes and feature improvements often. Adding the ``-e`` flag installs the software in `development` mode, after which you can simply use ``git pull`` to update the library.
 
-This command will install the python library ``velocyto`` and the homonymous command line tool.
-
-At this point you can test the installation was successful by running ``velocyto --help``.
+You can test whether the installation was successful by running ``velocyto --help``.
 
 To get started with ``velocyto`` you can follow :ref:`our guide <tutorial>`. 
-
-.. tip::
-    ``velocyto 0.9.x`` is an alpha release, we recommend to pull the latest bufixes and feature improvements often. Adding the ``-e`` flags installs the software in `development` mode, you can simple do ``git pull`` to update the library.
 
 
 .. _conda:
@@ -68,4 +68,4 @@ Install using conda
 -------------------
 
 .. note::
-   This installation method is not currently available. The plan is make it available upon 1.0 release.
+   This installation method is not currently available. The plan is make it available upon the 1.0 release.

@@ -194,6 +194,7 @@
 <span class="kn">from</span> <span class="nn">.estimation</span> <span class="k">import</span> <span class="n">clusters_stats</span>
 <span class="kn">from</span> <span class="nn">.estimation</span> <span class="k">import</span> <span class="n">colDeltaCor</span><span class="p">,</span> <span class="n">colDeltaCorLog10</span><span class="p">,</span> <span class="n">colDeltaCorpartial</span><span class="p">,</span> <span class="n">colDeltaCorSqrtpartial</span><span class="p">,</span> <span class="n">colDeltaCorLog10partial</span>
 <span class="kn">from</span> <span class="nn">.diffusion</span> <span class="k">import</span> <span class="n">Diffusion</span>
+<span class="kn">from</span> <span class="nn">.serialization</span> <span class="k">import</span> <span class="n">dump_hdf5</span><span class="p">,</span> <span class="n">load_hdf5</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="o">*</span>
 
 
@@ -261,6 +262,26 @@
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;The file did not specify the _Valid column attribute&quot;</span><span class="p">)</span>
 
+<div class="viewcode-block" id="VelocytoLoom.to_hdf5"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.to_hdf5">[docs]</a>    <span class="k">def</span> <span class="nf">to_hdf5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Serialize the VelocytoLoom object in its current state</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        filename:</span>
+<span class="sd">            The name of the file that will be generated (the suffix hdf5 is suggested but not enforced)</span>
+<span class="sd">        **kwargs:</span>
+<span class="sd">            The fucntion accepts the arguments of `dump_hdf5`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Nothing. It saves a file that can be used to recreate the object in another session.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        The object can be reloaded calling ``load_velocyto_hdf5(filename)``</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+        <span class="n">dump_hdf5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
 <div class="viewcode-block" id="VelocytoLoom.plot_fractions"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.plot_fractions">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fractions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save2file</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Plots a barplot showing the abundance of spliced/unspliced molecules in the dataset</span>
 
@@ -303,7 +324,7 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save2file</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="VelocytoLoom.filter_cells"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.filter_cells">[docs]</a>    <span class="k">def</span> <span class="nf">filter_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bool_array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Filter cells using a boolean array. </span>
+        <span class="sd">&quot;&quot;&quot;Filter cells using a boolean array.</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
@@ -330,7 +351,7 @@
 <span class="sd">            A vector of strings containing the name of the cluster for each cells</span>
 <span class="sd">        cluster_colors_dict: dict[str, List[float]]</span>
 <span class="sd">            A mapping  cluster_name -&gt; rgb_color_triplette for example &quot;StemCell&quot;:[0.65,0.1,0.4]</span>
-<span class="sd">        colormap: </span>
+<span class="sd">        colormap:</span>
 <span class="sd">            (optional)</span>
 <span class="sd">            In alternative to cluster_colors_dict a colormap object (e.g. from matplotlib or similar callable) can be passed</span>
 
@@ -339,7 +360,7 @@
 <span class="sd">        Notghing, the attributes `cluster_labels, colorandum, cluster_ix, cluster_uid` are created.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_labels</span> <span class="o">=</span> <span class="n">cluster_labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cluster_labels</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cluster_colors_dict</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">colorandum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cluster_colors_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cluster_labels</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cluster_colors_dict</span> <span class="o">=</span> <span class="n">cluster_colors_dict</span>
@@ -905,7 +926,7 @@
 <div class="viewcode-block" id="VelocytoLoom.perform_PCA_imputed"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.perform_PCA_imputed">[docs]</a>    <span class="k">def</span> <span class="nf">perform_PCA_imputed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_components</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Simply performs PCA of `Sx_norm` and save the result as  `pcax`&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pcax</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_components</span><span class="p">)</span></div>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pcax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcax</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Sx_norm</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pcsx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcax</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Sx_norm</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
 
 <div class="viewcode-block" id="VelocytoLoom.plot_pca_imputed"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.plot_pca_imputed">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pca_imputed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">elev</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">azim</span><span class="p">:</span> <span class="nb">float</span><span class="o">=-</span><span class="mi">140</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Plot 3d PCA of the smoothed data</span>
@@ -952,7 +973,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Nothing but it creates the attributes:</span>
-<span class="sd">        knn: scipy.sparse.csr_matrix </span>
+<span class="sd">        knn: scipy.sparse.csr_matrix</span>
 <span class="sd">            knn contiguity matrix</span>
 <span class="sd">        knn_smoothig_w: scipy.sparse.lil_matrix</span>
 <span class="sd">            the weights used for the smoothing</span>
@@ -1023,7 +1044,7 @@
 
 <div class="viewcode-block" id="VelocytoLoom.gene_knn_imputation"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.gene_knn_imputation">[docs]</a>    <span class="k">def</span> <span class="nf">gene_knn_imputation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pca_space</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">metric</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;correlation&quot;</span><span class="p">,</span> <span class="n">diag</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                             <span class="n">scale_weights</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">balanced</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">b_sight</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">b_maxl</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span>
-                             <span class="n">n_jobs</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">n_jobs</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Performs genes k-nn smoothing of the genes</span>
 
 <span class="sd">        Arguments</span>
@@ -1053,7 +1074,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Nothing but it creates the attributes:</span>
-<span class="sd">        gknn: scipy.sparse.csr_matrix </span>
+<span class="sd">        gknn: scipy.sparse.csr_matrix</span>
 <span class="sd">            genes knn contiguity matrix</span>
 <span class="sd">        gknn_smoothig_w: scipy.sparse.lil_matrix</span>
 <span class="sd">            the weights used for the smoothing of the genes</span>
@@ -1108,7 +1129,7 @@
 <span class="sd">        weights: string or np.ndarray, default=&quot;maxmin_diag&quot;</span>
 <span class="sd">            the method to determine the weights of the least squares fit.</span>
 <span class="sd">            &quot;maxmin_diag&quot;, &quot;maxmin&quot;, &quot;sum&quot;, &quot;prod&quot;, &quot;maxmin_weighted&quot; are supported</span>
-<span class="sd">            if a 2d np.ndarray is provided the entry (i,j) is the weight of the cell j when fitting gamma to gene i </span>
+<span class="sd">            if a 2d np.ndarray is provided the entry (i,j) is the weight of the cell j when fitting gamma to gene i</span>
 <span class="sd">        limit_gamma: np.ndarray, default=True</span>
 <span class="sd">            whether to limit gamma when unspliced is much higher than spliced</span>
 <span class="sd">        maxmin_perc: List[flaot], default=[2,98]</span>
@@ -1373,7 +1394,7 @@
                                  <span class="n">ndims</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_neighbors</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">psc</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
                                  <span class="n">knn_random</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sampled_fraction</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">delta_kind</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;clipped&quot;</span><span class="p">,</span>
                                  <span class="n">sampling_pobs</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">max_dist_embed</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                 <span class="n">n_jobs</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">15071990</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                                 <span class="n">n_jobs</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">threads</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">15071990</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Use correlation to estimate transition probabilities for every cells to its embedding neighborhood</span>
 <span class="sd">        </span>
 <span class="sd">        Arguments</span>
@@ -1405,7 +1426,11 @@
 <span class="sd">            If None it will be set to 0.25 * average_distance_two_points_taken_at_random</span>
 <span class="sd">        n_jobs: int, default=4</span>
 <span class="sd">            number of jobs to calkulate knn</span>
-<span class="sd">            this only applies to the knn search, by default half of the cps will be used for the actual correlation computation</span>
+<span class="sd">            this only applies to the knn search, for the more time consuming correlation computation see threads</span>
+<span class="sd">        threads: int, default=None</span>
+<span class="sd">            The threads will be used for the actual correlation computation by default half of the total.</span>
+<span class="sd">        random_seed: int, default=15071990</span>
+<span class="sd">            Random seed to make knn_random mode reproducible</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1461,16 +1486,16 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Correlation Calculation &#39;</span><span class="si">{self.corr_calc}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">transform</span> <span class="o">==</span> <span class="s2">&quot;log&quot;</span><span class="p">:</span>
                 <span class="n">delta_hi_dim</span> <span class="o">=</span> <span class="n">hi_dim_t</span> <span class="o">-</span> <span class="n">hi_dim</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorLog10partial</span><span class="p">(</span><span class="n">hi_dim</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">)</span> <span class="o">+</span> <span class="n">psc</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">),</span> <span class="n">neigh_ixs</span><span class="p">,</span> <span class="n">psc</span><span class="o">=</span><span class="n">psc</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorLog10partial</span><span class="p">(</span><span class="n">hi_dim</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">)</span> <span class="o">+</span> <span class="n">psc</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">),</span> <span class="n">neigh_ixs</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="n">threads</span><span class="p">,</span> <span class="n">psc</span><span class="o">=</span><span class="n">psc</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">transform</span> <span class="o">==</span> <span class="s2">&quot;logratio&quot;</span><span class="p">:</span>
                 <span class="n">log2hidim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">hi_dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">delta_hi_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">hi_dim_t</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">log2hidim</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorpartial</span><span class="p">(</span><span class="n">log2hidim</span><span class="p">,</span> <span class="n">delta_hi_dim</span><span class="p">,</span> <span class="n">neigh_ixs</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorpartial</span><span class="p">(</span><span class="n">log2hidim</span><span class="p">,</span> <span class="n">delta_hi_dim</span><span class="p">,</span> <span class="n">neigh_ixs</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="n">threads</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">transform</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorpartial</span><span class="p">(</span><span class="n">hi_dim</span><span class="p">,</span> <span class="n">hi_dim_t</span> <span class="o">-</span> <span class="n">hi_dim</span><span class="p">,</span> <span class="n">neigh_ixs</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorpartial</span><span class="p">(</span><span class="n">hi_dim</span><span class="p">,</span> <span class="n">hi_dim_t</span> <span class="o">-</span> <span class="n">hi_dim</span><span class="p">,</span> <span class="n">neigh_ixs</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="n">threads</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">transform</span> <span class="o">==</span> <span class="s2">&quot;sqrt&quot;</span><span class="p">:</span>
                 <span class="n">delta_hi_dim</span> <span class="o">=</span> <span class="n">hi_dim_t</span> <span class="o">-</span> <span class="n">hi_dim</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorSqrtpartial</span><span class="p">(</span><span class="n">hi_dim</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">)</span> <span class="o">+</span> <span class="n">psc</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">),</span> <span class="n">neigh_ixs</span><span class="p">,</span> <span class="n">psc</span><span class="o">=</span><span class="n">psc</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorSqrtpartial</span><span class="p">(</span><span class="n">hi_dim</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">)</span> <span class="o">+</span> <span class="n">psc</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">),</span> <span class="n">neigh_ixs</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="n">threads</span><span class="p">,</span> <span class="n">psc</span><span class="o">=</span><span class="n">psc</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;tranform=</span><span class="si">{transform}</span><span class="s2"> is not a valid parameter&quot;</span><span class="p">)</span>
             <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
@@ -1497,11 +1522,11 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Correlation Calculation &#39;full&#39;&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">transform</span> <span class="o">==</span> <span class="s2">&quot;log&quot;</span><span class="p">:</span>
                 <span class="n">delta_hi_dim</span> <span class="o">=</span> <span class="n">hi_dim_t</span> <span class="o">-</span> <span class="n">hi_dim</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorLog10</span><span class="p">(</span><span class="n">hi_dim</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCorLog10</span><span class="p">(</span><span class="n">hi_dim</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">delta_hi_dim</span><span class="p">),</span> <span class="n">threads</span><span class="o">=</span><span class="n">threads</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">transform</span> <span class="o">==</span> <span class="s2">&quot;logratio&quot;</span><span class="p">:</span>
                 <span class="n">log2hidim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">hi_dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">delta_hi_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">hi_dim_t</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">log2hidim</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCor</span><span class="p">(</span><span class="n">log2hidim</span><span class="p">,</span> <span class="n">delta_hi_dim</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCor</span><span class="p">(</span><span class="n">log2hidim</span><span class="p">,</span> <span class="n">delta_hi_dim</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="n">threads</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">transform</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">corrcoef</span> <span class="o">=</span> <span class="n">colDeltaCor</span><span class="p">(</span><span class="n">hi_dim</span><span class="p">,</span> <span class="n">hi_dim_t</span> <span class="o">-</span> <span class="n">hi_dim</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">transform</span> <span class="o">==</span> <span class="s2">&quot;sqrt&quot;</span><span class="p">:</span>
@@ -2126,6 +2151,25 @@
 <div class="viewcode-block" id="gaussian_kernel"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.gaussian_kernel">[docs]</a><span class="k">def</span> <span class="nf">gaussian_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mu</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Compute gaussian kernel&quot;&quot;&quot;</span></div>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="load_velocyto_hdf5"><a class="viewcode-back" href="../../fullapi/api_analysis.html#velocyto.analysis.load_velocyto_hdf5">[docs]</a><span class="k">def</span> <span class="nf">load_velocyto_hdf5</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VelocytoLoom</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Loads a Velocyto loom object from an hdf5 file</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    filename: str</span>
+<span class="sd">        The name of the serialized file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    A VelocytoLoom object</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The hdf5 file must have been created using ``VelocytoLoom.to_hdf5`` or the ``dump_hdf5`` function</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+    <span class="k">return</span> <span class="n">load_hdf5</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">obj_class</span><span class="o">=</span><span class="n">VelocytoLoom</span><span class="p">)</span>
 </pre></div>
 
            </div>
