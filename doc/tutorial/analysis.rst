@@ -35,6 +35,22 @@ For example, one of the first checks is spliced/unspliced fractions of the datas
 
 The unspliced fraction should be ~10% of all the molecules.
 
+You can save the results of your analysis in a serialized object at any time by running:
+
+.. code-block:: python
+
+    vlm.dump_hdf5("my_velocyto_analysis")
+
+In another session you can reload the vlm object by running:
+
+.. code-block:: python
+
+    load_velocyto_hdf5("my_velocyto_analysis.hdf5")
+
+This is similar to what the ``pickle`` module in python standard library is doing but here only the attribute of the ``VelocytoLoom`` object are seved and stored as a hdf5 file.
+Notice that the size on disk of the serialized file can change depending on the step of the analysis the object is saved (e.g. pre/post filtering or before/after calculating distance matrixes).
+
+
 Preliminary Filtering
 ---------------------
 At this point we can perform feature selection and normalization of the data.
