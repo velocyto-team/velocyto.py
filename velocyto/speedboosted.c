@@ -5,7 +5,8 @@
     "distutils": {
         "depends": [],
         "extra_compile_args": [
-            "-fopenmp"
+            "-fopenmp",
+            "-ffast-math"
         ],
         "extra_link_args": [
             "-fopenmp"
@@ -1245,41 +1246,8 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
     PyObject *kwds2, PyObject *values[], Py_ssize_t num_pos_args,\
     const char* function_name);
 
-/* GetModuleGlobalName.proto */
-static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name);
-
-/* PyCFunctionFastCall.proto */
-#if CYTHON_FAST_PYCCALL
-static CYTHON_INLINE PyObject *__Pyx_PyCFunction_FastCall(PyObject *func, PyObject **args, Py_ssize_t nargs);
-#else
-#define __Pyx_PyCFunction_FastCall(func, args, nargs)  (assert(0), NULL)
-#endif
-
-/* PyFunctionFastCall.proto */
-#if CYTHON_FAST_PYCALL
-#define __Pyx_PyFunction_FastCall(func, args, nargs)\
-    __Pyx_PyFunction_FastCallDict((func), (args), (nargs), NULL)
-#if 1 || PY_VERSION_HEX < 0x030600B1
-static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, int nargs, PyObject *kwargs);
-#else
-#define __Pyx_PyFunction_FastCallDict(func, args, nargs, kwargs) _PyFunction_FastCallDict(func, args, nargs, kwargs)
-#endif
-#endif
-
-/* PyObjectCall.proto */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
-#else
-#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
-#endif
-
-/* PyObjectCallMethO.proto */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg);
-#endif
-
-/* PyObjectCallOneArg.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
+/* BufferIndexError.proto */
+static void __Pyx_RaiseBufferIndexError(int axis);
 
 /* BufferFormatCheck.proto */
 static CYTHON_INLINE int  __Pyx_GetBufferAndValidate(Py_buffer* buf, PyObject* obj,
@@ -1315,6 +1283,13 @@ static CYTHON_INLINE int __pyx_sub_acquisition_count_locked(
 #define __PYX_XDEC_MEMVIEW(slice, have_gil) __Pyx_XDEC_MEMVIEW(slice, have_gil, __LINE__)
 static CYTHON_INLINE void __Pyx_INC_MEMVIEW(__Pyx_memviewslice *, int, int);
 static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *, int, int);
+
+/* PyObjectCall.proto */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
+#else
+#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
+#endif
 
 /* PyThreadStateGet.proto */
 #if CYTHON_FAST_THREAD_STATE
@@ -1452,6 +1427,24 @@ static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value,
 /* Import.proto */
 static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level);
 
+/* PyFunctionFastCall.proto */
+#if CYTHON_FAST_PYCALL
+#define __Pyx_PyFunction_FastCall(func, args, nargs)\
+    __Pyx_PyFunction_FastCallDict((func), (args), (nargs), NULL)
+#if 1 || PY_VERSION_HEX < 0x030600B1
+static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, int nargs, PyObject *kwargs);
+#else
+#define __Pyx_PyFunction_FastCallDict(func, args, nargs, kwargs) _PyFunction_FastCallDict(func, args, nargs, kwargs)
+#endif
+#endif
+
+/* PyCFunctionFastCall.proto */
+#if CYTHON_FAST_PYCCALL
+static CYTHON_INLINE PyObject *__Pyx_PyCFunction_FastCall(PyObject *func, PyObject **args, Py_ssize_t nargs);
+#else
+#define __Pyx_PyCFunction_FastCall(func, args, nargs)  (assert(0), NULL)
+#endif
+
 /* GetItemInt.proto */
 #define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
     (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
@@ -1546,6 +1539,14 @@ static void __Pyx_WriteUnraisable(const char *name, int clineno,
                                   int lineno, const char *filename,
                                   int full_traceback, int nogil);
 
+/* PyObjectCallMethO.proto */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg);
+#endif
+
+/* PyObjectCallOneArg.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
+
 /* SetVTable.proto */
 static int __Pyx_SetVtable(PyObject *dict, void *vtable);
 
@@ -1629,10 +1630,6 @@ static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_P
 
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
-
-/* MemviewDtypeToObject.proto */
-static CYTHON_INLINE PyObject *__pyx_memview_get_double(const char *itemp);
-static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *obj);
 
 /* RealImag.proto */
 #if CYTHON_CCOMPLEX
@@ -1754,12 +1751,6 @@ static CYTHON_INLINE char __Pyx_PyInt_As_char(PyObject *);
 /* CIntFromPy.proto */
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
 
-/* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(PyObject *);
-
-/* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_double(PyObject *);
-
 /* CheckBinaryVersion.proto */
 static int __Pyx_check_binary_version(void);
 
@@ -1839,6 +1830,12 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCor(double *, double *, double *, int, int, int); /*proto*/
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorSqrt(double *, double *, double *, int, int, int, double); /*proto*/
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorLog10(double *, double *, double *, int, int, int, double); /*proto*/
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorpartial(double *, double *, double *, Py_ssize_t *, int, int, int, int); /*proto*/
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorSqrtpartial(double *, double *, double *, Py_ssize_t *, int, int, int, int, double); /*proto*/
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorLog10partial(double *, double *, double *, Py_ssize_t *, int, int, int, int, double); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -1887,23 +1884,16 @@ static PyObject *__pyx_builtin_Ellipsis;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
-static const char __pyx_k_C[] = "C";
 static const char __pyx_k_O[] = "O";
 static const char __pyx_k_c[] = "c";
 static const char __pyx_k_d[] = "d";
 static const char __pyx_k_e[] = "e";
-static const char __pyx_k_i[] = "i";
-static const char __pyx_k_j[] = "j";
-static const char __pyx_k_n[] = "n";
-static const char __pyx_k_t[] = "t";
 static const char __pyx_k_id[] = "id";
 static const char __pyx_k_np[] = "np";
 static const char __pyx_k_rm[] = "rm";
 static const char __pyx_k_ixs[] = "ixs";
 static const char __pyx_k_obj[] = "obj";
 static const char __pyx_k_psc[] = "psc";
-static const char __pyx_k_t_A[] = "t_A";
-static const char __pyx_k_t_b[] = "t_b";
 static const char __pyx_k_base[] = "base";
 static const char __pyx_k_cols[] = "cols";
 static const char __pyx_k_main[] = "__main__";
@@ -1917,30 +1907,19 @@ static const char __pyx_k_step[] = "step";
 static const char __pyx_k_stop[] = "stop";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_ASCII[] = "ASCII";
-static const char __pyx_k_array[] = "array";
 static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
 static const char __pyx_k_nrndm[] = "nrndm";
 static const char __pyx_k_numpy[] = "numpy";
-static const char __pyx_k_order[] = "order";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_start[] = "start";
-static const char __pyx_k_t_muA[] = "t_muA";
-static const char __pyx_k_t_mub[] = "t_mub";
-static const char __pyx_k_t_out[] = "t_out";
-static const char __pyx_k_t_ssA[] = "t_ssA";
-static const char __pyx_k_t_ssb[] = "t_ssb";
-static const char __pyx_k_t_tmp[] = "t_tmp";
-static const char __pyx_k_zeros[] = "zeros";
 static const char __pyx_k_encode[] = "encode";
 static const char __pyx_k_format[] = "format";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_name_2[] = "__name__";
 static const char __pyx_k_struct[] = "struct";
-static const char __pyx_k_t_A_mA[] = "t_A_mA";
-static const char __pyx_k_t_b_mb[] = "t_b_mb";
 static const char __pyx_k_unpack[] = "unpack";
 static const char __pyx_k_fortran[] = "fortran";
 static const char __pyx_k_memview[] = "memview";
@@ -1948,7 +1927,6 @@ static const char __pyx_k_Ellipsis[] = "Ellipsis";
 static const char __pyx_k_itemsize[] = "itemsize";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_enumerate[] = "enumerate";
-static const char __pyx_k_thread_id[] = "thread_id";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
@@ -1997,7 +1975,6 @@ static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to alloca
 static const char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
 static PyObject *__pyx_n_s_ASCII;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
-static PyObject *__pyx_n_s_C;
 static PyObject *__pyx_kp_s_Can_only_create_a_buffer_that_is;
 static PyObject *__pyx_kp_s_Cannot_index_with_type_s;
 static PyObject *__pyx_n_s_Ellipsis;
@@ -2020,7 +1997,6 @@ static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_allocate_buffer;
-static PyObject *__pyx_n_s_array;
 static PyObject *__pyx_n_s_base;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
@@ -2046,17 +2022,14 @@ static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_kp_s_home_gioele_Github_velocyto_py;
-static PyObject *__pyx_n_s_i;
 static PyObject *__pyx_n_s_id;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
 static PyObject *__pyx_n_s_ixs;
-static PyObject *__pyx_n_s_j;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_memview;
 static PyObject *__pyx_n_s_mode;
-static PyObject *__pyx_n_s_n;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_name_2;
 static PyObject *__pyx_kp_u_ndarray_is_not_C_contiguous;
@@ -2069,7 +2042,6 @@ static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_kp_s_numpy_core_multiarray_failed_to;
 static PyObject *__pyx_kp_s_numpy_core_umath_failed_to_impor;
 static PyObject *__pyx_n_s_obj;
-static PyObject *__pyx_n_s_order;
 static PyObject *__pyx_n_s_pack;
 static PyObject *__pyx_n_s_psc;
 static PyObject *__pyx_n_s_pyx_getbuffer;
@@ -2086,31 +2058,18 @@ static PyObject *__pyx_kp_s_strided_and_direct;
 static PyObject *__pyx_kp_s_strided_and_direct_or_indirect;
 static PyObject *__pyx_kp_s_strided_and_indirect;
 static PyObject *__pyx_n_s_struct;
-static PyObject *__pyx_n_s_t;
-static PyObject *__pyx_n_s_t_A;
-static PyObject *__pyx_n_s_t_A_mA;
-static PyObject *__pyx_n_s_t_b;
-static PyObject *__pyx_n_s_t_b_mb;
-static PyObject *__pyx_n_s_t_muA;
-static PyObject *__pyx_n_s_t_mub;
-static PyObject *__pyx_n_s_t_out;
-static PyObject *__pyx_n_s_t_ssA;
-static PyObject *__pyx_n_s_t_ssb;
-static PyObject *__pyx_n_s_t_tmp;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_n_s_thread_id;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_velocyto_speedboosted;
-static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_pf_8velocyto_12speedboosted__colDeltaCor(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads); /* proto */
-static PyObject *__pyx_pf_8velocyto_12speedboosted_2_colDeltaCorLog10(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads, double __pyx_v_psc); /* proto */
-static PyObject *__pyx_pf_8velocyto_12speedboosted_4_colDeltaCorSqrt(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads, CYTHON_UNUSED double __pyx_v_psc); /* proto */
-static PyObject *__pyx_pf_8velocyto_12speedboosted_6_colDeltaCorpartial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads); /* proto */
-static PyObject *__pyx_pf_8velocyto_12speedboosted_8_colDeltaCorLog10partial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, double __pyx_v_psc); /* proto */
-static PyObject *__pyx_pf_8velocyto_12speedboosted_10_colDeltaCorSqrtpartial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, double __pyx_v_psc); /* proto */
+static PyObject *__pyx_pf_8velocyto_12speedboosted_2_colDeltaCorSqrt(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads, double __pyx_v_psc); /* proto */
+static PyObject *__pyx_pf_8velocyto_12speedboosted_4_colDeltaCorLog10(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads, double __pyx_v_psc); /* proto */
+static PyObject *__pyx_pf_8velocyto_12speedboosted_6_colDeltaCorpartial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, CYTHON_UNUSED double __pyx_v_psc); /* proto */
+static PyObject *__pyx_pf_8velocyto_12speedboosted_8_colDeltaCorSqrtpartial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, double __pyx_v_psc); /* proto */
+static PyObject *__pyx_pf_8velocyto_12speedboosted_10_colDeltaCorLog10partial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, double __pyx_v_psc); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -2192,9 +2151,3903 @@ static PyObject *__pyx_codeobj__30;
 static PyObject *__pyx_codeobj__32;
 static PyObject *__pyx_codeobj__34;
 
-/* "velocyto/speedboosted.pyx":10
+/* "velocyto/speedboosted.pyx":13
  * @cython.wraparound(False)
  * @cython.cdivision(True)
+ * cdef void x_colDeltaCor(double *e,             # <<<<<<<<<<<<<<
+ *                        double *d,
+ *                        double *rm,
+ */
+
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCor(double *__pyx_v_e, double *__pyx_v_d, double *__pyx_v_rm, int __pyx_v_rows, int __pyx_v_cols, CYTHON_UNUSED int __pyx_v_num_threads) {
+  int __pyx_v_i;
+  int __pyx_v_j;
+  int __pyx_v_c;
+  double *__pyx_v_A;
+  double *__pyx_v_tmp;
+  double *__pyx_v_muA;
+  double *__pyx_v_A_mA;
+  double *__pyx_v_mub;
+  double *__pyx_v_b_mb;
+  double *__pyx_v_ssA;
+  double *__pyx_v_ssb;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  long __pyx_t_9;
+  __Pyx_RefNannySetupContext("x_colDeltaCor", 0);
+
+  /* "velocyto/speedboosted.pyx":22
+ *         int i, j, c
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ */
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      Py_UNBLOCK_THREADS
+      #endif
+      /*try:*/ {
+
+        /* "velocyto/speedboosted.pyx":23
+ * 
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):             # <<<<<<<<<<<<<<
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ *             tmp = <double *>malloc(1 * sizeof(double))
+ */
+        __pyx_t_1 = __pyx_v_cols;
+        if (1 == 0) abort();
+        {
+            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+                #undef likely
+                #undef unlikely
+                #define likely(x)   (x)
+                #define unlikely(x) (x)
+            #endif
+            __pyx_t_3 = (__pyx_t_1 - 0 + 1 - 1/abs(1)) / 1;
+            if (__pyx_t_3 > 0)
+            {
+                #ifdef _OPENMP
+                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7, __pyx_t_8, __pyx_t_9)
+                #endif /* _OPENMP */
+                {
+                    #ifdef _OPENMP
+                    #pragma omp for lastprivate(__pyx_v_A) lastprivate(__pyx_v_A_mA) lastprivate(__pyx_v_b_mb) firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_muA) lastprivate(__pyx_v_mub) lastprivate(__pyx_v_ssA) lastprivate(__pyx_v_ssb) lastprivate(__pyx_v_tmp) schedule(guided)
+                    #endif /* _OPENMP */
+                    for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
+                        {
+                            __pyx_v_c = (int)(0 + 1 * __pyx_t_2);
+                            /* Initialize private variables to invalid values */
+                            __pyx_v_A = ((double *)1);
+                            __pyx_v_A_mA = ((double *)1);
+                            __pyx_v_b_mb = ((double *)1);
+                            __pyx_v_i = ((int)0xbad0bad0);
+                            __pyx_v_j = ((int)0xbad0bad0);
+                            __pyx_v_muA = ((double *)1);
+                            __pyx_v_mub = ((double *)1);
+                            __pyx_v_ssA = ((double *)1);
+                            __pyx_v_ssb = ((double *)1);
+                            __pyx_v_tmp = ((double *)1);
+
+                            /* "velocyto/speedboosted.pyx":24
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             tmp = <double *>malloc(1 * sizeof(double))
+ *             # subtract the cth column
+ */
+                            __pyx_v_A = ((double *)malloc(((__pyx_v_rows * __pyx_v_cols) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":25
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ *             tmp = <double *>malloc(1 * sizeof(double))             # <<<<<<<<<<<<<<
+ *             # subtract the cth column
+ *             for j in range(rows):
+ */
+                            __pyx_v_tmp = ((double *)malloc((1 * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":27
+ *             tmp = <double *>malloc(1 * sizeof(double))
+ *             # subtract the cth column
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     A[j*cols + i] = e[j*cols + i] - e[j*cols + c]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":28
+ *             # subtract the cth column
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     A[j*cols + i] = e[j*cols + i] - e[j*cols + c]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":29
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     A[j*cols + i] = e[j*cols + i] - e[j*cols + c]             # <<<<<<<<<<<<<<
+ * 
+ *             #muA = A.mean(0)
+ */
+                                (__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) = ((__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) - (__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":32
+ * 
+ *             #muA = A.mean(0)
+ *             muA = <double *>malloc(cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(muA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_muA = ((double *)malloc((__pyx_v_cols * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":33
+ *             #muA = A.mean(0)
+ *             muA = <double *>malloc(cols * sizeof(double))
+ *             memset(muA, 0, cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ */
+                            memset(__pyx_v_muA, 0, (__pyx_v_cols * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":34
+ *             muA = <double *>malloc(cols * sizeof(double))
+ *             memset(muA, 0, cols * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     muA[i] += A[j*cols + i]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":35
+ *             memset(muA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     muA[i] += A[j*cols + i]
+ *             for i in range(cols):
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":36
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     muA[i] += A[j*cols + i]             # <<<<<<<<<<<<<<
+ *             for i in range(cols):
+ *                 muA[i] = muA[i] / rows
+ */
+                                __pyx_t_8 = __pyx_v_i;
+                                (__pyx_v_muA[__pyx_t_8]) = ((__pyx_v_muA[__pyx_t_8]) + (__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":37
+ *                 for i in range(cols):
+ *                     muA[i] += A[j*cols + i]
+ *             for i in range(cols):             # <<<<<<<<<<<<<<
+ *                 muA[i] = muA[i] / rows
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_cols;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_i = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":38
+ *                     muA[i] += A[j*cols + i]
+ *             for i in range(cols):
+ *                 muA[i] = muA[i] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # A_mA = A - muA
+ */
+                              (__pyx_v_muA[__pyx_v_i]) = ((__pyx_v_muA[__pyx_v_i]) / __pyx_v_rows);
+                            }
+
+                            /* "velocyto/speedboosted.pyx":41
+ * 
+ *             # A_mA = A - muA
+ *             A_mA = <double *>malloc(rows * cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ */
+                            __pyx_v_A_mA = ((double *)malloc(((__pyx_v_rows * __pyx_v_cols) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":42
+ *             # A_mA = A - muA
+ *             A_mA = <double *>malloc(rows * cols * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     A_mA[j*cols + i] = A[j*cols + i] - muA[i]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":43
+ *             A_mA = <double *>malloc(rows * cols * sizeof(double))
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     A_mA[j*cols + i] = A[j*cols + i] - muA[i]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":44
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     A_mA[j*cols + i] = A[j*cols + i] - muA[i]             # <<<<<<<<<<<<<<
+ * 
+ *             # mub = b.mean()
+ */
+                                (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) = ((__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) - (__pyx_v_muA[__pyx_v_i]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":47
+ * 
+ *             # mub = b.mean()
+ *             mub = <double *>malloc(1 * sizeof(double))             # <<<<<<<<<<<<<<
+ *             mub[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_mub = ((double *)malloc((1 * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":48
+ *             # mub = b.mean()
+ *             mub = <double *>malloc(1 * sizeof(double))
+ *             mub[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ */
+                            (__pyx_v_mub[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":49
+ *             mub = <double *>malloc(1 * sizeof(double))
+ *             mub[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":50
+ *             mub[0] = 0
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]             # <<<<<<<<<<<<<<
+ *             mub[0] = mub[0] / rows
+ * 
+ */
+                              __pyx_t_9 = 0;
+                              (__pyx_v_mub[__pyx_t_9]) = ((__pyx_v_mub[__pyx_t_9]) + (__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":51
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # b_mb = b - mub
+ */
+                            (__pyx_v_mub[0]) = ((__pyx_v_mub[0]) / __pyx_v_rows);
+
+                            /* "velocyto/speedboosted.pyx":54
+ * 
+ *             # b_mb = b - mub
+ *             b_mb = <double *>malloc(rows * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ */
+                            __pyx_v_b_mb = ((double *)malloc((__pyx_v_rows * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":55
+ *             # b_mb = b - mub
+ *             b_mb = <double *>malloc(rows * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":56
+ *             b_mb = <double *>malloc(rows * sizeof(double))
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]             # <<<<<<<<<<<<<<
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ */
+                              (__pyx_v_b_mb[__pyx_v_j]) = ((__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]) - (__pyx_v_mub[0]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":59
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double *>malloc(cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(ssA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssA = ((double *)malloc((__pyx_v_cols * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":60
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double *>malloc(cols * sizeof(double))
+ *             memset(ssA, 0, cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ */
+                            memset(__pyx_v_ssA, 0, (__pyx_v_cols * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":61
+ *             ssA = <double *>malloc(cols * sizeof(double))
+ *             memset(ssA, 0, cols * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":62
+ *             memset(ssA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ *             for i in range(cols):
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":63
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]             # <<<<<<<<<<<<<<
+ *             for i in range(cols):
+ *                 ssA[i] = 1. / sqrt(ssA[i])
+ */
+                                __pyx_t_8 = __pyx_v_i;
+                                (__pyx_v_ssA[__pyx_t_8]) = ((__pyx_v_ssA[__pyx_t_8]) + ((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) * (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":64
+ *                 for i in range(cols):
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ *             for i in range(cols):             # <<<<<<<<<<<<<<
+ *                 ssA[i] = 1. / sqrt(ssA[i])
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_cols;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_i = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":65
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ *             for i in range(cols):
+ *                 ssA[i] = 1. / sqrt(ssA[i])             # <<<<<<<<<<<<<<
+ * 
+ *             # ssb = (b_mb**2).sum()
+ */
+                              (__pyx_v_ssA[__pyx_v_i]) = (1. / sqrt((__pyx_v_ssA[__pyx_v_i])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":68
+ * 
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double *>malloc(1 * sizeof(double))             # <<<<<<<<<<<<<<
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssb = ((double *)malloc((1 * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":69
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double *>malloc(1 * sizeof(double))
+ *             ssb[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ */
+                            (__pyx_v_ssb[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":70
+ *             ssb = <double *>malloc(1 * sizeof(double))
+ *             ssb[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ *             ssb[0] = 1. / sqrt(ssb[0])
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":71
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2             # <<<<<<<<<<<<<<
+ *             ssb[0] = 1. / sqrt(ssb[0])
+ * 
+ */
+                              __pyx_t_9 = 0;
+                              (__pyx_v_ssb[__pyx_t_9]) = ((__pyx_v_ssb[__pyx_t_9]) + ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_b_mb[__pyx_v_j])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":72
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ *             ssb[0] = 1. / sqrt(ssb[0])             # <<<<<<<<<<<<<<
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ */
+                            (__pyx_v_ssb[0]) = (1. / sqrt((__pyx_v_ssb[0])));
+
+                            /* "velocyto/speedboosted.pyx":75
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for i in range(cols):
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":76
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+ */
+                              (__pyx_v_tmp[0]) = ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_ssb[0]));
+
+                              /* "velocyto/speedboosted.pyx":77
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":78
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for i in range(cols):
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]             # <<<<<<<<<<<<<<
+ * 
+ *             free(A)
+ */
+                                __pyx_t_8 = ((__pyx_v_c * __pyx_v_cols) + __pyx_v_i);
+                                (__pyx_v_rm[__pyx_t_8]) = ((__pyx_v_rm[__pyx_t_8]) + (((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) * (__pyx_v_ssA[__pyx_v_i])) * (__pyx_v_tmp[0])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":80
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+ * 
+ *             free(A)             # <<<<<<<<<<<<<<
+ *             free(tmp)
+ *             free(muA)
+ */
+                            free(__pyx_v_A);
+
+                            /* "velocyto/speedboosted.pyx":81
+ * 
+ *             free(A)
+ *             free(tmp)             # <<<<<<<<<<<<<<
+ *             free(muA)
+ *             free(A_mA)
+ */
+                            free(__pyx_v_tmp);
+
+                            /* "velocyto/speedboosted.pyx":82
+ *             free(A)
+ *             free(tmp)
+ *             free(muA)             # <<<<<<<<<<<<<<
+ *             free(A_mA)
+ *             free(mub)
+ */
+                            free(__pyx_v_muA);
+
+                            /* "velocyto/speedboosted.pyx":83
+ *             free(tmp)
+ *             free(muA)
+ *             free(A_mA)             # <<<<<<<<<<<<<<
+ *             free(mub)
+ *             free(b_mb)
+ */
+                            free(__pyx_v_A_mA);
+
+                            /* "velocyto/speedboosted.pyx":84
+ *             free(muA)
+ *             free(A_mA)
+ *             free(mub)             # <<<<<<<<<<<<<<
+ *             free(b_mb)
+ *             free(ssA)
+ */
+                            free(__pyx_v_mub);
+
+                            /* "velocyto/speedboosted.pyx":85
+ *             free(A_mA)
+ *             free(mub)
+ *             free(b_mb)             # <<<<<<<<<<<<<<
+ *             free(ssA)
+ *             free(ssb)
+ */
+                            free(__pyx_v_b_mb);
+
+                            /* "velocyto/speedboosted.pyx":86
+ *             free(mub)
+ *             free(b_mb)
+ *             free(ssA)             # <<<<<<<<<<<<<<
+ *             free(ssb)
+ * 
+ */
+                            free(__pyx_v_ssA);
+
+                            /* "velocyto/speedboosted.pyx":87
+ *             free(b_mb)
+ *             free(ssA)
+ *             free(ssb)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+                            free(__pyx_v_ssb);
+                        }
+                    }
+                }
+            }
+        }
+        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+            #undef likely
+            #undef unlikely
+            #define likely(x)   __builtin_expect(!!(x), 1)
+            #define unlikely(x) __builtin_expect(!!(x), 0)
+        #endif
+      }
+
+      /* "velocyto/speedboosted.pyx":22
+ *         int i, j, c
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ */
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          Py_BLOCK_THREADS
+          #endif
+          goto __pyx_L5;
+        }
+        __pyx_L5:;
+      }
+  }
+
+  /* "velocyto/speedboosted.pyx":13
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCor(double *e,             # <<<<<<<<<<<<<<
+ *                        double *d,
+ *                        double *rm,
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "velocyto/speedboosted.pyx":93
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorSqrt(double *e,             # <<<<<<<<<<<<<<
+ *                             double *d,
+ *                             double *rm,
+ */
+
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorSqrt(double *__pyx_v_e, double *__pyx_v_d, double *__pyx_v_rm, int __pyx_v_rows, int __pyx_v_cols, CYTHON_UNUSED int __pyx_v_num_threads, double __pyx_v_psc) {
+  int __pyx_v_i;
+  int __pyx_v_j;
+  int __pyx_v_c;
+  double *__pyx_v_A;
+  double *__pyx_v_tmp;
+  double *__pyx_v_muA;
+  double *__pyx_v_A_mA;
+  double *__pyx_v_mub;
+  double *__pyx_v_b_mb;
+  double *__pyx_v_ssA;
+  double *__pyx_v_ssb;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  int __pyx_t_9;
+  long __pyx_t_10;
+  __Pyx_RefNannySetupContext("x_colDeltaCorSqrt", 0);
+
+  /* "velocyto/speedboosted.pyx":103
+ *         int i, j, c
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ */
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      Py_UNBLOCK_THREADS
+      #endif
+      /*try:*/ {
+
+        /* "velocyto/speedboosted.pyx":104
+ * 
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):             # <<<<<<<<<<<<<<
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ *             tmp = <double *>malloc(1 * sizeof(double))
+ */
+        __pyx_t_1 = __pyx_v_cols;
+        if (1 == 0) abort();
+        {
+            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+                #undef likely
+                #undef unlikely
+                #define likely(x)   (x)
+                #define unlikely(x) (x)
+            #endif
+            __pyx_t_3 = (__pyx_t_1 - 0 + 1 - 1/abs(1)) / 1;
+            if (__pyx_t_3 > 0)
+            {
+                #ifdef _OPENMP
+                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_10, __pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7, __pyx_t_8, __pyx_t_9)
+                #endif /* _OPENMP */
+                {
+                    #ifdef _OPENMP
+                    #pragma omp for lastprivate(__pyx_v_A) lastprivate(__pyx_v_A_mA) lastprivate(__pyx_v_b_mb) firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_muA) lastprivate(__pyx_v_mub) lastprivate(__pyx_v_ssA) lastprivate(__pyx_v_ssb) lastprivate(__pyx_v_tmp) schedule(guided)
+                    #endif /* _OPENMP */
+                    for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
+                        {
+                            __pyx_v_c = (int)(0 + 1 * __pyx_t_2);
+                            /* Initialize private variables to invalid values */
+                            __pyx_v_A = ((double *)1);
+                            __pyx_v_A_mA = ((double *)1);
+                            __pyx_v_b_mb = ((double *)1);
+                            __pyx_v_i = ((int)0xbad0bad0);
+                            __pyx_v_j = ((int)0xbad0bad0);
+                            __pyx_v_muA = ((double *)1);
+                            __pyx_v_mub = ((double *)1);
+                            __pyx_v_ssA = ((double *)1);
+                            __pyx_v_ssb = ((double *)1);
+                            __pyx_v_tmp = ((double *)1);
+
+                            /* "velocyto/speedboosted.pyx":105
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             tmp = <double *>malloc(1 * sizeof(double))
+ *             # subtract the cth column
+ */
+                            __pyx_v_A = ((double *)malloc(((__pyx_v_rows * __pyx_v_cols) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":106
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ *             tmp = <double *>malloc(1 * sizeof(double))             # <<<<<<<<<<<<<<
+ *             # subtract the cth column
+ *             for j in range(rows):
+ */
+                            __pyx_v_tmp = ((double *)malloc((1 * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":108
+ *             tmp = <double *>malloc(1 * sizeof(double))
+ *             # subtract the cth column
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":109
+ *             # subtract the cth column
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] > 0:
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":110
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]             # <<<<<<<<<<<<<<
+ *                     if tmp[0] > 0:
+ *                         A[j*cols + i] = sqrt(tmp[0] + psc)
+ */
+                                (__pyx_v_tmp[0]) = ((__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) - (__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+
+                                /* "velocyto/speedboosted.pyx":111
+ *                 for i in range(cols):
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] > 0:             # <<<<<<<<<<<<<<
+ *                         A[j*cols + i] = sqrt(tmp[0] + psc)
+ *                     else:
+ */
+                                __pyx_t_8 = (((__pyx_v_tmp[0]) > 0.0) != 0);
+                                if (__pyx_t_8) {
+
+                                  /* "velocyto/speedboosted.pyx":112
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] > 0:
+ *                         A[j*cols + i] = sqrt(tmp[0] + psc)             # <<<<<<<<<<<<<<
+ *                     else:
+ *                         A[j*cols + i] = -sqrt(-tmp[0] + psc)
+ */
+                                  (__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) = sqrt(((__pyx_v_tmp[0]) + __pyx_v_psc));
+
+                                  /* "velocyto/speedboosted.pyx":111
+ *                 for i in range(cols):
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] > 0:             # <<<<<<<<<<<<<<
+ *                         A[j*cols + i] = sqrt(tmp[0] + psc)
+ *                     else:
+ */
+                                  goto __pyx_L14;
+                                }
+
+                                /* "velocyto/speedboosted.pyx":114
+ *                         A[j*cols + i] = sqrt(tmp[0] + psc)
+ *                     else:
+ *                         A[j*cols + i] = -sqrt(-tmp[0] + psc)             # <<<<<<<<<<<<<<
+ * 
+ *             #muA = A.mean(0)
+ */
+                                /*else*/ {
+                                  (__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) = (-sqrt(((-(__pyx_v_tmp[0])) + __pyx_v_psc)));
+                                }
+                                __pyx_L14:;
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":117
+ * 
+ *             #muA = A.mean(0)
+ *             muA = <double *>malloc(cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(muA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_muA = ((double *)malloc((__pyx_v_cols * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":118
+ *             #muA = A.mean(0)
+ *             muA = <double *>malloc(cols * sizeof(double))
+ *             memset(muA, 0, cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ */
+                            memset(__pyx_v_muA, 0, (__pyx_v_cols * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":119
+ *             muA = <double *>malloc(cols * sizeof(double))
+ *             memset(muA, 0, cols * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     muA[i] += A[j*cols + i]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":120
+ *             memset(muA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     muA[i] += A[j*cols + i]
+ *             for i in range(cols):
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":121
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     muA[i] += A[j*cols + i]             # <<<<<<<<<<<<<<
+ *             for i in range(cols):
+ *                 muA[i] = muA[i] / rows
+ */
+                                __pyx_t_9 = __pyx_v_i;
+                                (__pyx_v_muA[__pyx_t_9]) = ((__pyx_v_muA[__pyx_t_9]) + (__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":122
+ *                 for i in range(cols):
+ *                     muA[i] += A[j*cols + i]
+ *             for i in range(cols):             # <<<<<<<<<<<<<<
+ *                 muA[i] = muA[i] / rows
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_cols;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_i = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":123
+ *                     muA[i] += A[j*cols + i]
+ *             for i in range(cols):
+ *                 muA[i] = muA[i] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # A_mA = A - muA
+ */
+                              (__pyx_v_muA[__pyx_v_i]) = ((__pyx_v_muA[__pyx_v_i]) / __pyx_v_rows);
+                            }
+
+                            /* "velocyto/speedboosted.pyx":126
+ * 
+ *             # A_mA = A - muA
+ *             A_mA = <double *>malloc(rows * cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ */
+                            __pyx_v_A_mA = ((double *)malloc(((__pyx_v_rows * __pyx_v_cols) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":127
+ *             # A_mA = A - muA
+ *             A_mA = <double *>malloc(rows * cols * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     A_mA[j*cols + i] = A[j*cols + i] - muA[i]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":128
+ *             A_mA = <double *>malloc(rows * cols * sizeof(double))
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     A_mA[j*cols + i] = A[j*cols + i] - muA[i]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":129
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     A_mA[j*cols + i] = A[j*cols + i] - muA[i]             # <<<<<<<<<<<<<<
+ * 
+ *             # mub = b.mean()
+ */
+                                (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) = ((__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) - (__pyx_v_muA[__pyx_v_i]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":132
+ * 
+ *             # mub = b.mean()
+ *             mub = <double *>malloc(1 * sizeof(double))             # <<<<<<<<<<<<<<
+ *             mub[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_mub = ((double *)malloc((1 * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":133
+ *             # mub = b.mean()
+ *             mub = <double *>malloc(1 * sizeof(double))
+ *             mub[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ */
+                            (__pyx_v_mub[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":134
+ *             mub = <double *>malloc(1 * sizeof(double))
+ *             mub[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":135
+ *             mub[0] = 0
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]             # <<<<<<<<<<<<<<
+ *             mub[0] = mub[0] / rows
+ * 
+ */
+                              __pyx_t_10 = 0;
+                              (__pyx_v_mub[__pyx_t_10]) = ((__pyx_v_mub[__pyx_t_10]) + (__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":136
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # b_mb = b - mub
+ */
+                            (__pyx_v_mub[0]) = ((__pyx_v_mub[0]) / __pyx_v_rows);
+
+                            /* "velocyto/speedboosted.pyx":139
+ * 
+ *             # b_mb = b - mub
+ *             b_mb = <double *>malloc(rows * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ */
+                            __pyx_v_b_mb = ((double *)malloc((__pyx_v_rows * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":140
+ *             # b_mb = b - mub
+ *             b_mb = <double *>malloc(rows * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":141
+ *             b_mb = <double *>malloc(rows * sizeof(double))
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]             # <<<<<<<<<<<<<<
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ */
+                              (__pyx_v_b_mb[__pyx_v_j]) = ((__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]) - (__pyx_v_mub[0]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":144
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double *>malloc(cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(ssA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssA = ((double *)malloc((__pyx_v_cols * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":145
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double *>malloc(cols * sizeof(double))
+ *             memset(ssA, 0, cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ */
+                            memset(__pyx_v_ssA, 0, (__pyx_v_cols * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":146
+ *             ssA = <double *>malloc(cols * sizeof(double))
+ *             memset(ssA, 0, cols * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":147
+ *             memset(ssA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ *             for i in range(cols):
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":148
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]             # <<<<<<<<<<<<<<
+ *             for i in range(cols):
+ *                 ssA[i] = 1. / sqrt(ssA[i])
+ */
+                                __pyx_t_9 = __pyx_v_i;
+                                (__pyx_v_ssA[__pyx_t_9]) = ((__pyx_v_ssA[__pyx_t_9]) + ((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) * (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":149
+ *                 for i in range(cols):
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ *             for i in range(cols):             # <<<<<<<<<<<<<<
+ *                 ssA[i] = 1. / sqrt(ssA[i])
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_cols;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_i = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":150
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ *             for i in range(cols):
+ *                 ssA[i] = 1. / sqrt(ssA[i])             # <<<<<<<<<<<<<<
+ * 
+ *             # ssb = (b_mb**2).sum()
+ */
+                              (__pyx_v_ssA[__pyx_v_i]) = (1. / sqrt((__pyx_v_ssA[__pyx_v_i])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":153
+ * 
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double *>malloc(1 * sizeof(double))             # <<<<<<<<<<<<<<
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssb = ((double *)malloc((1 * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":154
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double *>malloc(1 * sizeof(double))
+ *             ssb[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ */
+                            (__pyx_v_ssb[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":155
+ *             ssb = <double *>malloc(1 * sizeof(double))
+ *             ssb[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ *             ssb[0] = 1. / sqrt(ssb[0])
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":156
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2             # <<<<<<<<<<<<<<
+ *             ssb[0] = 1. / sqrt(ssb[0])
+ * 
+ */
+                              __pyx_t_10 = 0;
+                              (__pyx_v_ssb[__pyx_t_10]) = ((__pyx_v_ssb[__pyx_t_10]) + ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_b_mb[__pyx_v_j])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":157
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ *             ssb[0] = 1. / sqrt(ssb[0])             # <<<<<<<<<<<<<<
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ */
+                            (__pyx_v_ssb[0]) = (1. / sqrt((__pyx_v_ssb[0])));
+
+                            /* "velocyto/speedboosted.pyx":160
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for i in range(cols):
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":161
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+ */
+                              (__pyx_v_tmp[0]) = ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_ssb[0]));
+
+                              /* "velocyto/speedboosted.pyx":162
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":163
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for i in range(cols):
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]             # <<<<<<<<<<<<<<
+ * 
+ *             free(A)
+ */
+                                __pyx_t_9 = ((__pyx_v_c * __pyx_v_cols) + __pyx_v_i);
+                                (__pyx_v_rm[__pyx_t_9]) = ((__pyx_v_rm[__pyx_t_9]) + (((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) * (__pyx_v_ssA[__pyx_v_i])) * (__pyx_v_tmp[0])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":165
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+ * 
+ *             free(A)             # <<<<<<<<<<<<<<
+ *             free(tmp)
+ *             free(muA)
+ */
+                            free(__pyx_v_A);
+
+                            /* "velocyto/speedboosted.pyx":166
+ * 
+ *             free(A)
+ *             free(tmp)             # <<<<<<<<<<<<<<
+ *             free(muA)
+ *             free(A_mA)
+ */
+                            free(__pyx_v_tmp);
+
+                            /* "velocyto/speedboosted.pyx":167
+ *             free(A)
+ *             free(tmp)
+ *             free(muA)             # <<<<<<<<<<<<<<
+ *             free(A_mA)
+ *             free(mub)
+ */
+                            free(__pyx_v_muA);
+
+                            /* "velocyto/speedboosted.pyx":168
+ *             free(tmp)
+ *             free(muA)
+ *             free(A_mA)             # <<<<<<<<<<<<<<
+ *             free(mub)
+ *             free(b_mb)
+ */
+                            free(__pyx_v_A_mA);
+
+                            /* "velocyto/speedboosted.pyx":169
+ *             free(muA)
+ *             free(A_mA)
+ *             free(mub)             # <<<<<<<<<<<<<<
+ *             free(b_mb)
+ *             free(ssA)
+ */
+                            free(__pyx_v_mub);
+
+                            /* "velocyto/speedboosted.pyx":170
+ *             free(A_mA)
+ *             free(mub)
+ *             free(b_mb)             # <<<<<<<<<<<<<<
+ *             free(ssA)
+ *             free(ssb)
+ */
+                            free(__pyx_v_b_mb);
+
+                            /* "velocyto/speedboosted.pyx":171
+ *             free(mub)
+ *             free(b_mb)
+ *             free(ssA)             # <<<<<<<<<<<<<<
+ *             free(ssb)
+ * 
+ */
+                            free(__pyx_v_ssA);
+
+                            /* "velocyto/speedboosted.pyx":172
+ *             free(b_mb)
+ *             free(ssA)
+ *             free(ssb)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+                            free(__pyx_v_ssb);
+                        }
+                    }
+                }
+            }
+        }
+        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+            #undef likely
+            #undef unlikely
+            #define likely(x)   __builtin_expect(!!(x), 1)
+            #define unlikely(x) __builtin_expect(!!(x), 0)
+        #endif
+      }
+
+      /* "velocyto/speedboosted.pyx":103
+ *         int i, j, c
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ */
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          Py_BLOCK_THREADS
+          #endif
+          goto __pyx_L5;
+        }
+        __pyx_L5:;
+      }
+  }
+
+  /* "velocyto/speedboosted.pyx":93
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorSqrt(double *e,             # <<<<<<<<<<<<<<
+ *                             double *d,
+ *                             double *rm,
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "velocyto/speedboosted.pyx":178
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorLog10(double *e,             # <<<<<<<<<<<<<<
+ *                       double *d,
+ *                       double *rm,
+ */
+
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorLog10(double *__pyx_v_e, double *__pyx_v_d, double *__pyx_v_rm, int __pyx_v_rows, int __pyx_v_cols, CYTHON_UNUSED int __pyx_v_num_threads, double __pyx_v_psc) {
+  int __pyx_v_i;
+  int __pyx_v_j;
+  int __pyx_v_c;
+  double *__pyx_v_A;
+  double *__pyx_v_tmp;
+  double *__pyx_v_muA;
+  double *__pyx_v_A_mA;
+  double *__pyx_v_mub;
+  double *__pyx_v_b_mb;
+  double *__pyx_v_ssA;
+  double *__pyx_v_ssb;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  int __pyx_t_9;
+  long __pyx_t_10;
+  __Pyx_RefNannySetupContext("x_colDeltaCorLog10", 0);
+
+  /* "velocyto/speedboosted.pyx":188
+ *         int i, j, c
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ */
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      Py_UNBLOCK_THREADS
+      #endif
+      /*try:*/ {
+
+        /* "velocyto/speedboosted.pyx":189
+ * 
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):             # <<<<<<<<<<<<<<
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ *             tmp = <double *>malloc(1 * sizeof(double))
+ */
+        __pyx_t_1 = __pyx_v_cols;
+        if (1 == 0) abort();
+        {
+            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+                #undef likely
+                #undef unlikely
+                #define likely(x)   (x)
+                #define unlikely(x) (x)
+            #endif
+            __pyx_t_3 = (__pyx_t_1 - 0 + 1 - 1/abs(1)) / 1;
+            if (__pyx_t_3 > 0)
+            {
+                #ifdef _OPENMP
+                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_10, __pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7, __pyx_t_8, __pyx_t_9)
+                #endif /* _OPENMP */
+                {
+                    #ifdef _OPENMP
+                    #pragma omp for lastprivate(__pyx_v_A) lastprivate(__pyx_v_A_mA) lastprivate(__pyx_v_b_mb) firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_muA) lastprivate(__pyx_v_mub) lastprivate(__pyx_v_ssA) lastprivate(__pyx_v_ssb) lastprivate(__pyx_v_tmp) schedule(guided)
+                    #endif /* _OPENMP */
+                    for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
+                        {
+                            __pyx_v_c = (int)(0 + 1 * __pyx_t_2);
+                            /* Initialize private variables to invalid values */
+                            __pyx_v_A = ((double *)1);
+                            __pyx_v_A_mA = ((double *)1);
+                            __pyx_v_b_mb = ((double *)1);
+                            __pyx_v_i = ((int)0xbad0bad0);
+                            __pyx_v_j = ((int)0xbad0bad0);
+                            __pyx_v_muA = ((double *)1);
+                            __pyx_v_mub = ((double *)1);
+                            __pyx_v_ssA = ((double *)1);
+                            __pyx_v_ssb = ((double *)1);
+                            __pyx_v_tmp = ((double *)1);
+
+                            /* "velocyto/speedboosted.pyx":190
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             tmp = <double *>malloc(1 * sizeof(double))
+ *             # subtract the cth column
+ */
+                            __pyx_v_A = ((double *)malloc(((__pyx_v_rows * __pyx_v_cols) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":191
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ *             tmp = <double *>malloc(1 * sizeof(double))             # <<<<<<<<<<<<<<
+ *             # subtract the cth column
+ *             for j in range(rows):
+ */
+                            __pyx_v_tmp = ((double *)malloc((1 * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":193
+ *             tmp = <double *>malloc(1 * sizeof(double))
+ *             # subtract the cth column
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":194
+ *             # subtract the cth column
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] > 0:
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":195
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]             # <<<<<<<<<<<<<<
+ *                     if tmp[0] > 0:
+ *                         A[j*cols + i] = log10(tmp[0] + psc)
+ */
+                                (__pyx_v_tmp[0]) = ((__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) - (__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+
+                                /* "velocyto/speedboosted.pyx":196
+ *                 for i in range(cols):
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] > 0:             # <<<<<<<<<<<<<<
+ *                         A[j*cols + i] = log10(tmp[0] + psc)
+ *                     else:
+ */
+                                __pyx_t_8 = (((__pyx_v_tmp[0]) > 0.0) != 0);
+                                if (__pyx_t_8) {
+
+                                  /* "velocyto/speedboosted.pyx":197
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] > 0:
+ *                         A[j*cols + i] = log10(tmp[0] + psc)             # <<<<<<<<<<<<<<
+ *                     else:
+ *                         A[j*cols + i] = -log10(-tmp[0] + psc)
+ */
+                                  (__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) = log10(((__pyx_v_tmp[0]) + __pyx_v_psc));
+
+                                  /* "velocyto/speedboosted.pyx":196
+ *                 for i in range(cols):
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] > 0:             # <<<<<<<<<<<<<<
+ *                         A[j*cols + i] = log10(tmp[0] + psc)
+ *                     else:
+ */
+                                  goto __pyx_L14;
+                                }
+
+                                /* "velocyto/speedboosted.pyx":199
+ *                         A[j*cols + i] = log10(tmp[0] + psc)
+ *                     else:
+ *                         A[j*cols + i] = -log10(-tmp[0] + psc)             # <<<<<<<<<<<<<<
+ * 
+ *             #muA = A.mean(0)
+ */
+                                /*else*/ {
+                                  (__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) = (-log10(((-(__pyx_v_tmp[0])) + __pyx_v_psc)));
+                                }
+                                __pyx_L14:;
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":202
+ * 
+ *             #muA = A.mean(0)
+ *             muA = <double *>malloc(cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(muA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_muA = ((double *)malloc((__pyx_v_cols * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":203
+ *             #muA = A.mean(0)
+ *             muA = <double *>malloc(cols * sizeof(double))
+ *             memset(muA, 0, cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ */
+                            memset(__pyx_v_muA, 0, (__pyx_v_cols * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":204
+ *             muA = <double *>malloc(cols * sizeof(double))
+ *             memset(muA, 0, cols * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     muA[i] += A[j*cols + i]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":205
+ *             memset(muA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     muA[i] += A[j*cols + i]
+ *             for i in range(cols):
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":206
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     muA[i] += A[j*cols + i]             # <<<<<<<<<<<<<<
+ *             for i in range(cols):
+ *                 muA[i] = muA[i] / rows
+ */
+                                __pyx_t_9 = __pyx_v_i;
+                                (__pyx_v_muA[__pyx_t_9]) = ((__pyx_v_muA[__pyx_t_9]) + (__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":207
+ *                 for i in range(cols):
+ *                     muA[i] += A[j*cols + i]
+ *             for i in range(cols):             # <<<<<<<<<<<<<<
+ *                 muA[i] = muA[i] / rows
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_cols;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_i = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":208
+ *                     muA[i] += A[j*cols + i]
+ *             for i in range(cols):
+ *                 muA[i] = muA[i] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # A_mA = A - muA
+ */
+                              (__pyx_v_muA[__pyx_v_i]) = ((__pyx_v_muA[__pyx_v_i]) / __pyx_v_rows);
+                            }
+
+                            /* "velocyto/speedboosted.pyx":211
+ * 
+ *             # A_mA = A - muA
+ *             A_mA = <double *>malloc(rows * cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ */
+                            __pyx_v_A_mA = ((double *)malloc(((__pyx_v_rows * __pyx_v_cols) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":212
+ *             # A_mA = A - muA
+ *             A_mA = <double *>malloc(rows * cols * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     A_mA[j*cols + i] = A[j*cols + i] - muA[i]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":213
+ *             A_mA = <double *>malloc(rows * cols * sizeof(double))
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     A_mA[j*cols + i] = A[j*cols + i] - muA[i]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":214
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     A_mA[j*cols + i] = A[j*cols + i] - muA[i]             # <<<<<<<<<<<<<<
+ * 
+ *             # mub = b.mean()
+ */
+                                (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) = ((__pyx_v_A[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) - (__pyx_v_muA[__pyx_v_i]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":217
+ * 
+ *             # mub = b.mean()
+ *             mub = <double *>malloc(1 * sizeof(double))             # <<<<<<<<<<<<<<
+ *             mub[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_mub = ((double *)malloc((1 * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":218
+ *             # mub = b.mean()
+ *             mub = <double *>malloc(1 * sizeof(double))
+ *             mub[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ */
+                            (__pyx_v_mub[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":219
+ *             mub = <double *>malloc(1 * sizeof(double))
+ *             mub[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":220
+ *             mub[0] = 0
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]             # <<<<<<<<<<<<<<
+ *             mub[0] = mub[0] / rows
+ * 
+ */
+                              __pyx_t_10 = 0;
+                              (__pyx_v_mub[__pyx_t_10]) = ((__pyx_v_mub[__pyx_t_10]) + (__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":221
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # b_mb = b - mub
+ */
+                            (__pyx_v_mub[0]) = ((__pyx_v_mub[0]) / __pyx_v_rows);
+
+                            /* "velocyto/speedboosted.pyx":224
+ * 
+ *             # b_mb = b - mub
+ *             b_mb = <double *>malloc(rows * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ */
+                            __pyx_v_b_mb = ((double *)malloc((__pyx_v_rows * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":225
+ *             # b_mb = b - mub
+ *             b_mb = <double *>malloc(rows * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":226
+ *             b_mb = <double *>malloc(rows * sizeof(double))
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]             # <<<<<<<<<<<<<<
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ */
+                              (__pyx_v_b_mb[__pyx_v_j]) = ((__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]) - (__pyx_v_mub[0]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":229
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double *>malloc(cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(ssA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssA = ((double *)malloc((__pyx_v_cols * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":230
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double *>malloc(cols * sizeof(double))
+ *             memset(ssA, 0, cols * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ */
+                            memset(__pyx_v_ssA, 0, (__pyx_v_cols * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":231
+ *             ssA = <double *>malloc(cols * sizeof(double))
+ *             memset(ssA, 0, cols * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":232
+ *             memset(ssA, 0, cols * sizeof(double))
+ *             for j in range(rows):
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ *             for i in range(cols):
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":233
+ *             for j in range(rows):
+ *                 for i in range(cols):
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]             # <<<<<<<<<<<<<<
+ *             for i in range(cols):
+ *                 ssA[i] = 1. / sqrt(ssA[i])
+ */
+                                __pyx_t_9 = __pyx_v_i;
+                                (__pyx_v_ssA[__pyx_t_9]) = ((__pyx_v_ssA[__pyx_t_9]) + ((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) * (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":234
+ *                 for i in range(cols):
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ *             for i in range(cols):             # <<<<<<<<<<<<<<
+ *                 ssA[i] = 1. / sqrt(ssA[i])
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_cols;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_i = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":235
+ *                     ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+ *             for i in range(cols):
+ *                 ssA[i] = 1. / sqrt(ssA[i])             # <<<<<<<<<<<<<<
+ * 
+ *             # ssb = (b_mb**2).sum()
+ */
+                              (__pyx_v_ssA[__pyx_v_i]) = (1. / sqrt((__pyx_v_ssA[__pyx_v_i])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":238
+ * 
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double *>malloc(1 * sizeof(double))             # <<<<<<<<<<<<<<
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssb = ((double *)malloc((1 * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":239
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double *>malloc(1 * sizeof(double))
+ *             ssb[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ */
+                            (__pyx_v_ssb[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":240
+ *             ssb = <double *>malloc(1 * sizeof(double))
+ *             ssb[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ *             ssb[0] = 1. / sqrt(ssb[0])
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":241
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2             # <<<<<<<<<<<<<<
+ *             ssb[0] = 1. / sqrt(ssb[0])
+ * 
+ */
+                              __pyx_t_10 = 0;
+                              (__pyx_v_ssb[__pyx_t_10]) = ((__pyx_v_ssb[__pyx_t_10]) + ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_b_mb[__pyx_v_j])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":242
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ *             ssb[0] = 1. / sqrt(ssb[0])             # <<<<<<<<<<<<<<
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ */
+                            (__pyx_v_ssb[0]) = (1. / sqrt((__pyx_v_ssb[0])));
+
+                            /* "velocyto/speedboosted.pyx":245
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for i in range(cols):
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":246
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]             # <<<<<<<<<<<<<<
+ *                 for i in range(cols):
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+ */
+                              (__pyx_v_tmp[0]) = ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_ssb[0]));
+
+                              /* "velocyto/speedboosted.pyx":247
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for i in range(cols):             # <<<<<<<<<<<<<<
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_cols;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_i = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":248
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for i in range(cols):
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]             # <<<<<<<<<<<<<<
+ * 
+ *             free(A)
+ */
+                                __pyx_t_9 = ((__pyx_v_c * __pyx_v_cols) + __pyx_v_i);
+                                (__pyx_v_rm[__pyx_t_9]) = ((__pyx_v_rm[__pyx_t_9]) + (((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) * (__pyx_v_ssA[__pyx_v_i])) * (__pyx_v_tmp[0])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":250
+ *                     rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+ * 
+ *             free(A)             # <<<<<<<<<<<<<<
+ *             free(tmp)
+ *             free(muA)
+ */
+                            free(__pyx_v_A);
+
+                            /* "velocyto/speedboosted.pyx":251
+ * 
+ *             free(A)
+ *             free(tmp)             # <<<<<<<<<<<<<<
+ *             free(muA)
+ *             free(A_mA)
+ */
+                            free(__pyx_v_tmp);
+
+                            /* "velocyto/speedboosted.pyx":252
+ *             free(A)
+ *             free(tmp)
+ *             free(muA)             # <<<<<<<<<<<<<<
+ *             free(A_mA)
+ *             free(mub)
+ */
+                            free(__pyx_v_muA);
+
+                            /* "velocyto/speedboosted.pyx":253
+ *             free(tmp)
+ *             free(muA)
+ *             free(A_mA)             # <<<<<<<<<<<<<<
+ *             free(mub)
+ *             free(b_mb)
+ */
+                            free(__pyx_v_A_mA);
+
+                            /* "velocyto/speedboosted.pyx":254
+ *             free(muA)
+ *             free(A_mA)
+ *             free(mub)             # <<<<<<<<<<<<<<
+ *             free(b_mb)
+ *             free(ssA)
+ */
+                            free(__pyx_v_mub);
+
+                            /* "velocyto/speedboosted.pyx":255
+ *             free(A_mA)
+ *             free(mub)
+ *             free(b_mb)             # <<<<<<<<<<<<<<
+ *             free(ssA)
+ *             free(ssb)
+ */
+                            free(__pyx_v_b_mb);
+
+                            /* "velocyto/speedboosted.pyx":256
+ *             free(mub)
+ *             free(b_mb)
+ *             free(ssA)             # <<<<<<<<<<<<<<
+ *             free(ssb)
+ * 
+ */
+                            free(__pyx_v_ssA);
+
+                            /* "velocyto/speedboosted.pyx":257
+ *             free(b_mb)
+ *             free(ssA)
+ *             free(ssb)             # <<<<<<<<<<<<<<
+ * 
+ * # "partial" functions act on a random sample of the neighbours to reduce computation time
+ */
+                            free(__pyx_v_ssb);
+                        }
+                    }
+                }
+            }
+        }
+        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+            #undef likely
+            #undef unlikely
+            #define likely(x)   __builtin_expect(!!(x), 1)
+            #define unlikely(x) __builtin_expect(!!(x), 0)
+        #endif
+      }
+
+      /* "velocyto/speedboosted.pyx":188
+ *         int i, j, c
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double *>malloc(rows * cols * sizeof(double))
+ */
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          Py_BLOCK_THREADS
+          #endif
+          goto __pyx_L5;
+        }
+        __pyx_L5:;
+      }
+  }
+
+  /* "velocyto/speedboosted.pyx":178
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorLog10(double *e,             # <<<<<<<<<<<<<<
+ *                       double *d,
+ *                       double *rm,
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "velocyto/speedboosted.pyx":263
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorpartial(double *e,             # <<<<<<<<<<<<<<
+ *                                    double *d,
+ *                                    double *rm,
+ */
+
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorpartial(double *__pyx_v_e, double *__pyx_v_d, double *__pyx_v_rm, Py_ssize_t *__pyx_v_ixs, int __pyx_v_rows, int __pyx_v_cols, int __pyx_v_nrndm, CYTHON_UNUSED int __pyx_v_num_threads) {
+  int __pyx_v_i;
+  int __pyx_v_j;
+  int __pyx_v_c;
+  int __pyx_v_n;
+  double *__pyx_v_A;
+  double *__pyx_v_tmp;
+  double *__pyx_v_muA;
+  double *__pyx_v_A_mA;
+  double *__pyx_v_mub;
+  double *__pyx_v_b_mb;
+  double *__pyx_v_ssA;
+  double *__pyx_v_ssb;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  long __pyx_t_9;
+  __Pyx_RefNannySetupContext("x_colDeltaCorpartial", 0);
+
+  /* "velocyto/speedboosted.pyx":274
+ *         int i, j, c, n
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ */
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      Py_UNBLOCK_THREADS
+      #endif
+      /*try:*/ {
+
+        /* "velocyto/speedboosted.pyx":275
+ * 
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):             # <<<<<<<<<<<<<<
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ *             tmp = <double*> malloc(sizeof(double))
+ */
+        __pyx_t_1 = __pyx_v_cols;
+        if (1 == 0) abort();
+        {
+            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+                #undef likely
+                #undef unlikely
+                #define likely(x)   (x)
+                #define unlikely(x) (x)
+            #endif
+            __pyx_t_3 = (__pyx_t_1 - 0 + 1 - 1/abs(1)) / 1;
+            if (__pyx_t_3 > 0)
+            {
+                #ifdef _OPENMP
+                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7, __pyx_t_8, __pyx_t_9)
+                #endif /* _OPENMP */
+                {
+                    #ifdef _OPENMP
+                    #pragma omp for lastprivate(__pyx_v_A) lastprivate(__pyx_v_A_mA) lastprivate(__pyx_v_b_mb) firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_muA) lastprivate(__pyx_v_mub) lastprivate(__pyx_v_n) lastprivate(__pyx_v_ssA) lastprivate(__pyx_v_ssb) lastprivate(__pyx_v_tmp) schedule(guided)
+                    #endif /* _OPENMP */
+                    for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
+                        {
+                            __pyx_v_c = (int)(0 + 1 * __pyx_t_2);
+                            /* Initialize private variables to invalid values */
+                            __pyx_v_A = ((double *)1);
+                            __pyx_v_A_mA = ((double *)1);
+                            __pyx_v_b_mb = ((double *)1);
+                            __pyx_v_i = ((int)0xbad0bad0);
+                            __pyx_v_j = ((int)0xbad0bad0);
+                            __pyx_v_muA = ((double *)1);
+                            __pyx_v_mub = ((double *)1);
+                            __pyx_v_n = ((int)0xbad0bad0);
+                            __pyx_v_ssA = ((double *)1);
+                            __pyx_v_ssb = ((double *)1);
+                            __pyx_v_tmp = ((double *)1);
+
+                            /* "velocyto/speedboosted.pyx":276
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             tmp = <double*> malloc(sizeof(double))
+ *             # subtract the cth column
+ */
+                            __pyx_v_A = ((double *)malloc(((__pyx_v_rows * __pyx_v_nrndm) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":277
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ *             tmp = <double*> malloc(sizeof(double))             # <<<<<<<<<<<<<<
+ *             # subtract the cth column
+ *             for j in range(rows):
+ */
+                            __pyx_v_tmp = ((double *)malloc((sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":279
+ *             tmp = <double*> malloc(sizeof(double))
+ *             # subtract the cth column
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":280
+ *             # subtract the cth column
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     i = ixs[c*nrndm + n]
+ *                     A[j*nrndm + n] = e[j*cols + i] - e[j*cols + c]
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":281
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]             # <<<<<<<<<<<<<<
+ *                     A[j*nrndm + n] = e[j*cols + i] - e[j*cols + c]
+ * 
+ */
+                                __pyx_v_i = (__pyx_v_ixs[((__pyx_v_c * __pyx_v_nrndm) + __pyx_v_n)]);
+
+                                /* "velocyto/speedboosted.pyx":282
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ *                     A[j*nrndm + n] = e[j*cols + i] - e[j*cols + c]             # <<<<<<<<<<<<<<
+ * 
+ *             #muA = A.mean(0)
+ */
+                                (__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) = ((__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) - (__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":285
+ * 
+ *             #muA = A.mean(0)
+ *             muA = <double*> malloc(nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(muA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_muA = ((double *)malloc((__pyx_v_nrndm * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":286
+ *             #muA = A.mean(0)
+ *             muA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(muA, 0, nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ */
+                            memset(__pyx_v_muA, 0, (__pyx_v_nrndm * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":287
+ *             muA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(muA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     muA[n] += A[j*nrndm + n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":288
+ *             memset(muA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     muA[n] += A[j*nrndm + n]
+ *             for n in range(nrndm):
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":289
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     muA[n] += A[j*nrndm + n]             # <<<<<<<<<<<<<<
+ *             for n in range(nrndm):
+ *                 muA[n] = muA[n] / rows
+ */
+                                __pyx_t_8 = __pyx_v_n;
+                                (__pyx_v_muA[__pyx_t_8]) = ((__pyx_v_muA[__pyx_t_8]) + (__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":290
+ *                 for n in range(nrndm):
+ *                     muA[n] += A[j*nrndm + n]
+ *             for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                 muA[n] = muA[n] / rows
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_nrndm;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_n = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":291
+ *                     muA[n] += A[j*nrndm + n]
+ *             for n in range(nrndm):
+ *                 muA[n] = muA[n] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # A_mA = A - muA
+ */
+                              (__pyx_v_muA[__pyx_v_n]) = ((__pyx_v_muA[__pyx_v_n]) / __pyx_v_rows);
+                            }
+
+                            /* "velocyto/speedboosted.pyx":294
+ * 
+ *             # A_mA = A - muA
+ *             A_mA = <double*> malloc(rows * nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ */
+                            __pyx_v_A_mA = ((double *)malloc(((__pyx_v_rows * __pyx_v_nrndm) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":295
+ *             # A_mA = A - muA
+ *             A_mA = <double*> malloc(rows * nrndm * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":296
+ *             A_mA = <double*> malloc(rows * nrndm * sizeof(double))
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":297
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]             # <<<<<<<<<<<<<<
+ * 
+ *             # mub = b.mean()
+ */
+                                (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) = ((__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) - (__pyx_v_muA[__pyx_v_n]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":300
+ * 
+ *             # mub = b.mean()
+ *             mub = <double*> malloc(sizeof(double))             # <<<<<<<<<<<<<<
+ *             mub[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_mub = ((double *)malloc((sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":301
+ *             # mub = b.mean()
+ *             mub = <double*> malloc(sizeof(double))
+ *             mub[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ */
+                            (__pyx_v_mub[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":302
+ *             mub = <double*> malloc(sizeof(double))
+ *             mub[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":303
+ *             mub[0] = 0
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]             # <<<<<<<<<<<<<<
+ *             mub[0] = mub[0] / rows
+ * 
+ */
+                              __pyx_t_9 = 0;
+                              (__pyx_v_mub[__pyx_t_9]) = ((__pyx_v_mub[__pyx_t_9]) + (__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":304
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # b_mb = b - mub
+ */
+                            (__pyx_v_mub[0]) = ((__pyx_v_mub[0]) / __pyx_v_rows);
+
+                            /* "velocyto/speedboosted.pyx":307
+ * 
+ *             # b_mb = b - mub
+ *             b_mb = <double*> malloc(rows * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ */
+                            __pyx_v_b_mb = ((double *)malloc((__pyx_v_rows * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":308
+ *             # b_mb = b - mub
+ *             b_mb = <double*> malloc(rows * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":309
+ *             b_mb = <double*> malloc(rows * sizeof(double))
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]             # <<<<<<<<<<<<<<
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ */
+                              (__pyx_v_b_mb[__pyx_v_j]) = ((__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]) - (__pyx_v_mub[0]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":312
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double*> malloc(nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(ssA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssA = ((double *)malloc((__pyx_v_nrndm * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":313
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(ssA, 0, nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ */
+                            memset(__pyx_v_ssA, 0, (__pyx_v_nrndm * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":314
+ *             ssA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(ssA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":315
+ *             memset(ssA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":316
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]             # <<<<<<<<<<<<<<
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ */
+                                __pyx_t_8 = __pyx_v_n;
+                                (__pyx_v_ssA[__pyx_t_8]) = ((__pyx_v_ssA[__pyx_t_8]) + ((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) * (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":319
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ *             for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                 ssA[n] = 1. / sqrt(ssA[n])
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_nrndm;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_n = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":320
+ *             # one division and many multiplication (below) faster than many divisions
+ *             for n in range(nrndm):
+ *                 ssA[n] = 1. / sqrt(ssA[n])             # <<<<<<<<<<<<<<
+ * 
+ *             # ssb = (b_mb**2).sum()
+ */
+                              (__pyx_v_ssA[__pyx_v_n]) = (1. / sqrt((__pyx_v_ssA[__pyx_v_n])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":323
+ * 
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double*> malloc(sizeof(double))             # <<<<<<<<<<<<<<
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssb = ((double *)malloc((sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":324
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double*> malloc(sizeof(double))
+ *             ssb[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ */
+                            (__pyx_v_ssb[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":325
+ *             ssb = <double*> malloc(sizeof(double))
+ *             ssb[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":326
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2             # <<<<<<<<<<<<<<
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ */
+                              __pyx_t_9 = 0;
+                              (__pyx_v_ssb[__pyx_t_9]) = ((__pyx_v_ssb[__pyx_t_9]) + ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_b_mb[__pyx_v_j])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":329
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ *             ssb[0] = 1. / sqrt(ssb[0])             # <<<<<<<<<<<<<<
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ */
+                            (__pyx_v_ssb[0]) = (1. / sqrt((__pyx_v_ssb[0])));
+
+                            /* "velocyto/speedboosted.pyx":332
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for n in range(nrndm):
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":333
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ */
+                              (__pyx_v_tmp[0]) = ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_ssb[0]));
+
+                              /* "velocyto/speedboosted.pyx":334
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     i = ixs[c*nrndm + n]
+ *                     rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":335
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]             # <<<<<<<<<<<<<<
+ *                     rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]
+ * 
+ */
+                                __pyx_v_i = (__pyx_v_ixs[((__pyx_v_c * __pyx_v_nrndm) + __pyx_v_n)]);
+
+                                /* "velocyto/speedboosted.pyx":336
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ *                     rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]             # <<<<<<<<<<<<<<
+ * 
+ *             # Cleanup
+ */
+                                __pyx_t_8 = ((__pyx_v_c * __pyx_v_cols) + __pyx_v_i);
+                                (__pyx_v_rm[__pyx_t_8]) = ((__pyx_v_rm[__pyx_t_8]) + (((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) * (__pyx_v_ssA[__pyx_v_n])) * (__pyx_v_tmp[0])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":339
+ * 
+ *             # Cleanup
+ *             free(A)             # <<<<<<<<<<<<<<
+ *             free(tmp)
+ *             free(muA)
+ */
+                            free(__pyx_v_A);
+
+                            /* "velocyto/speedboosted.pyx":340
+ *             # Cleanup
+ *             free(A)
+ *             free(tmp)             # <<<<<<<<<<<<<<
+ *             free(muA)
+ *             free(A_mA)
+ */
+                            free(__pyx_v_tmp);
+
+                            /* "velocyto/speedboosted.pyx":341
+ *             free(A)
+ *             free(tmp)
+ *             free(muA)             # <<<<<<<<<<<<<<
+ *             free(A_mA)
+ *             free(mub)
+ */
+                            free(__pyx_v_muA);
+
+                            /* "velocyto/speedboosted.pyx":342
+ *             free(tmp)
+ *             free(muA)
+ *             free(A_mA)             # <<<<<<<<<<<<<<
+ *             free(mub)
+ *             free(b_mb)
+ */
+                            free(__pyx_v_A_mA);
+
+                            /* "velocyto/speedboosted.pyx":343
+ *             free(muA)
+ *             free(A_mA)
+ *             free(mub)             # <<<<<<<<<<<<<<
+ *             free(b_mb)
+ *             free(ssA)
+ */
+                            free(__pyx_v_mub);
+
+                            /* "velocyto/speedboosted.pyx":344
+ *             free(A_mA)
+ *             free(mub)
+ *             free(b_mb)             # <<<<<<<<<<<<<<
+ *             free(ssA)
+ *             free(ssb)
+ */
+                            free(__pyx_v_b_mb);
+
+                            /* "velocyto/speedboosted.pyx":345
+ *             free(mub)
+ *             free(b_mb)
+ *             free(ssA)             # <<<<<<<<<<<<<<
+ *             free(ssb)
+ * 
+ */
+                            free(__pyx_v_ssA);
+
+                            /* "velocyto/speedboosted.pyx":346
+ *             free(b_mb)
+ *             free(ssA)
+ *             free(ssb)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+                            free(__pyx_v_ssb);
+                        }
+                    }
+                }
+            }
+        }
+        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+            #undef likely
+            #undef unlikely
+            #define likely(x)   __builtin_expect(!!(x), 1)
+            #define unlikely(x) __builtin_expect(!!(x), 0)
+        #endif
+      }
+
+      /* "velocyto/speedboosted.pyx":274
+ *         int i, j, c, n
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ */
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          Py_BLOCK_THREADS
+          #endif
+          goto __pyx_L5;
+        }
+        __pyx_L5:;
+      }
+  }
+
+  /* "velocyto/speedboosted.pyx":263
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorpartial(double *e,             # <<<<<<<<<<<<<<
+ *                                    double *d,
+ *                                    double *rm,
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "velocyto/speedboosted.pyx":352
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorSqrtpartial(double *e,             # <<<<<<<<<<<<<<
+ *                                    double *d,
+ *                                    double *rm,
+ */
+
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorSqrtpartial(double *__pyx_v_e, double *__pyx_v_d, double *__pyx_v_rm, Py_ssize_t *__pyx_v_ixs, int __pyx_v_rows, int __pyx_v_cols, int __pyx_v_nrndm, CYTHON_UNUSED int __pyx_v_num_threads, double __pyx_v_psc) {
+  int __pyx_v_i;
+  int __pyx_v_j;
+  int __pyx_v_c;
+  int __pyx_v_n;
+  double *__pyx_v_A;
+  double *__pyx_v_tmp;
+  double *__pyx_v_muA;
+  double *__pyx_v_A_mA;
+  double *__pyx_v_mub;
+  double *__pyx_v_b_mb;
+  double *__pyx_v_ssA;
+  double *__pyx_v_ssb;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  int __pyx_t_9;
+  long __pyx_t_10;
+  __Pyx_RefNannySetupContext("x_colDeltaCorSqrtpartial", 0);
+
+  /* "velocyto/speedboosted.pyx":364
+ *         int i, j, c, n
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ */
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      Py_UNBLOCK_THREADS
+      #endif
+      /*try:*/ {
+
+        /* "velocyto/speedboosted.pyx":365
+ * 
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):             # <<<<<<<<<<<<<<
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ *             tmp = <double*> malloc(sizeof(double))
+ */
+        __pyx_t_1 = __pyx_v_cols;
+        if (1 == 0) abort();
+        {
+            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+                #undef likely
+                #undef unlikely
+                #define likely(x)   (x)
+                #define unlikely(x) (x)
+            #endif
+            __pyx_t_3 = (__pyx_t_1 - 0 + 1 - 1/abs(1)) / 1;
+            if (__pyx_t_3 > 0)
+            {
+                #ifdef _OPENMP
+                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_10, __pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7, __pyx_t_8, __pyx_t_9)
+                #endif /* _OPENMP */
+                {
+                    #ifdef _OPENMP
+                    #pragma omp for lastprivate(__pyx_v_A) lastprivate(__pyx_v_A_mA) lastprivate(__pyx_v_b_mb) firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_muA) lastprivate(__pyx_v_mub) lastprivate(__pyx_v_n) lastprivate(__pyx_v_ssA) lastprivate(__pyx_v_ssb) lastprivate(__pyx_v_tmp) schedule(guided)
+                    #endif /* _OPENMP */
+                    for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
+                        {
+                            __pyx_v_c = (int)(0 + 1 * __pyx_t_2);
+                            /* Initialize private variables to invalid values */
+                            __pyx_v_A = ((double *)1);
+                            __pyx_v_A_mA = ((double *)1);
+                            __pyx_v_b_mb = ((double *)1);
+                            __pyx_v_i = ((int)0xbad0bad0);
+                            __pyx_v_j = ((int)0xbad0bad0);
+                            __pyx_v_muA = ((double *)1);
+                            __pyx_v_mub = ((double *)1);
+                            __pyx_v_n = ((int)0xbad0bad0);
+                            __pyx_v_ssA = ((double *)1);
+                            __pyx_v_ssb = ((double *)1);
+                            __pyx_v_tmp = ((double *)1);
+
+                            /* "velocyto/speedboosted.pyx":366
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             tmp = <double*> malloc(sizeof(double))
+ *             # subtract the cth column
+ */
+                            __pyx_v_A = ((double *)malloc(((__pyx_v_rows * __pyx_v_nrndm) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":367
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ *             tmp = <double*> malloc(sizeof(double))             # <<<<<<<<<<<<<<
+ *             # subtract the cth column
+ *             for j in range(rows):
+ */
+                            __pyx_v_tmp = ((double *)malloc((sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":369
+ *             tmp = <double*> malloc(sizeof(double))
+ *             # subtract the cth column
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":370
+ *             # subtract the cth column
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     i = ixs[c*nrndm + n]
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":371
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]             # <<<<<<<<<<<<<<
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] >= 0:
+ */
+                                __pyx_v_i = (__pyx_v_ixs[((__pyx_v_c * __pyx_v_nrndm) + __pyx_v_n)]);
+
+                                /* "velocyto/speedboosted.pyx":372
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]             # <<<<<<<<<<<<<<
+ *                     if tmp[0] >= 0:
+ *                         A[j*nrndm + n] = sqrt(tmp[0] + psc)
+ */
+                                (__pyx_v_tmp[0]) = ((__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) - (__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+
+                                /* "velocyto/speedboosted.pyx":373
+ *                     i = ixs[c*nrndm + n]
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] >= 0:             # <<<<<<<<<<<<<<
+ *                         A[j*nrndm + n] = sqrt(tmp[0] + psc)
+ *                     else:
+ */
+                                __pyx_t_8 = (((__pyx_v_tmp[0]) >= 0.0) != 0);
+                                if (__pyx_t_8) {
+
+                                  /* "velocyto/speedboosted.pyx":374
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] >= 0:
+ *                         A[j*nrndm + n] = sqrt(tmp[0] + psc)             # <<<<<<<<<<<<<<
+ *                     else:
+ *                         A[j*nrndm + n] = -sqrt(-tmp[0] + psc)
+ */
+                                  (__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) = sqrt(((__pyx_v_tmp[0]) + __pyx_v_psc));
+
+                                  /* "velocyto/speedboosted.pyx":373
+ *                     i = ixs[c*nrndm + n]
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] >= 0:             # <<<<<<<<<<<<<<
+ *                         A[j*nrndm + n] = sqrt(tmp[0] + psc)
+ *                     else:
+ */
+                                  goto __pyx_L14;
+                                }
+
+                                /* "velocyto/speedboosted.pyx":376
+ *                         A[j*nrndm + n] = sqrt(tmp[0] + psc)
+ *                     else:
+ *                         A[j*nrndm + n] = -sqrt(-tmp[0] + psc)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+                                /*else*/ {
+                                  (__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) = (-sqrt(((-(__pyx_v_tmp[0])) + __pyx_v_psc)));
+                                }
+                                __pyx_L14:;
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":380
+ * 
+ *             #muA = A.mean(0)
+ *             muA = <double*> malloc(nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(muA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_muA = ((double *)malloc((__pyx_v_nrndm * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":381
+ *             #muA = A.mean(0)
+ *             muA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(muA, 0, nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ */
+                            memset(__pyx_v_muA, 0, (__pyx_v_nrndm * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":382
+ *             muA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(muA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     muA[n] += A[j*nrndm + n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":383
+ *             memset(muA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     muA[n] += A[j*nrndm + n]
+ *             for n in range(nrndm):
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":384
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     muA[n] += A[j*nrndm + n]             # <<<<<<<<<<<<<<
+ *             for n in range(nrndm):
+ *                 muA[n] = muA[n] / rows
+ */
+                                __pyx_t_9 = __pyx_v_n;
+                                (__pyx_v_muA[__pyx_t_9]) = ((__pyx_v_muA[__pyx_t_9]) + (__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":385
+ *                 for n in range(nrndm):
+ *                     muA[n] += A[j*nrndm + n]
+ *             for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                 muA[n] = muA[n] / rows
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_nrndm;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_n = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":386
+ *                     muA[n] += A[j*nrndm + n]
+ *             for n in range(nrndm):
+ *                 muA[n] = muA[n] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # A_mA = A - muA
+ */
+                              (__pyx_v_muA[__pyx_v_n]) = ((__pyx_v_muA[__pyx_v_n]) / __pyx_v_rows);
+                            }
+
+                            /* "velocyto/speedboosted.pyx":389
+ * 
+ *             # A_mA = A - muA
+ *             A_mA = <double*> malloc(rows * nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ */
+                            __pyx_v_A_mA = ((double *)malloc(((__pyx_v_rows * __pyx_v_nrndm) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":390
+ *             # A_mA = A - muA
+ *             A_mA = <double*> malloc(rows * nrndm * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":391
+ *             A_mA = <double*> malloc(rows * nrndm * sizeof(double))
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":392
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]             # <<<<<<<<<<<<<<
+ * 
+ *             # mub = b.mean()
+ */
+                                (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) = ((__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) - (__pyx_v_muA[__pyx_v_n]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":395
+ * 
+ *             # mub = b.mean()
+ *             mub = <double*> malloc(sizeof(double))             # <<<<<<<<<<<<<<
+ *             mub[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_mub = ((double *)malloc((sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":396
+ *             # mub = b.mean()
+ *             mub = <double*> malloc(sizeof(double))
+ *             mub[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ */
+                            (__pyx_v_mub[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":397
+ *             mub = <double*> malloc(sizeof(double))
+ *             mub[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":398
+ *             mub[0] = 0
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]             # <<<<<<<<<<<<<<
+ *             mub[0] = mub[0] / rows
+ * 
+ */
+                              __pyx_t_10 = 0;
+                              (__pyx_v_mub[__pyx_t_10]) = ((__pyx_v_mub[__pyx_t_10]) + (__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":399
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # b_mb = b - mub
+ */
+                            (__pyx_v_mub[0]) = ((__pyx_v_mub[0]) / __pyx_v_rows);
+
+                            /* "velocyto/speedboosted.pyx":402
+ * 
+ *             # b_mb = b - mub
+ *             b_mb = <double*> malloc(rows * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ */
+                            __pyx_v_b_mb = ((double *)malloc((__pyx_v_rows * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":403
+ *             # b_mb = b - mub
+ *             b_mb = <double*> malloc(rows * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":404
+ *             b_mb = <double*> malloc(rows * sizeof(double))
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]             # <<<<<<<<<<<<<<
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ */
+                              (__pyx_v_b_mb[__pyx_v_j]) = ((__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]) - (__pyx_v_mub[0]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":407
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double*> malloc(nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(ssA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssA = ((double *)malloc((__pyx_v_nrndm * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":408
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(ssA, 0, nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ */
+                            memset(__pyx_v_ssA, 0, (__pyx_v_nrndm * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":409
+ *             ssA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(ssA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":410
+ *             memset(ssA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":411
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]             # <<<<<<<<<<<<<<
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ */
+                                __pyx_t_9 = __pyx_v_n;
+                                (__pyx_v_ssA[__pyx_t_9]) = ((__pyx_v_ssA[__pyx_t_9]) + ((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) * (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":414
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ *             for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                 ssA[n] = 1. / sqrt(ssA[n])
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_nrndm;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_n = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":415
+ *             # one division and many multiplication (below) faster than many divisions
+ *             for n in range(nrndm):
+ *                 ssA[n] = 1. / sqrt(ssA[n])             # <<<<<<<<<<<<<<
+ * 
+ *             # ssb = (b_mb**2).sum()
+ */
+                              (__pyx_v_ssA[__pyx_v_n]) = (1. / sqrt((__pyx_v_ssA[__pyx_v_n])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":418
+ * 
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double*> malloc(sizeof(double))             # <<<<<<<<<<<<<<
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssb = ((double *)malloc((sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":419
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double*> malloc(sizeof(double))
+ *             ssb[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ */
+                            (__pyx_v_ssb[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":420
+ *             ssb = <double*> malloc(sizeof(double))
+ *             ssb[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":421
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2             # <<<<<<<<<<<<<<
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ */
+                              __pyx_t_10 = 0;
+                              (__pyx_v_ssb[__pyx_t_10]) = ((__pyx_v_ssb[__pyx_t_10]) + ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_b_mb[__pyx_v_j])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":424
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ *             ssb[0] = 1. / sqrt(ssb[0])             # <<<<<<<<<<<<<<
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ */
+                            (__pyx_v_ssb[0]) = (1. / sqrt((__pyx_v_ssb[0])));
+
+                            /* "velocyto/speedboosted.pyx":427
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for n in range(nrndm):
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":428
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ */
+                              (__pyx_v_tmp[0]) = ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_ssb[0]));
+
+                              /* "velocyto/speedboosted.pyx":429
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     i = ixs[c*nrndm + n]
+ *                     rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":430
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]             # <<<<<<<<<<<<<<
+ *                     rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]
+ * 
+ */
+                                __pyx_v_i = (__pyx_v_ixs[((__pyx_v_c * __pyx_v_nrndm) + __pyx_v_n)]);
+
+                                /* "velocyto/speedboosted.pyx":431
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ *                     rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]             # <<<<<<<<<<<<<<
+ * 
+ *             # Cleanup
+ */
+                                __pyx_t_9 = ((__pyx_v_c * __pyx_v_cols) + __pyx_v_i);
+                                (__pyx_v_rm[__pyx_t_9]) = ((__pyx_v_rm[__pyx_t_9]) + (((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) * (__pyx_v_ssA[__pyx_v_n])) * (__pyx_v_tmp[0])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":434
+ * 
+ *             # Cleanup
+ *             free(A)             # <<<<<<<<<<<<<<
+ *             free(tmp)
+ *             free(muA)
+ */
+                            free(__pyx_v_A);
+
+                            /* "velocyto/speedboosted.pyx":435
+ *             # Cleanup
+ *             free(A)
+ *             free(tmp)             # <<<<<<<<<<<<<<
+ *             free(muA)
+ *             free(A_mA)
+ */
+                            free(__pyx_v_tmp);
+
+                            /* "velocyto/speedboosted.pyx":436
+ *             free(A)
+ *             free(tmp)
+ *             free(muA)             # <<<<<<<<<<<<<<
+ *             free(A_mA)
+ *             free(mub)
+ */
+                            free(__pyx_v_muA);
+
+                            /* "velocyto/speedboosted.pyx":437
+ *             free(tmp)
+ *             free(muA)
+ *             free(A_mA)             # <<<<<<<<<<<<<<
+ *             free(mub)
+ *             free(b_mb)
+ */
+                            free(__pyx_v_A_mA);
+
+                            /* "velocyto/speedboosted.pyx":438
+ *             free(muA)
+ *             free(A_mA)
+ *             free(mub)             # <<<<<<<<<<<<<<
+ *             free(b_mb)
+ *             free(ssA)
+ */
+                            free(__pyx_v_mub);
+
+                            /* "velocyto/speedboosted.pyx":439
+ *             free(A_mA)
+ *             free(mub)
+ *             free(b_mb)             # <<<<<<<<<<<<<<
+ *             free(ssA)
+ *             free(ssb)
+ */
+                            free(__pyx_v_b_mb);
+
+                            /* "velocyto/speedboosted.pyx":440
+ *             free(mub)
+ *             free(b_mb)
+ *             free(ssA)             # <<<<<<<<<<<<<<
+ *             free(ssb)
+ * 
+ */
+                            free(__pyx_v_ssA);
+
+                            /* "velocyto/speedboosted.pyx":441
+ *             free(b_mb)
+ *             free(ssA)
+ *             free(ssb)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+                            free(__pyx_v_ssb);
+                        }
+                    }
+                }
+            }
+        }
+        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+            #undef likely
+            #undef unlikely
+            #define likely(x)   __builtin_expect(!!(x), 1)
+            #define unlikely(x) __builtin_expect(!!(x), 0)
+        #endif
+      }
+
+      /* "velocyto/speedboosted.pyx":364
+ *         int i, j, c, n
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ */
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          Py_BLOCK_THREADS
+          #endif
+          goto __pyx_L5;
+        }
+        __pyx_L5:;
+      }
+  }
+
+  /* "velocyto/speedboosted.pyx":352
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorSqrtpartial(double *e,             # <<<<<<<<<<<<<<
+ *                                    double *d,
+ *                                    double *rm,
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "velocyto/speedboosted.pyx":447
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorLog10partial(double *e,             # <<<<<<<<<<<<<<
+ *                                    double *d,
+ *                                    double *rm,
+ */
+
+static void __pyx_f_8velocyto_12speedboosted_x_colDeltaCorLog10partial(double *__pyx_v_e, double *__pyx_v_d, double *__pyx_v_rm, Py_ssize_t *__pyx_v_ixs, int __pyx_v_rows, int __pyx_v_cols, int __pyx_v_nrndm, CYTHON_UNUSED int __pyx_v_num_threads, double __pyx_v_psc) {
+  int __pyx_v_i;
+  int __pyx_v_j;
+  int __pyx_v_c;
+  int __pyx_v_n;
+  double *__pyx_v_A;
+  double *__pyx_v_tmp;
+  double *__pyx_v_muA;
+  double *__pyx_v_A_mA;
+  double *__pyx_v_mub;
+  double *__pyx_v_b_mb;
+  double *__pyx_v_ssA;
+  double *__pyx_v_ssb;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  int __pyx_t_9;
+  long __pyx_t_10;
+  __Pyx_RefNannySetupContext("x_colDeltaCorLog10partial", 0);
+
+  /* "velocyto/speedboosted.pyx":459
+ *         int i, j, c, n
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ */
+  {
+      #ifdef WITH_THREAD
+      PyThreadState *_save;
+      Py_UNBLOCK_THREADS
+      #endif
+      /*try:*/ {
+
+        /* "velocyto/speedboosted.pyx":460
+ * 
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):             # <<<<<<<<<<<<<<
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ *             tmp = <double*> malloc(sizeof(double))
+ */
+        __pyx_t_1 = __pyx_v_cols;
+        if (1 == 0) abort();
+        {
+            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+                #undef likely
+                #undef unlikely
+                #define likely(x)   (x)
+                #define unlikely(x) (x)
+            #endif
+            __pyx_t_3 = (__pyx_t_1 - 0 + 1 - 1/abs(1)) / 1;
+            if (__pyx_t_3 > 0)
+            {
+                #ifdef _OPENMP
+                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_10, __pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7, __pyx_t_8, __pyx_t_9)
+                #endif /* _OPENMP */
+                {
+                    #ifdef _OPENMP
+                    #pragma omp for lastprivate(__pyx_v_A) lastprivate(__pyx_v_A_mA) lastprivate(__pyx_v_b_mb) firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_muA) lastprivate(__pyx_v_mub) lastprivate(__pyx_v_n) lastprivate(__pyx_v_ssA) lastprivate(__pyx_v_ssb) lastprivate(__pyx_v_tmp) schedule(guided)
+                    #endif /* _OPENMP */
+                    for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
+                        {
+                            __pyx_v_c = (int)(0 + 1 * __pyx_t_2);
+                            /* Initialize private variables to invalid values */
+                            __pyx_v_A = ((double *)1);
+                            __pyx_v_A_mA = ((double *)1);
+                            __pyx_v_b_mb = ((double *)1);
+                            __pyx_v_i = ((int)0xbad0bad0);
+                            __pyx_v_j = ((int)0xbad0bad0);
+                            __pyx_v_muA = ((double *)1);
+                            __pyx_v_mub = ((double *)1);
+                            __pyx_v_n = ((int)0xbad0bad0);
+                            __pyx_v_ssA = ((double *)1);
+                            __pyx_v_ssb = ((double *)1);
+                            __pyx_v_tmp = ((double *)1);
+
+                            /* "velocyto/speedboosted.pyx":461
+ *     with nogil:
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             tmp = <double*> malloc(sizeof(double))
+ *             # subtract the cth column
+ */
+                            __pyx_v_A = ((double *)malloc(((__pyx_v_rows * __pyx_v_nrndm) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":462
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ *             tmp = <double*> malloc(sizeof(double))             # <<<<<<<<<<<<<<
+ *             # subtract the cth column
+ *             for j in range(rows):
+ */
+                            __pyx_v_tmp = ((double *)malloc((sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":464
+ *             tmp = <double*> malloc(sizeof(double))
+ *             # subtract the cth column
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":465
+ *             # subtract the cth column
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     i = ixs[c*nrndm + n]
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":466
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]             # <<<<<<<<<<<<<<
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] >= 0:
+ */
+                                __pyx_v_i = (__pyx_v_ixs[((__pyx_v_c * __pyx_v_nrndm) + __pyx_v_n)]);
+
+                                /* "velocyto/speedboosted.pyx":467
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]             # <<<<<<<<<<<<<<
+ *                     if tmp[0] >= 0:
+ *                         A[j*nrndm + n] = log10(tmp[0] + psc)
+ */
+                                (__pyx_v_tmp[0]) = ((__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_i)]) - (__pyx_v_e[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+
+                                /* "velocyto/speedboosted.pyx":468
+ *                     i = ixs[c*nrndm + n]
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] >= 0:             # <<<<<<<<<<<<<<
+ *                         A[j*nrndm + n] = log10(tmp[0] + psc)
+ *                     else:
+ */
+                                __pyx_t_8 = (((__pyx_v_tmp[0]) >= 0.0) != 0);
+                                if (__pyx_t_8) {
+
+                                  /* "velocyto/speedboosted.pyx":469
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] >= 0:
+ *                         A[j*nrndm + n] = log10(tmp[0] + psc)             # <<<<<<<<<<<<<<
+ *                     else:
+ *                         A[j*nrndm + n] = -log10(-tmp[0] + psc)
+ */
+                                  (__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) = log10(((__pyx_v_tmp[0]) + __pyx_v_psc));
+
+                                  /* "velocyto/speedboosted.pyx":468
+ *                     i = ixs[c*nrndm + n]
+ *                     tmp[0] = e[j*cols + i] - e[j*cols + c]
+ *                     if tmp[0] >= 0:             # <<<<<<<<<<<<<<
+ *                         A[j*nrndm + n] = log10(tmp[0] + psc)
+ *                     else:
+ */
+                                  goto __pyx_L14;
+                                }
+
+                                /* "velocyto/speedboosted.pyx":471
+ *                         A[j*nrndm + n] = log10(tmp[0] + psc)
+ *                     else:
+ *                         A[j*nrndm + n] = -log10(-tmp[0] + psc)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+                                /*else*/ {
+                                  (__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) = (-log10(((-(__pyx_v_tmp[0])) + __pyx_v_psc)));
+                                }
+                                __pyx_L14:;
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":475
+ * 
+ *             #muA = A.mean(0)
+ *             muA = <double*> malloc(nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(muA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_muA = ((double *)malloc((__pyx_v_nrndm * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":476
+ *             #muA = A.mean(0)
+ *             muA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(muA, 0, nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ */
+                            memset(__pyx_v_muA, 0, (__pyx_v_nrndm * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":477
+ *             muA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(muA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     muA[n] += A[j*nrndm + n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":478
+ *             memset(muA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     muA[n] += A[j*nrndm + n]
+ *             for n in range(nrndm):
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":479
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     muA[n] += A[j*nrndm + n]             # <<<<<<<<<<<<<<
+ *             for n in range(nrndm):
+ *                 muA[n] = muA[n] / rows
+ */
+                                __pyx_t_9 = __pyx_v_n;
+                                (__pyx_v_muA[__pyx_t_9]) = ((__pyx_v_muA[__pyx_t_9]) + (__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":480
+ *                 for n in range(nrndm):
+ *                     muA[n] += A[j*nrndm + n]
+ *             for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                 muA[n] = muA[n] / rows
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_nrndm;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_n = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":481
+ *                     muA[n] += A[j*nrndm + n]
+ *             for n in range(nrndm):
+ *                 muA[n] = muA[n] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # A_mA = A - muA
+ */
+                              (__pyx_v_muA[__pyx_v_n]) = ((__pyx_v_muA[__pyx_v_n]) / __pyx_v_rows);
+                            }
+
+                            /* "velocyto/speedboosted.pyx":484
+ * 
+ *             # A_mA = A - muA
+ *             A_mA = <double*> malloc(rows * nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ */
+                            __pyx_v_A_mA = ((double *)malloc(((__pyx_v_rows * __pyx_v_nrndm) * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":485
+ *             # A_mA = A - muA
+ *             A_mA = <double*> malloc(rows * nrndm * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":486
+ *             A_mA = <double*> malloc(rows * nrndm * sizeof(double))
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":487
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]             # <<<<<<<<<<<<<<
+ * 
+ *             # mub = b.mean()
+ */
+                                (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) = ((__pyx_v_A[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) - (__pyx_v_muA[__pyx_v_n]));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":490
+ * 
+ *             # mub = b.mean()
+ *             mub = <double*> malloc(sizeof(double))             # <<<<<<<<<<<<<<
+ *             mub[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_mub = ((double *)malloc((sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":491
+ *             # mub = b.mean()
+ *             mub = <double*> malloc(sizeof(double))
+ *             mub[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ */
+                            (__pyx_v_mub[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":492
+ *             mub = <double*> malloc(sizeof(double))
+ *             mub[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":493
+ *             mub[0] = 0
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]             # <<<<<<<<<<<<<<
+ *             mub[0] = mub[0] / rows
+ * 
+ */
+                              __pyx_t_10 = 0;
+                              (__pyx_v_mub[__pyx_t_10]) = ((__pyx_v_mub[__pyx_t_10]) + (__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":494
+ *             for j in range(rows):
+ *                 mub[0] += d[j*cols + c]
+ *             mub[0] = mub[0] / rows             # <<<<<<<<<<<<<<
+ * 
+ *             # b_mb = b - mub
+ */
+                            (__pyx_v_mub[0]) = ((__pyx_v_mub[0]) / __pyx_v_rows);
+
+                            /* "velocyto/speedboosted.pyx":497
+ * 
+ *             # b_mb = b - mub
+ *             b_mb = <double*> malloc(rows * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ */
+                            __pyx_v_b_mb = ((double *)malloc((__pyx_v_rows * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":498
+ *             # b_mb = b - mub
+ *             b_mb = <double*> malloc(rows * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 b_mb[j] = d[j*cols + c] - mub[0]
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":499
+ *             b_mb = <double*> malloc(rows * sizeof(double))
+ *             for j in range(rows):
+ *                 b_mb[j] = d[j*cols + c] - mub[0]             # <<<<<<<<<<<<<<
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ */
+                              (__pyx_v_b_mb[__pyx_v_j]) = ((__pyx_v_d[((__pyx_v_j * __pyx_v_cols) + __pyx_v_c)]) - (__pyx_v_mub[0]));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":502
+ * 
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double*> malloc(nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             memset(ssA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssA = ((double *)malloc((__pyx_v_nrndm * (sizeof(double)))));
+
+                            /* "velocyto/speedboosted.pyx":503
+ *             # ssA = (A_mA**2).sum(0)
+ *             ssA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(ssA, 0, nrndm * sizeof(double))             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ */
+                            memset(__pyx_v_ssA, 0, (__pyx_v_nrndm * (sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":504
+ *             ssA = <double*> malloc(nrndm * sizeof(double))
+ *             memset(ssA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":505
+ *             memset(ssA, 0, nrndm * sizeof(double))
+ *             for j in range(rows):
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]
+ * 
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":506
+ *             for j in range(rows):
+ *                 for n in range(nrndm):
+ *                     ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]             # <<<<<<<<<<<<<<
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ */
+                                __pyx_t_9 = __pyx_v_n;
+                                (__pyx_v_ssA[__pyx_t_9]) = ((__pyx_v_ssA[__pyx_t_9]) + ((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) * (__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":509
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ *             for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                 ssA[n] = 1. / sqrt(ssA[n])
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_nrndm;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_n = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":510
+ *             # one division and many multiplication (below) faster than many divisions
+ *             for n in range(nrndm):
+ *                 ssA[n] = 1. / sqrt(ssA[n])             # <<<<<<<<<<<<<<
+ * 
+ *             # ssb = (b_mb**2).sum()
+ */
+                              (__pyx_v_ssA[__pyx_v_n]) = (1. / sqrt((__pyx_v_ssA[__pyx_v_n])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":513
+ * 
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double*> malloc(sizeof(double))             # <<<<<<<<<<<<<<
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ */
+                            __pyx_v_ssb = ((double *)malloc((sizeof(double))));
+
+                            /* "velocyto/speedboosted.pyx":514
+ *             # ssb = (b_mb**2).sum()
+ *             ssb = <double*> malloc(sizeof(double))
+ *             ssb[0] = 0             # <<<<<<<<<<<<<<
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ */
+                            (__pyx_v_ssb[0]) = 0.0;
+
+                            /* "velocyto/speedboosted.pyx":515
+ *             ssb = <double*> malloc(sizeof(double))
+ *             ssb[0] = 0
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2
+ * 
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":516
+ *             ssb[0] = 0
+ *             for j in range(rows):
+ *                 ssb[0] += b_mb[j] * b_mb[j] # **2             # <<<<<<<<<<<<<<
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ */
+                              __pyx_t_10 = 0;
+                              (__pyx_v_ssb[__pyx_t_10]) = ((__pyx_v_ssb[__pyx_t_10]) + ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_b_mb[__pyx_v_j])));
+                            }
+
+                            /* "velocyto/speedboosted.pyx":519
+ * 
+ *             # one division and many multiplication (below) faster than many divisions
+ *             ssb[0] = 1. / sqrt(ssb[0])             # <<<<<<<<<<<<<<
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ */
+                            (__pyx_v_ssb[0]) = (1. / sqrt((__pyx_v_ssb[0])));
+
+                            /* "velocyto/speedboosted.pyx":522
+ * 
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):             # <<<<<<<<<<<<<<
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for n in range(nrndm):
+ */
+                            __pyx_t_4 = __pyx_v_rows;
+                            for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+                              __pyx_v_j = __pyx_t_5;
+
+                              /* "velocyto/speedboosted.pyx":523
+ *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]             # <<<<<<<<<<<<<<
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ */
+                              (__pyx_v_tmp[0]) = ((__pyx_v_b_mb[__pyx_v_j]) * (__pyx_v_ssb[0]));
+
+                              /* "velocyto/speedboosted.pyx":524
+ *             for j in range(rows):
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
+ *                     i = ixs[c*nrndm + n]
+ *                     rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]
+ */
+                              __pyx_t_6 = __pyx_v_nrndm;
+                              for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
+                                __pyx_v_n = __pyx_t_7;
+
+                                /* "velocyto/speedboosted.pyx":525
+ *                 tmp[0] = b_mb[j] * ssb[0]
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]             # <<<<<<<<<<<<<<
+ *                     rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]
+ * 
+ */
+                                __pyx_v_i = (__pyx_v_ixs[((__pyx_v_c * __pyx_v_nrndm) + __pyx_v_n)]);
+
+                                /* "velocyto/speedboosted.pyx":526
+ *                 for n in range(nrndm):
+ *                     i = ixs[c*nrndm + n]
+ *                     rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]             # <<<<<<<<<<<<<<
+ * 
+ *             # Cleanup
+ */
+                                __pyx_t_9 = ((__pyx_v_c * __pyx_v_cols) + __pyx_v_i);
+                                (__pyx_v_rm[__pyx_t_9]) = ((__pyx_v_rm[__pyx_t_9]) + (((__pyx_v_A_mA[((__pyx_v_j * __pyx_v_nrndm) + __pyx_v_n)]) * (__pyx_v_ssA[__pyx_v_n])) * (__pyx_v_tmp[0])));
+                              }
+                            }
+
+                            /* "velocyto/speedboosted.pyx":529
+ * 
+ *             # Cleanup
+ *             free(A)             # <<<<<<<<<<<<<<
+ *             free(tmp)
+ *             free(muA)
+ */
+                            free(__pyx_v_A);
+
+                            /* "velocyto/speedboosted.pyx":530
+ *             # Cleanup
+ *             free(A)
+ *             free(tmp)             # <<<<<<<<<<<<<<
+ *             free(muA)
+ *             free(A_mA)
+ */
+                            free(__pyx_v_tmp);
+
+                            /* "velocyto/speedboosted.pyx":531
+ *             free(A)
+ *             free(tmp)
+ *             free(muA)             # <<<<<<<<<<<<<<
+ *             free(A_mA)
+ *             free(mub)
+ */
+                            free(__pyx_v_muA);
+
+                            /* "velocyto/speedboosted.pyx":532
+ *             free(tmp)
+ *             free(muA)
+ *             free(A_mA)             # <<<<<<<<<<<<<<
+ *             free(mub)
+ *             free(b_mb)
+ */
+                            free(__pyx_v_A_mA);
+
+                            /* "velocyto/speedboosted.pyx":533
+ *             free(muA)
+ *             free(A_mA)
+ *             free(mub)             # <<<<<<<<<<<<<<
+ *             free(b_mb)
+ *             free(ssA)
+ */
+                            free(__pyx_v_mub);
+
+                            /* "velocyto/speedboosted.pyx":534
+ *             free(A_mA)
+ *             free(mub)
+ *             free(b_mb)             # <<<<<<<<<<<<<<
+ *             free(ssA)
+ *             free(ssb)
+ */
+                            free(__pyx_v_b_mb);
+
+                            /* "velocyto/speedboosted.pyx":535
+ *             free(mub)
+ *             free(b_mb)
+ *             free(ssA)             # <<<<<<<<<<<<<<
+ *             free(ssb)
+ * 
+ */
+                            free(__pyx_v_ssA);
+
+                            /* "velocyto/speedboosted.pyx":536
+ *             free(b_mb)
+ *             free(ssA)
+ *             free(ssb)             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+                            free(__pyx_v_ssb);
+                        }
+                    }
+                }
+            }
+        }
+        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
+            #undef likely
+            #undef unlikely
+            #define likely(x)   __builtin_expect(!!(x), 1)
+            #define unlikely(x) __builtin_expect(!!(x), 0)
+        #endif
+      }
+
+      /* "velocyto/speedboosted.pyx":459
+ *         int i, j, c, n
+ * 
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for c in prange(cols, schedule='guided', num_threads=num_threads):
+ *             A = <double*> malloc(rows * nrndm * sizeof(double))
+ */
+      /*finally:*/ {
+        /*normal exit:*/{
+          #ifdef WITH_THREAD
+          Py_BLOCK_THREADS
+          #endif
+          goto __pyx_L5;
+        }
+        __pyx_L5:;
+      }
+  }
+
+  /* "velocyto/speedboosted.pyx":447
+ * @cython.wraparound(False)
+ * @cython.cdivision(True)
+ * cdef void x_colDeltaCorLog10partial(double *e,             # <<<<<<<<<<<<<<
+ *                                    double *d,
+ *                                    double *rm,
+ */
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+}
+
+/* "velocyto/speedboosted.pyx":540
+ * 
+ * # Functions accessible from python, adapt the C function to python thorugh cPython API
  * def _colDeltaCor(double[:, ::1] e,             # <<<<<<<<<<<<<<
  *                  double[:, ::1] d,
  *                  double[:, ::1] rm,
@@ -2233,21 +6086,21 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_1_colDeltaCor(PyObject *__pyx
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_d)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCor", 1, 4, 4, 1); __PYX_ERR(0, 10, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCor", 1, 4, 4, 1); __PYX_ERR(0, 540, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rm)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCor", 1, 4, 4, 2); __PYX_ERR(0, 10, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCor", 1, 4, 4, 2); __PYX_ERR(0, 540, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCor", 1, 4, 4, 3); __PYX_ERR(0, 10, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCor", 1, 4, 4, 3); __PYX_ERR(0, 540, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCor") < 0)) __PYX_ERR(0, 10, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCor") < 0)) __PYX_ERR(0, 540, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -2257,14 +6110,14 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_1_colDeltaCor(PyObject *__pyx
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 10, __pyx_L3_error)
-    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 11, __pyx_L3_error)
-    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 12, __pyx_L3_error)
-    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 13, __pyx_L3_error)
+    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 540, __pyx_L3_error)
+    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 541, __pyx_L3_error)
+    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 542, __pyx_L3_error)
+    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 543, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_colDeltaCor", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 10, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_colDeltaCor", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 540, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCor", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2278,1369 +6131,94 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_1_colDeltaCor(PyObject *__pyx
 }
 
 static PyObject *__pyx_pf_8velocyto_12speedboosted__colDeltaCor(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads) {
-  Py_ssize_t __pyx_v_rows;
-  Py_ssize_t __pyx_v_cols;
-  Py_ssize_t __pyx_v_i;
-  Py_ssize_t __pyx_v_j;
-  Py_ssize_t __pyx_v_c;
-  Py_ssize_t __pyx_v_t;
-  __Pyx_memviewslice __pyx_v_t_A = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b = { 0, 0, { 0 }, { 0 }, { 0 } };
-  CYTHON_UNUSED __Pyx_memviewslice __pyx_v_t_out = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_muA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_A_mA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b_mb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_mub = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_tmp = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_rows;
+  int __pyx_v_cols;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  Py_ssize_t __pyx_t_11;
-  Py_ssize_t __pyx_t_12;
-  Py_ssize_t __pyx_t_13;
-  int __pyx_t_14;
-  Py_ssize_t __pyx_t_15;
-  Py_ssize_t __pyx_t_16;
-  Py_ssize_t __pyx_t_17;
-  Py_ssize_t __pyx_t_18;
-  Py_ssize_t __pyx_t_19;
-  Py_ssize_t __pyx_t_20;
-  Py_ssize_t __pyx_t_21;
-  Py_ssize_t __pyx_t_22;
-  Py_ssize_t __pyx_t_23;
-  Py_ssize_t __pyx_t_24;
-  Py_ssize_t __pyx_t_25;
-  Py_ssize_t __pyx_t_26;
-  Py_ssize_t __pyx_t_27;
-  Py_ssize_t __pyx_t_28;
-  Py_ssize_t __pyx_t_29;
-  Py_ssize_t __pyx_t_30;
-  Py_ssize_t __pyx_t_31;
-  Py_ssize_t __pyx_t_32;
-  Py_ssize_t __pyx_t_33;
-  Py_ssize_t __pyx_t_34;
-  Py_ssize_t __pyx_t_35;
-  Py_ssize_t __pyx_t_36;
-  Py_ssize_t __pyx_t_37;
-  Py_ssize_t __pyx_t_38;
-  Py_ssize_t __pyx_t_39;
-  Py_ssize_t __pyx_t_40;
-  Py_ssize_t __pyx_t_41;
-  Py_ssize_t __pyx_t_42;
-  Py_ssize_t __pyx_t_43;
-  Py_ssize_t __pyx_t_44;
-  Py_ssize_t __pyx_t_45;
-  Py_ssize_t __pyx_t_46;
-  Py_ssize_t __pyx_t_47;
-  Py_ssize_t __pyx_t_48;
-  Py_ssize_t __pyx_t_49;
-  Py_ssize_t __pyx_t_50;
-  Py_ssize_t __pyx_t_51;
-  Py_ssize_t __pyx_t_52;
-  Py_ssize_t __pyx_t_53;
-  Py_ssize_t __pyx_t_54;
-  Py_ssize_t __pyx_t_55;
-  Py_ssize_t __pyx_t_56;
-  Py_ssize_t __pyx_t_57;
-  Py_ssize_t __pyx_t_58;
-  Py_ssize_t __pyx_t_59;
-  Py_ssize_t __pyx_t_60;
-  Py_ssize_t __pyx_t_61;
-  Py_ssize_t __pyx_t_62;
-  Py_ssize_t __pyx_t_63;
-  Py_ssize_t __pyx_t_64;
-  Py_ssize_t __pyx_t_65;
-  Py_ssize_t __pyx_t_66;
-  Py_ssize_t __pyx_t_67;
-  Py_ssize_t __pyx_t_68;
-  Py_ssize_t __pyx_t_69;
-  Py_ssize_t __pyx_t_70;
-  Py_ssize_t __pyx_t_71;
-  Py_ssize_t __pyx_t_72;
-  Py_ssize_t __pyx_t_73;
-  Py_ssize_t __pyx_t_74;
-  Py_ssize_t __pyx_t_75;
-  Py_ssize_t __pyx_t_76;
-  Py_ssize_t __pyx_t_77;
-  Py_ssize_t __pyx_t_78;
-  Py_ssize_t __pyx_t_79;
-  Py_ssize_t __pyx_t_80;
-  Py_ssize_t __pyx_t_81;
-  Py_ssize_t __pyx_t_82;
-  Py_ssize_t __pyx_t_83;
-  Py_ssize_t __pyx_t_84;
-  Py_ssize_t __pyx_t_85;
-  Py_ssize_t __pyx_t_86;
-  Py_ssize_t __pyx_t_87;
-  Py_ssize_t __pyx_t_88;
-  Py_ssize_t __pyx_t_89;
+  Py_ssize_t __pyx_t_1;
+  Py_ssize_t __pyx_t_2;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
   __Pyx_RefNannySetupContext("_colDeltaCor", 0);
 
-  /* "velocyto/speedboosted.pyx":15
+  /* "velocyto/speedboosted.pyx":545
  *                  int num_threads):
  *     cdef:
- *         Py_ssize_t rows = e.shape[0]             # <<<<<<<<<<<<<<
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t i, j, c, t
+ *         int rows = e.shape[0]             # <<<<<<<<<<<<<<
+ *         int cols = e.shape[1]
+ * 
  */
   __pyx_v_rows = (__pyx_v_e.shape[0]);
 
-  /* "velocyto/speedboosted.pyx":16
+  /* "velocyto/speedboosted.pyx":546
  *     cdef:
- *         Py_ssize_t rows = e.shape[0]
- *         Py_ssize_t cols = e.shape[1]             # <<<<<<<<<<<<<<
- *         Py_ssize_t i, j, c, t
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
+ *         int rows = e.shape[0]
+ *         int cols = e.shape[1]             # <<<<<<<<<<<<<<
+ * 
+ *     x_colDeltaCor(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads)
  */
   __pyx_v_cols = (__pyx_v_e.shape[1]);
 
-  /* "velocyto/speedboosted.pyx":18
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t i, j, c, t
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
+  /* "velocyto/speedboosted.pyx":548
+ *         int cols = e.shape[1]
+ * 
+ *     x_colDeltaCor(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads)             # <<<<<<<<<<<<<<
+ * 
+ * def _colDeltaCorSqrt(double[:, ::1] e,
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_t_5);
+  __pyx_t_1 = 0;
   __pyx_t_2 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_1 < 0) {
+    __pyx_t_1 += __pyx_v_e.shape[0];
+    if (unlikely(__pyx_t_1 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_1 >= __pyx_v_e.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_2 < 0) {
+    __pyx_t_2 += __pyx_v_e.shape[1];
+    if (unlikely(__pyx_t_2 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_2 >= __pyx_v_e.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 548, __pyx_L1_error)
+  }
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
+  __pyx_t_3 = -1;
+  if (__pyx_t_4 < 0) {
+    __pyx_t_4 += __pyx_v_d.shape[0];
+    if (unlikely(__pyx_t_4 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_4 >= __pyx_v_d.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_5 < 0) {
+    __pyx_t_5 += __pyx_v_d.shape[1];
+    if (unlikely(__pyx_t_5 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_5 >= __pyx_v_d.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 548, __pyx_L1_error)
   }
-  if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 18, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_6);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_6);
-      __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
+  __pyx_t_6 = 0;
+  __pyx_t_7 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_6 < 0) {
+    __pyx_t_6 += __pyx_v_rm.shape[0];
+    if (unlikely(__pyx_t_6 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_6 >= __pyx_v_rm.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_7 < 0) {
+    __pyx_t_7 += __pyx_v_rm.shape[1];
+    if (unlikely(__pyx_t_7 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_7 >= __pyx_v_rm.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 548, __pyx_L1_error)
   }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_1);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_t_A = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
+  __pyx_f_8velocyto_12speedboosted_x_colDeltaCor((&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_1 * __pyx_v_e.strides[0]) )) + __pyx_t_2)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_d.data + __pyx_t_4 * __pyx_v_d.strides[0]) )) + __pyx_t_5)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_6 * __pyx_v_rm.strides[0]) )) + __pyx_t_7)) )))), __pyx_v_rows, __pyx_v_cols, __pyx_v_num_threads);
 
-  /* "velocyto/speedboosted.pyx":19
- *         Py_ssize_t i, j, c, t
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 19, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_8 = __pyx_v_d;
-  __PYX_INC_MEMVIEW(&__pyx_t_8, 1);
-  if (unlikely(__pyx_memslice_transpose(&__pyx_t_8) == 0)) __PYX_ERR(0, 19, __pyx_L1_error)
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_8, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 19, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) __PYX_ERR(0, 19, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 19, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 19, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":20
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 20, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 20, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_3);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 20, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 20, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 20, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 20, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 20, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_out = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":21
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 21, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 21, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_5);
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 21, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 21, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 21, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 21, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 21, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_muA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":22
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 22, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 22, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 22, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_5);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 22, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 22, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 22, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 22, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 22, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 22, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_A_mA = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":23
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- *         double[::1] t_mub = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 23, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 23, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 23, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyInt_FromSsize_t((__pyx_v_d.shape[0])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 23, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_2);
-  __pyx_t_4 = 0;
-  __pyx_t_2 = 0;
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 23, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 23, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 23, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 23, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 23, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 23, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b_mb = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":24
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 24, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 24, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 24, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 24, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 24, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":25
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- *         double[::1] t_mub = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 25, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 25, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 25, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 25, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_4);
-      PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_4);
-      __pyx_t_4 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 25, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_mub = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":26
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_tmp = np.zeros(num_threads)
- *         int thread_id
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 26, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 26, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 26, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_5);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_5, function);
-    }
-  }
-  if (!__pyx_t_4) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 26, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 26, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 26, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4); __pyx_t_4 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 26, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 26, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssb = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":27
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         int thread_id
+  /* "velocyto/speedboosted.pyx":540
  * 
- */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 27, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 27, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 27, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 27, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 27, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 27, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 27, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 27, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 27, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_tmp = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":30
- *         int thread_id
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-  {
-      #ifdef WITH_THREAD
-      PyThreadState *_save;
-      Py_UNBLOCK_THREADS
-      #endif
-      /*try:*/ {
-
-        /* "velocyto/speedboosted.pyx":31
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):             # <<<<<<<<<<<<<<
- *             t = threadid() # or
- * 
- */
-        __pyx_t_11 = __pyx_v_cols;
-        if (1 == 0) abort();
-        {
-            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                #undef likely
-                #undef unlikely
-                #define likely(x)   (x)
-                #define unlikely(x) (x)
-            #endif
-            __pyx_t_13 = (__pyx_t_11 - 0 + 1 - 1/abs(1)) / 1;
-            if (__pyx_t_13 > 0)
-            {
-                #ifdef _OPENMP
-                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_30, __pyx_t_31, __pyx_t_32, __pyx_t_33, __pyx_t_34, __pyx_t_35, __pyx_t_36, __pyx_t_37, __pyx_t_38, __pyx_t_39, __pyx_t_40, __pyx_t_41, __pyx_t_42, __pyx_t_43, __pyx_t_44, __pyx_t_45, __pyx_t_46, __pyx_t_47, __pyx_t_48, __pyx_t_49, __pyx_t_50, __pyx_t_51, __pyx_t_52, __pyx_t_53, __pyx_t_54, __pyx_t_55, __pyx_t_56, __pyx_t_57, __pyx_t_58, __pyx_t_59, __pyx_t_60, __pyx_t_61, __pyx_t_62, __pyx_t_63, __pyx_t_64, __pyx_t_65, __pyx_t_66, __pyx_t_67, __pyx_t_68, __pyx_t_69, __pyx_t_70, __pyx_t_71, __pyx_t_72, __pyx_t_73, __pyx_t_74, __pyx_t_75, __pyx_t_76, __pyx_t_77, __pyx_t_78, __pyx_t_79, __pyx_t_80, __pyx_t_81, __pyx_t_82, __pyx_t_83, __pyx_t_84, __pyx_t_85, __pyx_t_86, __pyx_t_87, __pyx_t_88, __pyx_t_89)
-                #endif /* _OPENMP */
-                {
-                    #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_t) schedule(static)
-                    #endif /* _OPENMP */
-                    for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_13; __pyx_t_12++){
-                        {
-                            __pyx_v_c = (Py_ssize_t)(0 + 1 * __pyx_t_12);
-                            /* Initialize private variables to invalid values */
-                            __pyx_v_i = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_j = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_t = ((Py_ssize_t)0xbad0bad0);
-
-                            /* "velocyto/speedboosted.pyx":32
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or             # <<<<<<<<<<<<<<
- * 
- *             # subtract the cth column
- */
-                            #ifdef _OPENMP
-                            __pyx_t_14 = omp_get_thread_num();
-                            #else
-                            __pyx_t_14 = 0;
-                            #endif
-                            __pyx_v_t = __pyx_t_14;
-
-                            /* "velocyto/speedboosted.pyx":35
- * 
- *             # subtract the cth column
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_A[t, j, i] = e[j, i] - e[j, c]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":36
- *             # subtract the cth column
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_A[t, j, i] = e[j, i] - e[j, c]
- * 
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":37
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_A[t, j, i] = e[j, i] - e[j, c]             # <<<<<<<<<<<<<<
- * 
- *             #muA = A.mean(0)
- */
-                                __pyx_t_19 = __pyx_v_j;
-                                __pyx_t_20 = __pyx_v_i;
-                                __pyx_t_21 = __pyx_v_j;
-                                __pyx_t_22 = __pyx_v_c;
-                                __pyx_t_23 = __pyx_v_t;
-                                __pyx_t_24 = __pyx_v_j;
-                                __pyx_t_25 = __pyx_v_i;
-                                *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_23 * __pyx_v_t_A.strides[0]) ) + __pyx_t_24 * __pyx_v_t_A.strides[1]) )) + __pyx_t_25)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_19 * __pyx_v_e.strides[0]) )) + __pyx_t_20)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_21 * __pyx_v_e.strides[0]) )) + __pyx_t_22)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":40
- * 
- *             #muA = A.mean(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_muA[t, i] += t_A[t, j, i]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":41
- *             #muA = A.mean(0)
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_muA[t, i] += t_A[t, j, i]
- *             for i in range(cols):
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":42
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_muA[t, i] += t_A[t, j, i]             # <<<<<<<<<<<<<<
- *             for i in range(cols):
- *                 t_muA[t, i] = t_muA[t, i] / rows
- */
-                                __pyx_t_26 = __pyx_v_t;
-                                __pyx_t_27 = __pyx_v_j;
-                                __pyx_t_28 = __pyx_v_i;
-                                __pyx_t_29 = __pyx_v_t;
-                                __pyx_t_30 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_29 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_30)) )) += (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_26 * __pyx_v_t_A.strides[0]) ) + __pyx_t_27 * __pyx_v_t_A.strides[1]) )) + __pyx_t_28)) )));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":43
- *                 for i in range(cols):
- *                     t_muA[t, i] += t_A[t, j, i]
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_muA[t, i] = t_muA[t, i] / rows
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":44
- *                     t_muA[t, i] += t_A[t, j, i]
- *             for i in range(cols):
- *                 t_muA[t, i] = t_muA[t, i] / rows             # <<<<<<<<<<<<<<
- * 
- *             # A_mA = A - muA
- */
-                              __pyx_t_31 = __pyx_v_t;
-                              __pyx_t_32 = __pyx_v_i;
-                              __pyx_t_33 = __pyx_v_t;
-                              __pyx_t_34 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_33 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_34)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_31 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_32)) ))) / __pyx_v_rows);
-                            }
-
-                            /* "velocyto/speedboosted.pyx":47
- * 
- *             # A_mA = A - muA
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":48
- *             # A_mA = A - muA
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]
- * 
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":49
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]             # <<<<<<<<<<<<<<
- * 
- *             # mub = b.mean()
- */
-                                __pyx_t_35 = __pyx_v_t;
-                                __pyx_t_36 = __pyx_v_j;
-                                __pyx_t_37 = __pyx_v_i;
-                                __pyx_t_38 = __pyx_v_t;
-                                __pyx_t_39 = __pyx_v_i;
-                                __pyx_t_40 = __pyx_v_t;
-                                __pyx_t_41 = __pyx_v_j;
-                                __pyx_t_42 = __pyx_v_i;
-                                *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_40 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_41 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_42)) )) = ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_35 * __pyx_v_t_A.strides[0]) ) + __pyx_t_36 * __pyx_v_t_A.strides[1]) )) + __pyx_t_37)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_38 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_39)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":52
- * 
- *             # mub = b.mean()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":53
- *             # mub = b.mean()
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]             # <<<<<<<<<<<<<<
- *             t_mub[t] = t_mub[t] / rows
- * 
- */
-                              __pyx_t_43 = __pyx_v_c;
-                              __pyx_t_44 = __pyx_v_j;
-                              __pyx_t_45 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_45)) )) += (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_43 * __pyx_v_t_b.strides[0]) )) + __pyx_t_44)) )));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":54
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows             # <<<<<<<<<<<<<<
- * 
- *             # b_mb = b - mub
- */
-                            __pyx_t_46 = __pyx_v_t;
-                            __pyx_t_47 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_47)) )) = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_46)) ))) / __pyx_v_rows);
-
-                            /* "velocyto/speedboosted.pyx":57
- * 
- *             # b_mb = b - mub
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]
- * 
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":58
- *             # b_mb = b - mub
- *             for j in range(rows):
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]             # <<<<<<<<<<<<<<
- * 
- *             # ssA = (A_mA**2).sum(0)
- */
-                              __pyx_t_48 = __pyx_v_c;
-                              __pyx_t_49 = __pyx_v_j;
-                              __pyx_t_50 = __pyx_v_t;
-                              __pyx_t_51 = __pyx_v_t;
-                              __pyx_t_52 = __pyx_v_j;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_51 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_52)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_48 * __pyx_v_t_b.strides[0]) )) + __pyx_t_49)) ))) - (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_50)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":61
- * 
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":62
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- *             for i in range(cols):
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":63
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]             # <<<<<<<<<<<<<<
- *             for i in range(cols):
- *                 t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])
- */
-                                __pyx_t_53 = __pyx_v_t;
-                                __pyx_t_54 = __pyx_v_j;
-                                __pyx_t_55 = __pyx_v_i;
-                                __pyx_t_56 = __pyx_v_t;
-                                __pyx_t_57 = __pyx_v_j;
-                                __pyx_t_58 = __pyx_v_i;
-                                __pyx_t_59 = __pyx_v_t;
-                                __pyx_t_60 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_59 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_60)) )) += ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_53 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_54 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_55)) ))) * (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_56 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_57 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_58)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":64
- *                 for i in range(cols):
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":65
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- *             for i in range(cols):
- *                 t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])             # <<<<<<<<<<<<<<
- * 
- *             # ssb = (b_mb**2).sum()
- */
-                              __pyx_t_61 = __pyx_v_t;
-                              __pyx_t_62 = __pyx_v_i;
-                              __pyx_t_63 = __pyx_v_t;
-                              __pyx_t_64 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_63 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_64)) )) = (1. / sqrt((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_61 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_62)) )))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":68
- * 
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":69
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2             # <<<<<<<<<<<<<<
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- * 
- */
-                              __pyx_t_65 = __pyx_v_t;
-                              __pyx_t_66 = __pyx_v_j;
-                              __pyx_t_67 = __pyx_v_t;
-                              __pyx_t_68 = __pyx_v_j;
-                              __pyx_t_69 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_69)) )) += ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_65 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_66)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_67 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_68)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":70
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])             # <<<<<<<<<<<<<<
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- */
-                            __pyx_t_70 = __pyx_v_t;
-                            __pyx_t_71 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_71)) )) = (1. / sqrt((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_70)) )))));
-
-                            /* "velocyto/speedboosted.pyx":73
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for i in range(cols):
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":74
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]
- */
-                              __pyx_t_72 = __pyx_v_t;
-                              __pyx_t_73 = __pyx_v_j;
-                              __pyx_t_74 = __pyx_v_t;
-                              __pyx_t_75 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_75)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_72 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_73)) ))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_74)) ))));
-
-                              /* "velocyto/speedboosted.pyx":75
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]
- * 
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":76
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for i in range(cols):
- *                     rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]             # <<<<<<<<<<<<<<
- * 
- *             # Cleanup
- */
-                                __pyx_t_76 = __pyx_v_t;
-                                __pyx_t_77 = __pyx_v_j;
-                                __pyx_t_78 = __pyx_v_i;
-                                __pyx_t_79 = __pyx_v_t;
-                                __pyx_t_80 = __pyx_v_i;
-                                __pyx_t_81 = __pyx_v_t;
-                                __pyx_t_82 = __pyx_v_c;
-                                __pyx_t_83 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_82 * __pyx_v_rm.strides[0]) )) + __pyx_t_83)) )) += (((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_76 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_77 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_78)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_79 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_80)) )))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_81)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":79
- * 
- *             # Cleanup
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_muA[t, i] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":80
- *             # Cleanup
- *             for i in range(cols):
- *                 t_muA[t, i] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_mub[t] = 0
- */
-                              __pyx_t_84 = __pyx_v_t;
-                              __pyx_t_85 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_84 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_85)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":82
- *                 t_muA[t, i] = 0
- * 
- *             t_mub[t] = 0             # <<<<<<<<<<<<<<
- * 
- *             for i in range(cols):
- */
-                            __pyx_t_86 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_86)) )) = 0.0;
-
-                            /* "velocyto/speedboosted.pyx":84
- *             t_mub[t] = 0
- * 
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, i] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":85
- * 
- *             for i in range(cols):
- *                 t_ssA[t, i] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_ssb[t] = 0
- */
-                              __pyx_t_87 = __pyx_v_t;
-                              __pyx_t_88 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_87 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_88)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":87
- *                 t_ssA[t, i] = 0
- * 
- *             t_ssb[t] = 0             # <<<<<<<<<<<<<<
- * 
- * 
- */
-                            __pyx_t_89 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_89)) )) = 0.0;
-                        }
-                    }
-                }
-            }
-        }
-        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-            #undef likely
-            #undef unlikely
-            #define likely(x)   __builtin_expect(!!(x), 1)
-            #define unlikely(x) __builtin_expect(!!(x), 0)
-        #endif
-      }
-
-      /* "velocyto/speedboosted.pyx":30
- *         int thread_id
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-      /*finally:*/ {
-        /*normal exit:*/{
-          #ifdef WITH_THREAD
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L5;
-        }
-        __pyx_L5:;
-      }
-  }
-
-  /* "velocyto/speedboosted.pyx":10
- * @cython.wraparound(False)
- * @cython.cdivision(True)
+ * # Functions accessible from python, adapt the C function to python thorugh cPython API
  * def _colDeltaCor(double[:, ::1] e,             # <<<<<<<<<<<<<<
  *                  double[:, ::1] d,
  *                  double[:, ::1] rm,
@@ -3650,29 +6228,9 @@ static PyObject *__pyx_pf_8velocyto_12speedboosted__colDeltaCor(CYTHON_UNUSED Py
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCor", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_out, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_muA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A_mA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b_mb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_mub, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_tmp, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_e, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_d, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_rm, 1);
@@ -3681,18 +6239,221 @@ static PyObject *__pyx_pf_8velocyto_12speedboosted__colDeltaCor(CYTHON_UNUSED Py
   return __pyx_r;
 }
 
-/* "velocyto/speedboosted.pyx":93
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorLog10(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                       double[:, ::1] d,
- *                       double[:, ::1] rm,
+/* "velocyto/speedboosted.pyx":550
+ *     x_colDeltaCor(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads)
+ * 
+ * def _colDeltaCorSqrt(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                      double[:, ::1] d,
+ *                      double[:, ::1] rm,
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8velocyto_12speedboosted_3_colDeltaCorLog10(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_8velocyto_12speedboosted_3_colDeltaCorLog10 = {"_colDeltaCorLog10", (PyCFunction)__pyx_pw_8velocyto_12speedboosted_3_colDeltaCorLog10, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_8velocyto_12speedboosted_3_colDeltaCorLog10(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8velocyto_12speedboosted_3_colDeltaCorSqrt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_8velocyto_12speedboosted_3_colDeltaCorSqrt = {"_colDeltaCorSqrt", (PyCFunction)__pyx_pw_8velocyto_12speedboosted_3_colDeltaCorSqrt, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_8velocyto_12speedboosted_3_colDeltaCorSqrt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __Pyx_memviewslice __pyx_v_e = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_d = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_rm = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_num_threads;
+  double __pyx_v_psc;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("_colDeltaCorSqrt (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_e,&__pyx_n_s_d,&__pyx_n_s_rm,&__pyx_n_s_num_threads,&__pyx_n_s_psc,0};
+    PyObject* values[5] = {0,0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_e)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        case  1:
+        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_d)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, 1); __PYX_ERR(0, 550, __pyx_L3_error)
+        }
+        case  2:
+        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rm)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, 2); __PYX_ERR(0, 550, __pyx_L3_error)
+        }
+        case  3:
+        if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, 3); __PYX_ERR(0, 550, __pyx_L3_error)
+        }
+        case  4:
+        if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_psc)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, 4); __PYX_ERR(0, 550, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorSqrt") < 0)) __PYX_ERR(0, 550, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+    }
+    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 550, __pyx_L3_error)
+    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 551, __pyx_L3_error)
+    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 552, __pyx_L3_error)
+    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 553, __pyx_L3_error)
+    __pyx_v_psc = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_psc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 554, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 550, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorSqrt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_8velocyto_12speedboosted_2_colDeltaCorSqrt(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_num_threads, __pyx_v_psc);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_8velocyto_12speedboosted_2_colDeltaCorSqrt(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads, double __pyx_v_psc) {
+  int __pyx_v_rows;
+  int __pyx_v_cols;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  Py_ssize_t __pyx_t_1;
+  Py_ssize_t __pyx_t_2;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
+  __Pyx_RefNannySetupContext("_colDeltaCorSqrt", 0);
+
+  /* "velocyto/speedboosted.pyx":556
+ *                      double psc):
+ *     cdef:
+ *         int rows = e.shape[0]             # <<<<<<<<<<<<<<
+ *         int cols = e.shape[1]
+ * 
+ */
+  __pyx_v_rows = (__pyx_v_e.shape[0]);
+
+  /* "velocyto/speedboosted.pyx":557
+ *     cdef:
+ *         int rows = e.shape[0]
+ *         int cols = e.shape[1]             # <<<<<<<<<<<<<<
+ * 
+ *     x_colDeltaCorSqrt(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
+ */
+  __pyx_v_cols = (__pyx_v_e.shape[1]);
+
+  /* "velocyto/speedboosted.pyx":559
+ *         int cols = e.shape[1]
+ * 
+ *     x_colDeltaCorSqrt(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)             # <<<<<<<<<<<<<<
+ * 
+ * def _colDeltaCorLog10(double[:, ::1] e,
+ */
+  __pyx_t_1 = 0;
+  __pyx_t_2 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_1 < 0) {
+    __pyx_t_1 += __pyx_v_e.shape[0];
+    if (unlikely(__pyx_t_1 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_1 >= __pyx_v_e.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_2 < 0) {
+    __pyx_t_2 += __pyx_v_e.shape[1];
+    if (unlikely(__pyx_t_2 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_2 >= __pyx_v_e.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 559, __pyx_L1_error)
+  }
+  __pyx_t_4 = 0;
+  __pyx_t_5 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_4 < 0) {
+    __pyx_t_4 += __pyx_v_d.shape[0];
+    if (unlikely(__pyx_t_4 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_4 >= __pyx_v_d.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_5 < 0) {
+    __pyx_t_5 += __pyx_v_d.shape[1];
+    if (unlikely(__pyx_t_5 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_5 >= __pyx_v_d.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 559, __pyx_L1_error)
+  }
+  __pyx_t_6 = 0;
+  __pyx_t_7 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_6 < 0) {
+    __pyx_t_6 += __pyx_v_rm.shape[0];
+    if (unlikely(__pyx_t_6 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_6 >= __pyx_v_rm.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_7 < 0) {
+    __pyx_t_7 += __pyx_v_rm.shape[1];
+    if (unlikely(__pyx_t_7 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_7 >= __pyx_v_rm.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 559, __pyx_L1_error)
+  }
+  __pyx_f_8velocyto_12speedboosted_x_colDeltaCorSqrt((&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_1 * __pyx_v_e.strides[0]) )) + __pyx_t_2)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_d.data + __pyx_t_4 * __pyx_v_d.strides[0]) )) + __pyx_t_5)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_6 * __pyx_v_rm.strides[0]) )) + __pyx_t_7)) )))), __pyx_v_rows, __pyx_v_cols, __pyx_v_num_threads, __pyx_v_psc);
+
+  /* "velocyto/speedboosted.pyx":550
+ *     x_colDeltaCor(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads)
+ * 
+ * def _colDeltaCorSqrt(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                      double[:, ::1] d,
+ *                      double[:, ::1] rm,
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorSqrt", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __PYX_XDEC_MEMVIEW(&__pyx_v_e, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_d, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_rm, 1);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "velocyto/speedboosted.pyx":561
+ *     x_colDeltaCorSqrt(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
+ * 
+ * def _colDeltaCorLog10(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                      double[:, ::1] d,
+ *                      double[:, ::1] rm,
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_8velocyto_12speedboosted_5_colDeltaCorLog10(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_8velocyto_12speedboosted_5_colDeltaCorLog10 = {"_colDeltaCorLog10", (PyCFunction)__pyx_pw_8velocyto_12speedboosted_5_colDeltaCorLog10, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_8velocyto_12speedboosted_5_colDeltaCorLog10(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_e = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_d = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_rm = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -3724,26 +6485,26 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_3_colDeltaCorLog10(PyObject *
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_d)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, 1); __PYX_ERR(0, 93, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, 1); __PYX_ERR(0, 561, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rm)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, 2); __PYX_ERR(0, 93, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, 2); __PYX_ERR(0, 561, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, 3); __PYX_ERR(0, 93, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, 3); __PYX_ERR(0, 561, __pyx_L3_error)
         }
         case  4:
         if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_psc)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, 4); __PYX_ERR(0, 93, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, 4); __PYX_ERR(0, 561, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorLog10") < 0)) __PYX_ERR(0, 93, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorLog10") < 0)) __PYX_ERR(0, 561, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
       goto __pyx_L5_argtuple_error;
@@ -3754,1479 +6515,128 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_3_colDeltaCorLog10(PyObject *
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
     }
-    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 93, __pyx_L3_error)
-    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 94, __pyx_L3_error)
-    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 95, __pyx_L3_error)
-    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 96, __pyx_L3_error)
-    __pyx_v_psc = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_psc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 97, __pyx_L3_error)
+    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 561, __pyx_L3_error)
+    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 562, __pyx_L3_error)
+    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 563, __pyx_L3_error)
+    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 564, __pyx_L3_error)
+    __pyx_v_psc = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_psc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 565, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 93, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 561, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorLog10", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8velocyto_12speedboosted_2_colDeltaCorLog10(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_num_threads, __pyx_v_psc);
+  __pyx_r = __pyx_pf_8velocyto_12speedboosted_4_colDeltaCorLog10(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_num_threads, __pyx_v_psc);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8velocyto_12speedboosted_2_colDeltaCorLog10(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads, double __pyx_v_psc) {
-  Py_ssize_t __pyx_v_rows;
-  Py_ssize_t __pyx_v_cols;
-  Py_ssize_t __pyx_v_i;
-  Py_ssize_t __pyx_v_j;
-  Py_ssize_t __pyx_v_c;
-  Py_ssize_t __pyx_v_t;
-  __Pyx_memviewslice __pyx_v_t_A = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b = { 0, 0, { 0 }, { 0 }, { 0 } };
-  CYTHON_UNUSED __Pyx_memviewslice __pyx_v_t_out = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_muA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_A_mA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b_mb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_mub = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_tmp = { 0, 0, { 0 }, { 0 }, { 0 } };
+static PyObject *__pyx_pf_8velocyto_12speedboosted_4_colDeltaCorLog10(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads, double __pyx_v_psc) {
+  int __pyx_v_rows;
+  int __pyx_v_cols;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  Py_ssize_t __pyx_t_11;
-  Py_ssize_t __pyx_t_12;
-  Py_ssize_t __pyx_t_13;
-  int __pyx_t_14;
-  Py_ssize_t __pyx_t_15;
-  Py_ssize_t __pyx_t_16;
-  Py_ssize_t __pyx_t_17;
-  Py_ssize_t __pyx_t_18;
-  Py_ssize_t __pyx_t_19;
-  Py_ssize_t __pyx_t_20;
-  Py_ssize_t __pyx_t_21;
-  Py_ssize_t __pyx_t_22;
-  Py_ssize_t __pyx_t_23;
-  Py_ssize_t __pyx_t_24;
-  int __pyx_t_25;
-  Py_ssize_t __pyx_t_26;
-  Py_ssize_t __pyx_t_27;
-  Py_ssize_t __pyx_t_28;
-  Py_ssize_t __pyx_t_29;
-  Py_ssize_t __pyx_t_30;
-  Py_ssize_t __pyx_t_31;
-  Py_ssize_t __pyx_t_32;
-  Py_ssize_t __pyx_t_33;
-  Py_ssize_t __pyx_t_34;
-  Py_ssize_t __pyx_t_35;
-  Py_ssize_t __pyx_t_36;
-  Py_ssize_t __pyx_t_37;
-  Py_ssize_t __pyx_t_38;
-  Py_ssize_t __pyx_t_39;
-  Py_ssize_t __pyx_t_40;
-  Py_ssize_t __pyx_t_41;
-  Py_ssize_t __pyx_t_42;
-  Py_ssize_t __pyx_t_43;
-  Py_ssize_t __pyx_t_44;
-  Py_ssize_t __pyx_t_45;
-  Py_ssize_t __pyx_t_46;
-  Py_ssize_t __pyx_t_47;
-  Py_ssize_t __pyx_t_48;
-  Py_ssize_t __pyx_t_49;
-  Py_ssize_t __pyx_t_50;
-  Py_ssize_t __pyx_t_51;
-  Py_ssize_t __pyx_t_52;
-  Py_ssize_t __pyx_t_53;
-  Py_ssize_t __pyx_t_54;
-  Py_ssize_t __pyx_t_55;
-  Py_ssize_t __pyx_t_56;
-  Py_ssize_t __pyx_t_57;
-  Py_ssize_t __pyx_t_58;
-  Py_ssize_t __pyx_t_59;
-  Py_ssize_t __pyx_t_60;
-  Py_ssize_t __pyx_t_61;
-  Py_ssize_t __pyx_t_62;
-  Py_ssize_t __pyx_t_63;
-  Py_ssize_t __pyx_t_64;
-  Py_ssize_t __pyx_t_65;
-  Py_ssize_t __pyx_t_66;
-  Py_ssize_t __pyx_t_67;
-  Py_ssize_t __pyx_t_68;
-  Py_ssize_t __pyx_t_69;
-  Py_ssize_t __pyx_t_70;
-  Py_ssize_t __pyx_t_71;
-  Py_ssize_t __pyx_t_72;
-  Py_ssize_t __pyx_t_73;
-  Py_ssize_t __pyx_t_74;
-  Py_ssize_t __pyx_t_75;
-  Py_ssize_t __pyx_t_76;
-  Py_ssize_t __pyx_t_77;
-  Py_ssize_t __pyx_t_78;
-  Py_ssize_t __pyx_t_79;
-  Py_ssize_t __pyx_t_80;
-  Py_ssize_t __pyx_t_81;
-  Py_ssize_t __pyx_t_82;
-  Py_ssize_t __pyx_t_83;
-  Py_ssize_t __pyx_t_84;
-  Py_ssize_t __pyx_t_85;
-  Py_ssize_t __pyx_t_86;
-  Py_ssize_t __pyx_t_87;
-  Py_ssize_t __pyx_t_88;
-  Py_ssize_t __pyx_t_89;
-  Py_ssize_t __pyx_t_90;
-  Py_ssize_t __pyx_t_91;
-  Py_ssize_t __pyx_t_92;
-  Py_ssize_t __pyx_t_93;
-  Py_ssize_t __pyx_t_94;
-  Py_ssize_t __pyx_t_95;
-  Py_ssize_t __pyx_t_96;
-  Py_ssize_t __pyx_t_97;
+  Py_ssize_t __pyx_t_1;
+  Py_ssize_t __pyx_t_2;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
   __Pyx_RefNannySetupContext("_colDeltaCorLog10", 0);
 
-  /* "velocyto/speedboosted.pyx":99
- *                       double psc):
+  /* "velocyto/speedboosted.pyx":567
+ *                      double psc):
  *     cdef:
- *         Py_ssize_t rows = e.shape[0]             # <<<<<<<<<<<<<<
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t i, j, c, t
+ *         int rows = e.shape[0]             # <<<<<<<<<<<<<<
+ *         int cols = e.shape[1]
+ * 
  */
   __pyx_v_rows = (__pyx_v_e.shape[0]);
 
-  /* "velocyto/speedboosted.pyx":100
+  /* "velocyto/speedboosted.pyx":568
  *     cdef:
- *         Py_ssize_t rows = e.shape[0]
- *         Py_ssize_t cols = e.shape[1]             # <<<<<<<<<<<<<<
- *         Py_ssize_t i, j, c, t
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
+ *         int rows = e.shape[0]
+ *         int cols = e.shape[1]             # <<<<<<<<<<<<<<
+ * 
+ *     x_colDeltaCorLog10(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
  */
   __pyx_v_cols = (__pyx_v_e.shape[1]);
 
-  /* "velocyto/speedboosted.pyx":102
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t i, j, c, t
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
+  /* "velocyto/speedboosted.pyx":570
+ *         int cols = e.shape[1]
+ * 
+ *     x_colDeltaCorLog10(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)             # <<<<<<<<<<<<<<
+ * 
+ * def _colDeltaCorpartial(double[:, ::1] e,
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 102, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 102, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 102, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 102, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_t_5);
+  __pyx_t_1 = 0;
   __pyx_t_2 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_1 < 0) {
+    __pyx_t_1 += __pyx_v_e.shape[0];
+    if (unlikely(__pyx_t_1 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_1 >= __pyx_v_e.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_2 < 0) {
+    __pyx_t_2 += __pyx_v_e.shape[1];
+    if (unlikely(__pyx_t_2 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_2 >= __pyx_v_e.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 570, __pyx_L1_error)
+  }
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
+  __pyx_t_3 = -1;
+  if (__pyx_t_4 < 0) {
+    __pyx_t_4 += __pyx_v_d.shape[0];
+    if (unlikely(__pyx_t_4 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_4 >= __pyx_v_d.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_5 < 0) {
+    __pyx_t_5 += __pyx_v_d.shape[1];
+    if (unlikely(__pyx_t_5 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_5 >= __pyx_v_d.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 570, __pyx_L1_error)
   }
-  if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 102, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_6);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_6);
-      __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
+  __pyx_t_6 = 0;
+  __pyx_t_7 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_6 < 0) {
+    __pyx_t_6 += __pyx_v_rm.shape[0];
+    if (unlikely(__pyx_t_6 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_6 >= __pyx_v_rm.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_7 < 0) {
+    __pyx_t_7 += __pyx_v_rm.shape[1];
+    if (unlikely(__pyx_t_7 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_7 >= __pyx_v_rm.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 570, __pyx_L1_error)
   }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_1);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 102, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_t_A = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
+  __pyx_f_8velocyto_12speedboosted_x_colDeltaCorLog10((&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_1 * __pyx_v_e.strides[0]) )) + __pyx_t_2)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_d.data + __pyx_t_4 * __pyx_v_d.strides[0]) )) + __pyx_t_5)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_6 * __pyx_v_rm.strides[0]) )) + __pyx_t_7)) )))), __pyx_v_rows, __pyx_v_cols, __pyx_v_num_threads, __pyx_v_psc);
 
-  /* "velocyto/speedboosted.pyx":103
- *         Py_ssize_t i, j, c, t
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 103, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 103, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_8 = __pyx_v_d;
-  __PYX_INC_MEMVIEW(&__pyx_t_8, 1);
-  if (unlikely(__pyx_memslice_transpose(&__pyx_t_8) == 0)) __PYX_ERR(0, 103, __pyx_L1_error)
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_8, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 103, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 103, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 103, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 103, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 103, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":104
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 104, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 104, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 104, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 104, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 104, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_3);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 104, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 104, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 104, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 104, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 104, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 104, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_out = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":105
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 105, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 105, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 105, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 105, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_5);
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 105, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 105, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 105, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 105, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 105, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 105, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_muA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":106
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 106, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 106, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 106, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 106, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 106, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 106, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_5);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 106, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 106, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 106, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 106, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 106, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 106, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_A_mA = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":107
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- *         double[::1] t_mub = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 107, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 107, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 107, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyInt_FromSsize_t((__pyx_v_d.shape[0])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 107, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 107, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_2);
-  __pyx_t_4 = 0;
-  __pyx_t_2 = 0;
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 107, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 107, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 107, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 107, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 107, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 107, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b_mb = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":108
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 108, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 108, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 108, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 108, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 108, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 108, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 108, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 108, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":109
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- *         double[::1] t_mub = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 109, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 109, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 109, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_4);
-      PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_4);
-      __pyx_t_4 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 109, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_mub = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":110
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_tmp = np.zeros(num_threads)
- *         int thread_id
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_5);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_5, function);
-    }
-  }
-  if (!__pyx_t_4) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 110, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 110, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 110, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 110, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4); __pyx_t_4 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 110, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssb = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":111
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         int thread_id
+  /* "velocyto/speedboosted.pyx":561
+ *     x_colDeltaCorSqrt(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
  * 
- */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 111, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 111, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 111, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 111, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 111, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 111, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 111, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 111, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 111, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_tmp = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":114
- *         int thread_id
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-  {
-      #ifdef WITH_THREAD
-      PyThreadState *_save;
-      Py_UNBLOCK_THREADS
-      #endif
-      /*try:*/ {
-
-        /* "velocyto/speedboosted.pyx":115
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):             # <<<<<<<<<<<<<<
- *             t = threadid() # or
- * 
- */
-        __pyx_t_11 = __pyx_v_cols;
-        if (1 == 0) abort();
-        {
-            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                #undef likely
-                #undef unlikely
-                #define likely(x)   (x)
-                #define unlikely(x) (x)
-            #endif
-            __pyx_t_13 = (__pyx_t_11 - 0 + 1 - 1/abs(1)) / 1;
-            if (__pyx_t_13 > 0)
-            {
-                #ifdef _OPENMP
-                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_30, __pyx_t_31, __pyx_t_32, __pyx_t_33, __pyx_t_34, __pyx_t_35, __pyx_t_36, __pyx_t_37, __pyx_t_38, __pyx_t_39, __pyx_t_40, __pyx_t_41, __pyx_t_42, __pyx_t_43, __pyx_t_44, __pyx_t_45, __pyx_t_46, __pyx_t_47, __pyx_t_48, __pyx_t_49, __pyx_t_50, __pyx_t_51, __pyx_t_52, __pyx_t_53, __pyx_t_54, __pyx_t_55, __pyx_t_56, __pyx_t_57, __pyx_t_58, __pyx_t_59, __pyx_t_60, __pyx_t_61, __pyx_t_62, __pyx_t_63, __pyx_t_64, __pyx_t_65, __pyx_t_66, __pyx_t_67, __pyx_t_68, __pyx_t_69, __pyx_t_70, __pyx_t_71, __pyx_t_72, __pyx_t_73, __pyx_t_74, __pyx_t_75, __pyx_t_76, __pyx_t_77, __pyx_t_78, __pyx_t_79, __pyx_t_80, __pyx_t_81, __pyx_t_82, __pyx_t_83, __pyx_t_84, __pyx_t_85, __pyx_t_86, __pyx_t_87, __pyx_t_88, __pyx_t_89, __pyx_t_90, __pyx_t_91, __pyx_t_92, __pyx_t_93, __pyx_t_94, __pyx_t_95, __pyx_t_96, __pyx_t_97)
-                #endif /* _OPENMP */
-                {
-                    #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_t) schedule(static)
-                    #endif /* _OPENMP */
-                    for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_13; __pyx_t_12++){
-                        {
-                            __pyx_v_c = (Py_ssize_t)(0 + 1 * __pyx_t_12);
-                            /* Initialize private variables to invalid values */
-                            __pyx_v_i = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_j = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_t = ((Py_ssize_t)0xbad0bad0);
-
-                            /* "velocyto/speedboosted.pyx":116
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or             # <<<<<<<<<<<<<<
- * 
- *             # subtract the cth column
- */
-                            #ifdef _OPENMP
-                            __pyx_t_14 = omp_get_thread_num();
-                            #else
-                            __pyx_t_14 = 0;
-                            #endif
-                            __pyx_v_t = __pyx_t_14;
-
-                            /* "velocyto/speedboosted.pyx":119
- * 
- *             # subtract the cth column
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_tmp[t] = e[j, i] - e[j, c]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":120
- *             # subtract the cth column
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":121
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_tmp[t] = e[j, i] - e[j, c]             # <<<<<<<<<<<<<<
- *                     if t_tmp[t] > 0:
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + psc)
- */
-                                __pyx_t_19 = __pyx_v_j;
-                                __pyx_t_20 = __pyx_v_i;
-                                __pyx_t_21 = __pyx_v_j;
-                                __pyx_t_22 = __pyx_v_c;
-                                __pyx_t_23 = __pyx_v_t;
-                                *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_23)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_19 * __pyx_v_e.strides[0]) )) + __pyx_t_20)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_21 * __pyx_v_e.strides[0]) )) + __pyx_t_22)) ))));
-
-                                /* "velocyto/speedboosted.pyx":122
- *                 for i in range(cols):
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:             # <<<<<<<<<<<<<<
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + psc)
- *                     else:
- */
-                                __pyx_t_24 = __pyx_v_t;
-                                __pyx_t_25 = (((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_24)) ))) > 0.0) != 0);
-                                if (__pyx_t_25) {
-
-                                  /* "velocyto/speedboosted.pyx":123
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + psc)             # <<<<<<<<<<<<<<
- *                     else:
- *                         t_A[t, j, i] = -log10(fabs(t_tmp[t]) + psc)
- */
-                                  __pyx_t_26 = __pyx_v_t;
-                                  __pyx_t_27 = __pyx_v_t;
-                                  __pyx_t_28 = __pyx_v_j;
-                                  __pyx_t_29 = __pyx_v_i;
-                                  *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_27 * __pyx_v_t_A.strides[0]) ) + __pyx_t_28 * __pyx_v_t_A.strides[1]) )) + __pyx_t_29)) )) = log10((fabs((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_26)) )))) + __pyx_v_psc));
-
-                                  /* "velocyto/speedboosted.pyx":122
- *                 for i in range(cols):
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:             # <<<<<<<<<<<<<<
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + psc)
- *                     else:
- */
-                                  goto __pyx_L14;
-                                }
-
-                                /* "velocyto/speedboosted.pyx":125
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + psc)
- *                     else:
- *                         t_A[t, j, i] = -log10(fabs(t_tmp[t]) + psc)             # <<<<<<<<<<<<<<
- * 
- * 
- */
-                                /*else*/ {
-                                  __pyx_t_30 = __pyx_v_t;
-                                  __pyx_t_31 = __pyx_v_t;
-                                  __pyx_t_32 = __pyx_v_j;
-                                  __pyx_t_33 = __pyx_v_i;
-                                  *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_31 * __pyx_v_t_A.strides[0]) ) + __pyx_t_32 * __pyx_v_t_A.strides[1]) )) + __pyx_t_33)) )) = (-log10((fabs((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_30)) )))) + __pyx_v_psc)));
-                                }
-                                __pyx_L14:;
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":129
- * 
- *             #muA = A.mean(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_muA[t, i] += t_A[t, j, i]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":130
- *             #muA = A.mean(0)
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_muA[t, i] += t_A[t, j, i]
- *             for i in range(cols):
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":131
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_muA[t, i] += t_A[t, j, i]             # <<<<<<<<<<<<<<
- *             for i in range(cols):
- *                 t_muA[t, i] = t_muA[t, i] / rows
- */
-                                __pyx_t_34 = __pyx_v_t;
-                                __pyx_t_35 = __pyx_v_j;
-                                __pyx_t_36 = __pyx_v_i;
-                                __pyx_t_37 = __pyx_v_t;
-                                __pyx_t_38 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_37 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_38)) )) += (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_34 * __pyx_v_t_A.strides[0]) ) + __pyx_t_35 * __pyx_v_t_A.strides[1]) )) + __pyx_t_36)) )));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":132
- *                 for i in range(cols):
- *                     t_muA[t, i] += t_A[t, j, i]
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_muA[t, i] = t_muA[t, i] / rows
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":133
- *                     t_muA[t, i] += t_A[t, j, i]
- *             for i in range(cols):
- *                 t_muA[t, i] = t_muA[t, i] / rows             # <<<<<<<<<<<<<<
- * 
- *             # A_mA = A - muA
- */
-                              __pyx_t_39 = __pyx_v_t;
-                              __pyx_t_40 = __pyx_v_i;
-                              __pyx_t_41 = __pyx_v_t;
-                              __pyx_t_42 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_41 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_42)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_39 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_40)) ))) / __pyx_v_rows);
-                            }
-
-                            /* "velocyto/speedboosted.pyx":136
- * 
- *             # A_mA = A - muA
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":137
- *             # A_mA = A - muA
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]
- * 
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":138
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]             # <<<<<<<<<<<<<<
- * 
- *             # mub = b.mean()
- */
-                                __pyx_t_43 = __pyx_v_t;
-                                __pyx_t_44 = __pyx_v_j;
-                                __pyx_t_45 = __pyx_v_i;
-                                __pyx_t_46 = __pyx_v_t;
-                                __pyx_t_47 = __pyx_v_i;
-                                __pyx_t_48 = __pyx_v_t;
-                                __pyx_t_49 = __pyx_v_j;
-                                __pyx_t_50 = __pyx_v_i;
-                                *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_48 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_49 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_50)) )) = ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_43 * __pyx_v_t_A.strides[0]) ) + __pyx_t_44 * __pyx_v_t_A.strides[1]) )) + __pyx_t_45)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_46 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_47)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":141
- * 
- *             # mub = b.mean()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":142
- *             # mub = b.mean()
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]             # <<<<<<<<<<<<<<
- *             t_mub[t] = t_mub[t] / rows
- * 
- */
-                              __pyx_t_51 = __pyx_v_c;
-                              __pyx_t_52 = __pyx_v_j;
-                              __pyx_t_53 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_53)) )) += (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_51 * __pyx_v_t_b.strides[0]) )) + __pyx_t_52)) )));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":143
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows             # <<<<<<<<<<<<<<
- * 
- *             # b_mb = b - mub
- */
-                            __pyx_t_54 = __pyx_v_t;
-                            __pyx_t_55 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_55)) )) = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_54)) ))) / __pyx_v_rows);
-
-                            /* "velocyto/speedboosted.pyx":146
- * 
- *             # b_mb = b - mub
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]
- * 
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":147
- *             # b_mb = b - mub
- *             for j in range(rows):
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]             # <<<<<<<<<<<<<<
- * 
- *             # ssA = (A_mA**2).sum(0)
- */
-                              __pyx_t_56 = __pyx_v_c;
-                              __pyx_t_57 = __pyx_v_j;
-                              __pyx_t_58 = __pyx_v_t;
-                              __pyx_t_59 = __pyx_v_t;
-                              __pyx_t_60 = __pyx_v_j;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_59 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_60)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_56 * __pyx_v_t_b.strides[0]) )) + __pyx_t_57)) ))) - (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_58)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":150
- * 
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":151
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- *             for i in range(cols):
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":152
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]             # <<<<<<<<<<<<<<
- *             for i in range(cols):
- *                 t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])
- */
-                                __pyx_t_61 = __pyx_v_t;
-                                __pyx_t_62 = __pyx_v_j;
-                                __pyx_t_63 = __pyx_v_i;
-                                __pyx_t_64 = __pyx_v_t;
-                                __pyx_t_65 = __pyx_v_j;
-                                __pyx_t_66 = __pyx_v_i;
-                                __pyx_t_67 = __pyx_v_t;
-                                __pyx_t_68 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_67 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_68)) )) += ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_61 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_62 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_63)) ))) * (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_64 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_65 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_66)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":153
- *                 for i in range(cols):
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":154
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- *             for i in range(cols):
- *                 t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])             # <<<<<<<<<<<<<<
- * 
- *             # ssb = (b_mb**2).sum()
- */
-                              __pyx_t_69 = __pyx_v_t;
-                              __pyx_t_70 = __pyx_v_i;
-                              __pyx_t_71 = __pyx_v_t;
-                              __pyx_t_72 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_71 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_72)) )) = (1. / sqrt((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_69 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_70)) )))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":157
- * 
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":158
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2             # <<<<<<<<<<<<<<
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- * 
- */
-                              __pyx_t_73 = __pyx_v_t;
-                              __pyx_t_74 = __pyx_v_j;
-                              __pyx_t_75 = __pyx_v_t;
-                              __pyx_t_76 = __pyx_v_j;
-                              __pyx_t_77 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_77)) )) += ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_73 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_74)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_75 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_76)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":159
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])             # <<<<<<<<<<<<<<
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- */
-                            __pyx_t_78 = __pyx_v_t;
-                            __pyx_t_79 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_79)) )) = (1. / sqrt((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_78)) )))));
-
-                            /* "velocyto/speedboosted.pyx":162
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for i in range(cols):
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":163
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]
- */
-                              __pyx_t_80 = __pyx_v_t;
-                              __pyx_t_81 = __pyx_v_j;
-                              __pyx_t_82 = __pyx_v_t;
-                              __pyx_t_83 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_83)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_80 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_81)) ))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_82)) ))));
-
-                              /* "velocyto/speedboosted.pyx":164
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]
- * 
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":165
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for i in range(cols):
- *                     rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]             # <<<<<<<<<<<<<<
- * 
- *             # Cleanup
- */
-                                __pyx_t_84 = __pyx_v_t;
-                                __pyx_t_85 = __pyx_v_j;
-                                __pyx_t_86 = __pyx_v_i;
-                                __pyx_t_87 = __pyx_v_t;
-                                __pyx_t_88 = __pyx_v_i;
-                                __pyx_t_89 = __pyx_v_t;
-                                __pyx_t_90 = __pyx_v_c;
-                                __pyx_t_91 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_90 * __pyx_v_rm.strides[0]) )) + __pyx_t_91)) )) += (((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_84 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_85 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_86)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_87 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_88)) )))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_89)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":168
- * 
- *             # Cleanup
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_muA[t, i] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":169
- *             # Cleanup
- *             for i in range(cols):
- *                 t_muA[t, i] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_mub[t] = 0
- */
-                              __pyx_t_92 = __pyx_v_t;
-                              __pyx_t_93 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_92 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_93)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":171
- *                 t_muA[t, i] = 0
- * 
- *             t_mub[t] = 0             # <<<<<<<<<<<<<<
- * 
- *             for i in range(cols):
- */
-                            __pyx_t_94 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_94)) )) = 0.0;
-
-                            /* "velocyto/speedboosted.pyx":173
- *             t_mub[t] = 0
- * 
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, i] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":174
- * 
- *             for i in range(cols):
- *                 t_ssA[t, i] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_ssb[t] = 0
- */
-                              __pyx_t_95 = __pyx_v_t;
-                              __pyx_t_96 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_95 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_96)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":176
- *                 t_ssA[t, i] = 0
- * 
- *             t_ssb[t] = 0             # <<<<<<<<<<<<<<
- * 
- * 
- */
-                            __pyx_t_97 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_97)) )) = 0.0;
-                        }
-                    }
-                }
-            }
-        }
-        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-            #undef likely
-            #undef unlikely
-            #define likely(x)   __builtin_expect(!!(x), 1)
-            #define unlikely(x) __builtin_expect(!!(x), 0)
-        #endif
-      }
-
-      /* "velocyto/speedboosted.pyx":114
- *         int thread_id
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-      /*finally:*/ {
-        /*normal exit:*/{
-          #ifdef WITH_THREAD
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L5;
-        }
-        __pyx_L5:;
-      }
-  }
-
-  /* "velocyto/speedboosted.pyx":93
- * @cython.wraparound(False)
- * @cython.cdivision(True)
  * def _colDeltaCorLog10(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                       double[:, ::1] d,
- *                       double[:, ::1] rm,
+ *                      double[:, ::1] d,
+ *                      double[:, ::1] rm,
  */
 
   /* function exit code */
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorLog10", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_out, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_muA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A_mA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b_mb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_mub, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_tmp, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_e, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_d, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_rm, 1);
@@ -5235,1563 +6645,9 @@ static PyObject *__pyx_pf_8velocyto_12speedboosted_2_colDeltaCorLog10(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "velocyto/speedboosted.pyx":182
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorSqrt(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                       double[:, ::1] d,
- *                       double[:, ::1] rm,
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_8velocyto_12speedboosted_5_colDeltaCorSqrt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_8velocyto_12speedboosted_5_colDeltaCorSqrt = {"_colDeltaCorSqrt", (PyCFunction)__pyx_pw_8velocyto_12speedboosted_5_colDeltaCorSqrt, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_8velocyto_12speedboosted_5_colDeltaCorSqrt(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  __Pyx_memviewslice __pyx_v_e = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_d = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_rm = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_v_num_threads;
-  CYTHON_UNUSED double __pyx_v_psc;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("_colDeltaCorSqrt (wrapper)", 0);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_e,&__pyx_n_s_d,&__pyx_n_s_rm,&__pyx_n_s_num_threads,&__pyx_n_s_psc,0};
-    PyObject* values[5] = {0,0,0,0,0};
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
-        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_e)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
-        case  1:
-        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_d)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, 1); __PYX_ERR(0, 182, __pyx_L3_error)
-        }
-        case  2:
-        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rm)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, 2); __PYX_ERR(0, 182, __pyx_L3_error)
-        }
-        case  3:
-        if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, 3); __PYX_ERR(0, 182, __pyx_L3_error)
-        }
-        case  4:
-        if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_psc)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, 4); __PYX_ERR(0, 182, __pyx_L3_error)
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorSqrt") < 0)) __PYX_ERR(0, 182, __pyx_L3_error)
-      }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
-      goto __pyx_L5_argtuple_error;
-    } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
-    }
-    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 182, __pyx_L3_error)
-    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 183, __pyx_L3_error)
-    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 184, __pyx_L3_error)
-    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 185, __pyx_L3_error)
-    __pyx_v_psc = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_psc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 186, __pyx_L3_error)
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrt", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 182, __pyx_L3_error)
-  __pyx_L3_error:;
-  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorSqrt", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8velocyto_12speedboosted_4_colDeltaCorSqrt(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_num_threads, __pyx_v_psc);
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_8velocyto_12speedboosted_4_colDeltaCorSqrt(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, int __pyx_v_num_threads, CYTHON_UNUSED double __pyx_v_psc) {
-  Py_ssize_t __pyx_v_rows;
-  Py_ssize_t __pyx_v_cols;
-  Py_ssize_t __pyx_v_i;
-  Py_ssize_t __pyx_v_j;
-  Py_ssize_t __pyx_v_c;
-  Py_ssize_t __pyx_v_t;
-  __Pyx_memviewslice __pyx_v_t_A = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b = { 0, 0, { 0 }, { 0 }, { 0 } };
-  CYTHON_UNUSED __Pyx_memviewslice __pyx_v_t_out = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_muA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_A_mA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b_mb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_mub = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_tmp = { 0, 0, { 0 }, { 0 }, { 0 } };
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  Py_ssize_t __pyx_t_11;
-  Py_ssize_t __pyx_t_12;
-  Py_ssize_t __pyx_t_13;
-  int __pyx_t_14;
-  Py_ssize_t __pyx_t_15;
-  Py_ssize_t __pyx_t_16;
-  Py_ssize_t __pyx_t_17;
-  Py_ssize_t __pyx_t_18;
-  Py_ssize_t __pyx_t_19;
-  Py_ssize_t __pyx_t_20;
-  Py_ssize_t __pyx_t_21;
-  Py_ssize_t __pyx_t_22;
-  Py_ssize_t __pyx_t_23;
-  Py_ssize_t __pyx_t_24;
-  int __pyx_t_25;
-  Py_ssize_t __pyx_t_26;
-  Py_ssize_t __pyx_t_27;
-  Py_ssize_t __pyx_t_28;
-  Py_ssize_t __pyx_t_29;
-  Py_ssize_t __pyx_t_30;
-  Py_ssize_t __pyx_t_31;
-  Py_ssize_t __pyx_t_32;
-  Py_ssize_t __pyx_t_33;
-  Py_ssize_t __pyx_t_34;
-  Py_ssize_t __pyx_t_35;
-  Py_ssize_t __pyx_t_36;
-  Py_ssize_t __pyx_t_37;
-  Py_ssize_t __pyx_t_38;
-  Py_ssize_t __pyx_t_39;
-  Py_ssize_t __pyx_t_40;
-  Py_ssize_t __pyx_t_41;
-  Py_ssize_t __pyx_t_42;
-  Py_ssize_t __pyx_t_43;
-  Py_ssize_t __pyx_t_44;
-  Py_ssize_t __pyx_t_45;
-  Py_ssize_t __pyx_t_46;
-  Py_ssize_t __pyx_t_47;
-  Py_ssize_t __pyx_t_48;
-  Py_ssize_t __pyx_t_49;
-  Py_ssize_t __pyx_t_50;
-  Py_ssize_t __pyx_t_51;
-  Py_ssize_t __pyx_t_52;
-  Py_ssize_t __pyx_t_53;
-  Py_ssize_t __pyx_t_54;
-  Py_ssize_t __pyx_t_55;
-  Py_ssize_t __pyx_t_56;
-  Py_ssize_t __pyx_t_57;
-  Py_ssize_t __pyx_t_58;
-  Py_ssize_t __pyx_t_59;
-  Py_ssize_t __pyx_t_60;
-  Py_ssize_t __pyx_t_61;
-  Py_ssize_t __pyx_t_62;
-  Py_ssize_t __pyx_t_63;
-  Py_ssize_t __pyx_t_64;
-  Py_ssize_t __pyx_t_65;
-  Py_ssize_t __pyx_t_66;
-  Py_ssize_t __pyx_t_67;
-  Py_ssize_t __pyx_t_68;
-  Py_ssize_t __pyx_t_69;
-  Py_ssize_t __pyx_t_70;
-  Py_ssize_t __pyx_t_71;
-  Py_ssize_t __pyx_t_72;
-  Py_ssize_t __pyx_t_73;
-  Py_ssize_t __pyx_t_74;
-  Py_ssize_t __pyx_t_75;
-  Py_ssize_t __pyx_t_76;
-  Py_ssize_t __pyx_t_77;
-  Py_ssize_t __pyx_t_78;
-  Py_ssize_t __pyx_t_79;
-  Py_ssize_t __pyx_t_80;
-  Py_ssize_t __pyx_t_81;
-  Py_ssize_t __pyx_t_82;
-  Py_ssize_t __pyx_t_83;
-  Py_ssize_t __pyx_t_84;
-  Py_ssize_t __pyx_t_85;
-  Py_ssize_t __pyx_t_86;
-  Py_ssize_t __pyx_t_87;
-  Py_ssize_t __pyx_t_88;
-  Py_ssize_t __pyx_t_89;
-  Py_ssize_t __pyx_t_90;
-  Py_ssize_t __pyx_t_91;
-  Py_ssize_t __pyx_t_92;
-  Py_ssize_t __pyx_t_93;
-  Py_ssize_t __pyx_t_94;
-  Py_ssize_t __pyx_t_95;
-  Py_ssize_t __pyx_t_96;
-  Py_ssize_t __pyx_t_97;
-  __Pyx_RefNannySetupContext("_colDeltaCorSqrt", 0);
-
-  /* "velocyto/speedboosted.pyx":188
- *                       double psc):
- *     cdef:
- *         Py_ssize_t rows = e.shape[0]             # <<<<<<<<<<<<<<
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t i, j, c, t
- */
-  __pyx_v_rows = (__pyx_v_e.shape[0]);
-
-  /* "velocyto/speedboosted.pyx":189
- *     cdef:
- *         Py_ssize_t rows = e.shape[0]
- *         Py_ssize_t cols = e.shape[1]             # <<<<<<<<<<<<<<
- *         Py_ssize_t i, j, c, t
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
- */
-  __pyx_v_cols = (__pyx_v_e.shape[1]);
-
-  /* "velocyto/speedboosted.pyx":191
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t i, j, c, t
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 191, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 191, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 191, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 191, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 191, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 191, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_t_5);
-  __pyx_t_2 = 0;
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 191, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_6);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_6);
-      __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_1);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 191, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_t_A = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":192
- *         Py_ssize_t i, j, c, t
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 192, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 192, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_8 = __pyx_v_d;
-  __PYX_INC_MEMVIEW(&__pyx_t_8, 1);
-  if (unlikely(__pyx_memslice_transpose(&__pyx_t_8) == 0)) __PYX_ERR(0, 192, __pyx_L1_error)
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_8, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 192, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 192, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 192, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) __PYX_ERR(0, 192, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 192, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 192, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":193
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 193, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 193, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 193, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 193, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 193, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_3);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 193, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 193, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 193, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 193, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 193, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 193, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_out = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":194
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 194, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 194, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 194, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 194, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 194, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_5);
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 194, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 194, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 194, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 194, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 194, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 194, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_muA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":195
- *         double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 195, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 195, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 195, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 195, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 195, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 195, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_5);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 195, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 195, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 195, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 195, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 195, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 195, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_A_mA = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":196
- *         double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- *         double[::1] t_mub = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 196, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 196, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 196, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyInt_FromSsize_t((__pyx_v_d.shape[0])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 196, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 196, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_2);
-  __pyx_t_4 = 0;
-  __pyx_t_2 = 0;
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 196, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 196, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 196, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 196, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 196, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 196, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b_mb = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":197
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))             # <<<<<<<<<<<<<<
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 197, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 197, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 197, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t((__pyx_v_e.shape[1])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 197, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 197, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 197, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 197, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 197, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 197, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 197, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":198
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- *         double[::1] t_mub = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 198, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 198, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 198, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 198, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 198, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 198, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 198, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_4);
-      PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_4);
-      __pyx_t_4 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 198, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 198, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_mub = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":199
- *         double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_tmp = np.zeros(num_threads)
- *         int thread_id
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 199, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 199, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 199, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_5);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_5, function);
-    }
-  }
-  if (!__pyx_t_4) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 199, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 199, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 199, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 199, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4); __pyx_t_4 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 199, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 199, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssb = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":200
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         int thread_id
+/* "velocyto/speedboosted.pyx":572
+ *     x_colDeltaCorLog10(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
  * 
- */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 200, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 200, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 200, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 200, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 200, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 200, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 200, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 200, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 200, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_tmp = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":203
- *         int thread_id
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-  {
-      #ifdef WITH_THREAD
-      PyThreadState *_save;
-      Py_UNBLOCK_THREADS
-      #endif
-      /*try:*/ {
-
-        /* "velocyto/speedboosted.pyx":204
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):             # <<<<<<<<<<<<<<
- *             t = threadid() # or
- * 
- */
-        __pyx_t_11 = __pyx_v_cols;
-        if (1 == 0) abort();
-        {
-            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                #undef likely
-                #undef unlikely
-                #define likely(x)   (x)
-                #define unlikely(x) (x)
-            #endif
-            __pyx_t_13 = (__pyx_t_11 - 0 + 1 - 1/abs(1)) / 1;
-            if (__pyx_t_13 > 0)
-            {
-                #ifdef _OPENMP
-                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_30, __pyx_t_31, __pyx_t_32, __pyx_t_33, __pyx_t_34, __pyx_t_35, __pyx_t_36, __pyx_t_37, __pyx_t_38, __pyx_t_39, __pyx_t_40, __pyx_t_41, __pyx_t_42, __pyx_t_43, __pyx_t_44, __pyx_t_45, __pyx_t_46, __pyx_t_47, __pyx_t_48, __pyx_t_49, __pyx_t_50, __pyx_t_51, __pyx_t_52, __pyx_t_53, __pyx_t_54, __pyx_t_55, __pyx_t_56, __pyx_t_57, __pyx_t_58, __pyx_t_59, __pyx_t_60, __pyx_t_61, __pyx_t_62, __pyx_t_63, __pyx_t_64, __pyx_t_65, __pyx_t_66, __pyx_t_67, __pyx_t_68, __pyx_t_69, __pyx_t_70, __pyx_t_71, __pyx_t_72, __pyx_t_73, __pyx_t_74, __pyx_t_75, __pyx_t_76, __pyx_t_77, __pyx_t_78, __pyx_t_79, __pyx_t_80, __pyx_t_81, __pyx_t_82, __pyx_t_83, __pyx_t_84, __pyx_t_85, __pyx_t_86, __pyx_t_87, __pyx_t_88, __pyx_t_89, __pyx_t_90, __pyx_t_91, __pyx_t_92, __pyx_t_93, __pyx_t_94, __pyx_t_95, __pyx_t_96, __pyx_t_97)
-                #endif /* _OPENMP */
-                {
-                    #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_t) schedule(static)
-                    #endif /* _OPENMP */
-                    for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_13; __pyx_t_12++){
-                        {
-                            __pyx_v_c = (Py_ssize_t)(0 + 1 * __pyx_t_12);
-                            /* Initialize private variables to invalid values */
-                            __pyx_v_i = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_j = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_t = ((Py_ssize_t)0xbad0bad0);
-
-                            /* "velocyto/speedboosted.pyx":205
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or             # <<<<<<<<<<<<<<
- * 
- *             # subtract the cth column
- */
-                            #ifdef _OPENMP
-                            __pyx_t_14 = omp_get_thread_num();
-                            #else
-                            __pyx_t_14 = 0;
-                            #endif
-                            __pyx_v_t = __pyx_t_14;
-
-                            /* "velocyto/speedboosted.pyx":208
- * 
- *             # subtract the cth column
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_tmp[t] = e[j, i] - e[j, c]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":209
- *             # subtract the cth column
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":210
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_tmp[t] = e[j, i] - e[j, c]             # <<<<<<<<<<<<<<
- *                     if t_tmp[t] > 0:
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + 1)
- */
-                                __pyx_t_19 = __pyx_v_j;
-                                __pyx_t_20 = __pyx_v_i;
-                                __pyx_t_21 = __pyx_v_j;
-                                __pyx_t_22 = __pyx_v_c;
-                                __pyx_t_23 = __pyx_v_t;
-                                *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_23)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_19 * __pyx_v_e.strides[0]) )) + __pyx_t_20)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_21 * __pyx_v_e.strides[0]) )) + __pyx_t_22)) ))));
-
-                                /* "velocyto/speedboosted.pyx":211
- *                 for i in range(cols):
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:             # <<<<<<<<<<<<<<
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + 1)
- *                     else:
- */
-                                __pyx_t_24 = __pyx_v_t;
-                                __pyx_t_25 = (((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_24)) ))) > 0.0) != 0);
-                                if (__pyx_t_25) {
-
-                                  /* "velocyto/speedboosted.pyx":212
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + 1)             # <<<<<<<<<<<<<<
- *                     else:
- *                         t_A[t, j, i] = -log10(fabs(t_tmp[t]) + 1)
- */
-                                  __pyx_t_26 = __pyx_v_t;
-                                  __pyx_t_27 = __pyx_v_t;
-                                  __pyx_t_28 = __pyx_v_j;
-                                  __pyx_t_29 = __pyx_v_i;
-                                  *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_27 * __pyx_v_t_A.strides[0]) ) + __pyx_t_28 * __pyx_v_t_A.strides[1]) )) + __pyx_t_29)) )) = log10((fabs((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_26)) )))) + 1.0));
-
-                                  /* "velocyto/speedboosted.pyx":211
- *                 for i in range(cols):
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:             # <<<<<<<<<<<<<<
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + 1)
- *                     else:
- */
-                                  goto __pyx_L14;
-                                }
-
-                                /* "velocyto/speedboosted.pyx":214
- *                         t_A[t, j, i] = log10(fabs(t_tmp[t]) + 1)
- *                     else:
- *                         t_A[t, j, i] = -log10(fabs(t_tmp[t]) + 1)             # <<<<<<<<<<<<<<
- * 
- * 
- */
-                                /*else*/ {
-                                  __pyx_t_30 = __pyx_v_t;
-                                  __pyx_t_31 = __pyx_v_t;
-                                  __pyx_t_32 = __pyx_v_j;
-                                  __pyx_t_33 = __pyx_v_i;
-                                  *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_31 * __pyx_v_t_A.strides[0]) ) + __pyx_t_32 * __pyx_v_t_A.strides[1]) )) + __pyx_t_33)) )) = (-log10((fabs((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_30)) )))) + 1.0)));
-                                }
-                                __pyx_L14:;
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":218
- * 
- *             #muA = A.mean(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_muA[t, i] += t_A[t, j, i]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":219
- *             #muA = A.mean(0)
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_muA[t, i] += t_A[t, j, i]
- *             for i in range(cols):
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":220
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_muA[t, i] += t_A[t, j, i]             # <<<<<<<<<<<<<<
- *             for i in range(cols):
- *                 t_muA[t, i] = t_muA[t, i] / rows
- */
-                                __pyx_t_34 = __pyx_v_t;
-                                __pyx_t_35 = __pyx_v_j;
-                                __pyx_t_36 = __pyx_v_i;
-                                __pyx_t_37 = __pyx_v_t;
-                                __pyx_t_38 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_37 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_38)) )) += (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_34 * __pyx_v_t_A.strides[0]) ) + __pyx_t_35 * __pyx_v_t_A.strides[1]) )) + __pyx_t_36)) )));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":221
- *                 for i in range(cols):
- *                     t_muA[t, i] += t_A[t, j, i]
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_muA[t, i] = t_muA[t, i] / rows
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":222
- *                     t_muA[t, i] += t_A[t, j, i]
- *             for i in range(cols):
- *                 t_muA[t, i] = t_muA[t, i] / rows             # <<<<<<<<<<<<<<
- * 
- *             # A_mA = A - muA
- */
-                              __pyx_t_39 = __pyx_v_t;
-                              __pyx_t_40 = __pyx_v_i;
-                              __pyx_t_41 = __pyx_v_t;
-                              __pyx_t_42 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_41 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_42)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_39 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_40)) ))) / __pyx_v_rows);
-                            }
-
-                            /* "velocyto/speedboosted.pyx":225
- * 
- *             # A_mA = A - muA
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":226
- *             # A_mA = A - muA
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]
- * 
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":227
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]             # <<<<<<<<<<<<<<
- * 
- *             # mub = b.mean()
- */
-                                __pyx_t_43 = __pyx_v_t;
-                                __pyx_t_44 = __pyx_v_j;
-                                __pyx_t_45 = __pyx_v_i;
-                                __pyx_t_46 = __pyx_v_t;
-                                __pyx_t_47 = __pyx_v_i;
-                                __pyx_t_48 = __pyx_v_t;
-                                __pyx_t_49 = __pyx_v_j;
-                                __pyx_t_50 = __pyx_v_i;
-                                *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_48 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_49 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_50)) )) = ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_43 * __pyx_v_t_A.strides[0]) ) + __pyx_t_44 * __pyx_v_t_A.strides[1]) )) + __pyx_t_45)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_46 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_47)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":230
- * 
- *             # mub = b.mean()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":231
- *             # mub = b.mean()
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]             # <<<<<<<<<<<<<<
- *             t_mub[t] = t_mub[t] / rows
- * 
- */
-                              __pyx_t_51 = __pyx_v_c;
-                              __pyx_t_52 = __pyx_v_j;
-                              __pyx_t_53 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_53)) )) += (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_51 * __pyx_v_t_b.strides[0]) )) + __pyx_t_52)) )));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":232
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows             # <<<<<<<<<<<<<<
- * 
- *             # b_mb = b - mub
- */
-                            __pyx_t_54 = __pyx_v_t;
-                            __pyx_t_55 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_55)) )) = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_54)) ))) / __pyx_v_rows);
-
-                            /* "velocyto/speedboosted.pyx":235
- * 
- *             # b_mb = b - mub
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]
- * 
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":236
- *             # b_mb = b - mub
- *             for j in range(rows):
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]             # <<<<<<<<<<<<<<
- * 
- *             # ssA = (A_mA**2).sum(0)
- */
-                              __pyx_t_56 = __pyx_v_c;
-                              __pyx_t_57 = __pyx_v_j;
-                              __pyx_t_58 = __pyx_v_t;
-                              __pyx_t_59 = __pyx_v_t;
-                              __pyx_t_60 = __pyx_v_j;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_59 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_60)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_56 * __pyx_v_t_b.strides[0]) )) + __pyx_t_57)) ))) - (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_58)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":239
- * 
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":240
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- *             for i in range(cols):
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":241
- *             for j in range(rows):
- *                 for i in range(cols):
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]             # <<<<<<<<<<<<<<
- *             for i in range(cols):
- *                 t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])
- */
-                                __pyx_t_61 = __pyx_v_t;
-                                __pyx_t_62 = __pyx_v_j;
-                                __pyx_t_63 = __pyx_v_i;
-                                __pyx_t_64 = __pyx_v_t;
-                                __pyx_t_65 = __pyx_v_j;
-                                __pyx_t_66 = __pyx_v_i;
-                                __pyx_t_67 = __pyx_v_t;
-                                __pyx_t_68 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_67 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_68)) )) += ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_61 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_62 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_63)) ))) * (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_64 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_65 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_66)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":242
- *                 for i in range(cols):
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":243
- *                     t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
- *             for i in range(cols):
- *                 t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])             # <<<<<<<<<<<<<<
- * 
- *             # ssb = (b_mb**2).sum()
- */
-                              __pyx_t_69 = __pyx_v_t;
-                              __pyx_t_70 = __pyx_v_i;
-                              __pyx_t_71 = __pyx_v_t;
-                              __pyx_t_72 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_71 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_72)) )) = (1. / sqrt((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_69 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_70)) )))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":246
- * 
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":247
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2             # <<<<<<<<<<<<<<
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- * 
- */
-                              __pyx_t_73 = __pyx_v_t;
-                              __pyx_t_74 = __pyx_v_j;
-                              __pyx_t_75 = __pyx_v_t;
-                              __pyx_t_76 = __pyx_v_j;
-                              __pyx_t_77 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_77)) )) += ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_73 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_74)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_75 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_76)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":248
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])             # <<<<<<<<<<<<<<
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- */
-                            __pyx_t_78 = __pyx_v_t;
-                            __pyx_t_79 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_79)) )) = (1. / sqrt((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_78)) )))));
-
-                            /* "velocyto/speedboosted.pyx":251
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for i in range(cols):
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":252
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]             # <<<<<<<<<<<<<<
- *                 for i in range(cols):
- *                     rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]
- */
-                              __pyx_t_80 = __pyx_v_t;
-                              __pyx_t_81 = __pyx_v_j;
-                              __pyx_t_82 = __pyx_v_t;
-                              __pyx_t_83 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_83)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_80 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_81)) ))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_82)) ))));
-
-                              /* "velocyto/speedboosted.pyx":253
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for i in range(cols):             # <<<<<<<<<<<<<<
- *                     rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]
- * 
- */
-                              __pyx_t_17 = __pyx_v_cols;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_i = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":254
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for i in range(cols):
- *                     rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]             # <<<<<<<<<<<<<<
- * 
- *             # Cleanup
- */
-                                __pyx_t_84 = __pyx_v_t;
-                                __pyx_t_85 = __pyx_v_j;
-                                __pyx_t_86 = __pyx_v_i;
-                                __pyx_t_87 = __pyx_v_t;
-                                __pyx_t_88 = __pyx_v_i;
-                                __pyx_t_89 = __pyx_v_t;
-                                __pyx_t_90 = __pyx_v_c;
-                                __pyx_t_91 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_90 * __pyx_v_rm.strides[0]) )) + __pyx_t_91)) )) += (((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_84 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_85 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_86)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_87 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_88)) )))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_89)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":257
- * 
- *             # Cleanup
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_muA[t, i] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":258
- *             # Cleanup
- *             for i in range(cols):
- *                 t_muA[t, i] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_mub[t] = 0
- */
-                              __pyx_t_92 = __pyx_v_t;
-                              __pyx_t_93 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_92 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_93)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":260
- *                 t_muA[t, i] = 0
- * 
- *             t_mub[t] = 0             # <<<<<<<<<<<<<<
- * 
- *             for i in range(cols):
- */
-                            __pyx_t_94 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_94)) )) = 0.0;
-
-                            /* "velocyto/speedboosted.pyx":262
- *             t_mub[t] = 0
- * 
- *             for i in range(cols):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, i] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_cols;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_i = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":263
- * 
- *             for i in range(cols):
- *                 t_ssA[t, i] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_ssb[t] = 0
- */
-                              __pyx_t_95 = __pyx_v_t;
-                              __pyx_t_96 = __pyx_v_i;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_95 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_96)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":265
- *                 t_ssA[t, i] = 0
- * 
- *             t_ssb[t] = 0             # <<<<<<<<<<<<<<
- * 
- * 
- */
-                            __pyx_t_97 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_97)) )) = 0.0;
-                        }
-                    }
-                }
-            }
-        }
-        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-            #undef likely
-            #undef unlikely
-            #define likely(x)   __builtin_expect(!!(x), 1)
-            #define unlikely(x) __builtin_expect(!!(x), 0)
-        #endif
-      }
-
-      /* "velocyto/speedboosted.pyx":203
- *         int thread_id
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-      /*finally:*/ {
-        /*normal exit:*/{
-          #ifdef WITH_THREAD
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L5;
-        }
-        __pyx_L5:;
-      }
-  }
-
-  /* "velocyto/speedboosted.pyx":182
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorSqrt(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                       double[:, ::1] d,
- *                       double[:, ::1] rm,
- */
-
-  /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
-  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorSqrt", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_out, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_muA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A_mA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b_mb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_mub, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_tmp, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_e, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_d, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_rm, 1);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "velocyto/speedboosted.pyx":271
- * @cython.wraparound(False)
- * @cython.cdivision(True)
  * def _colDeltaCorpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
  *                         double[:, ::1] d,
  *                         double[:, ::1] rm,
@@ -6806,1560 +6662,10 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_7_colDeltaCorpartial(PyObject
   __Pyx_memviewslice __pyx_v_rm = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_ixs = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_num_threads;
+  CYTHON_UNUSED double __pyx_v_psc;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_colDeltaCorpartial (wrapper)", 0);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_e,&__pyx_n_s_d,&__pyx_n_s_rm,&__pyx_n_s_ixs,&__pyx_n_s_num_threads,0};
-    PyObject* values[5] = {0,0,0,0,0};
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
-        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_e)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
-        case  1:
-        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_d)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 5, 5, 1); __PYX_ERR(0, 271, __pyx_L3_error)
-        }
-        case  2:
-        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rm)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 5, 5, 2); __PYX_ERR(0, 271, __pyx_L3_error)
-        }
-        case  3:
-        if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_ixs)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 5, 5, 3); __PYX_ERR(0, 271, __pyx_L3_error)
-        }
-        case  4:
-        if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 5, 5, 4); __PYX_ERR(0, 271, __pyx_L3_error)
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorpartial") < 0)) __PYX_ERR(0, 271, __pyx_L3_error)
-      }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
-      goto __pyx_L5_argtuple_error;
-    } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
-    }
-    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 271, __pyx_L3_error)
-    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 272, __pyx_L3_error)
-    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 273, __pyx_L3_error)
-    __pyx_v_ixs = __Pyx_PyObject_to_MemoryviewSlice_d_dc_Py_ssize_t(values[3]); if (unlikely(!__pyx_v_ixs.memview)) __PYX_ERR(0, 274, __pyx_L3_error)
-    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 275, __pyx_L3_error)
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 271, __pyx_L3_error)
-  __pyx_L3_error:;
-  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorpartial", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8velocyto_12speedboosted_6_colDeltaCorpartial(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_ixs, __pyx_v_num_threads);
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_8velocyto_12speedboosted_6_colDeltaCorpartial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads) {
-  Py_ssize_t __pyx_v_rows;
-  CYTHON_UNUSED Py_ssize_t __pyx_v_cols;
-  Py_ssize_t __pyx_v_nrndm;
-  Py_ssize_t __pyx_v_i;
-  Py_ssize_t __pyx_v_j;
-  Py_ssize_t __pyx_v_c;
-  Py_ssize_t __pyx_v_t;
-  Py_ssize_t __pyx_v_n;
-  __Pyx_memviewslice __pyx_v_t_A = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b = { 0, 0, { 0 }, { 0 }, { 0 } };
-  CYTHON_UNUSED __Pyx_memviewslice __pyx_v_t_out = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_muA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_A_mA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b_mb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_mub = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_tmp = { 0, 0, { 0 }, { 0 }, { 0 } };
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  Py_ssize_t __pyx_t_11;
-  Py_ssize_t __pyx_t_12;
-  Py_ssize_t __pyx_t_13;
-  int __pyx_t_14;
-  Py_ssize_t __pyx_t_15;
-  Py_ssize_t __pyx_t_16;
-  Py_ssize_t __pyx_t_17;
-  Py_ssize_t __pyx_t_18;
-  Py_ssize_t __pyx_t_19;
-  Py_ssize_t __pyx_t_20;
-  Py_ssize_t __pyx_t_21;
-  Py_ssize_t __pyx_t_22;
-  Py_ssize_t __pyx_t_23;
-  Py_ssize_t __pyx_t_24;
-  Py_ssize_t __pyx_t_25;
-  Py_ssize_t __pyx_t_26;
-  Py_ssize_t __pyx_t_27;
-  Py_ssize_t __pyx_t_28;
-  Py_ssize_t __pyx_t_29;
-  Py_ssize_t __pyx_t_30;
-  Py_ssize_t __pyx_t_31;
-  Py_ssize_t __pyx_t_32;
-  Py_ssize_t __pyx_t_33;
-  Py_ssize_t __pyx_t_34;
-  Py_ssize_t __pyx_t_35;
-  Py_ssize_t __pyx_t_36;
-  Py_ssize_t __pyx_t_37;
-  Py_ssize_t __pyx_t_38;
-  Py_ssize_t __pyx_t_39;
-  Py_ssize_t __pyx_t_40;
-  Py_ssize_t __pyx_t_41;
-  Py_ssize_t __pyx_t_42;
-  Py_ssize_t __pyx_t_43;
-  Py_ssize_t __pyx_t_44;
-  Py_ssize_t __pyx_t_45;
-  Py_ssize_t __pyx_t_46;
-  Py_ssize_t __pyx_t_47;
-  Py_ssize_t __pyx_t_48;
-  Py_ssize_t __pyx_t_49;
-  Py_ssize_t __pyx_t_50;
-  Py_ssize_t __pyx_t_51;
-  Py_ssize_t __pyx_t_52;
-  Py_ssize_t __pyx_t_53;
-  Py_ssize_t __pyx_t_54;
-  Py_ssize_t __pyx_t_55;
-  Py_ssize_t __pyx_t_56;
-  Py_ssize_t __pyx_t_57;
-  Py_ssize_t __pyx_t_58;
-  Py_ssize_t __pyx_t_59;
-  Py_ssize_t __pyx_t_60;
-  Py_ssize_t __pyx_t_61;
-  Py_ssize_t __pyx_t_62;
-  Py_ssize_t __pyx_t_63;
-  Py_ssize_t __pyx_t_64;
-  Py_ssize_t __pyx_t_65;
-  Py_ssize_t __pyx_t_66;
-  Py_ssize_t __pyx_t_67;
-  Py_ssize_t __pyx_t_68;
-  Py_ssize_t __pyx_t_69;
-  Py_ssize_t __pyx_t_70;
-  Py_ssize_t __pyx_t_71;
-  Py_ssize_t __pyx_t_72;
-  Py_ssize_t __pyx_t_73;
-  Py_ssize_t __pyx_t_74;
-  Py_ssize_t __pyx_t_75;
-  Py_ssize_t __pyx_t_76;
-  Py_ssize_t __pyx_t_77;
-  Py_ssize_t __pyx_t_78;
-  Py_ssize_t __pyx_t_79;
-  Py_ssize_t __pyx_t_80;
-  Py_ssize_t __pyx_t_81;
-  Py_ssize_t __pyx_t_82;
-  Py_ssize_t __pyx_t_83;
-  Py_ssize_t __pyx_t_84;
-  Py_ssize_t __pyx_t_85;
-  Py_ssize_t __pyx_t_86;
-  Py_ssize_t __pyx_t_87;
-  Py_ssize_t __pyx_t_88;
-  Py_ssize_t __pyx_t_89;
-  Py_ssize_t __pyx_t_90;
-  Py_ssize_t __pyx_t_91;
-  Py_ssize_t __pyx_t_92;
-  Py_ssize_t __pyx_t_93;
-  Py_ssize_t __pyx_t_94;
-  Py_ssize_t __pyx_t_95;
-  __Pyx_RefNannySetupContext("_colDeltaCorpartial", 0);
-
-  /* "velocyto/speedboosted.pyx":277
- *                         int num_threads):
- *     cdef:
- *         Py_ssize_t rows = e.shape[0]             # <<<<<<<<<<<<<<
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t nrndm = ixs.shape[1]
- */
-  __pyx_v_rows = (__pyx_v_e.shape[0]);
-
-  /* "velocyto/speedboosted.pyx":278
- *     cdef:
- *         Py_ssize_t rows = e.shape[0]
- *         Py_ssize_t cols = e.shape[1]             # <<<<<<<<<<<<<<
- *         Py_ssize_t nrndm = ixs.shape[1]
- *         Py_ssize_t i, j, c, t, n
- */
-  __pyx_v_cols = (__pyx_v_e.shape[1]);
-
-  /* "velocyto/speedboosted.pyx":279
- *         Py_ssize_t rows = e.shape[0]
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t nrndm = ixs.shape[1]             # <<<<<<<<<<<<<<
- *         Py_ssize_t i, j, c, t, n
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
- */
-  __pyx_v_nrndm = (__pyx_v_ixs.shape[1]);
-
-  /* "velocyto/speedboosted.pyx":281
- *         Py_ssize_t nrndm = ixs.shape[1]
- *         Py_ssize_t i, j, c, t, n
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_t_5);
-  __pyx_t_2 = 0;
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 281, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 281, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 281, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 281, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_6);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_6);
-      __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 281, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_1);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_t_A = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":282
- *         Py_ssize_t i, j, c, t, n
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 282, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 282, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_8 = __pyx_v_d;
-  __PYX_INC_MEMVIEW(&__pyx_t_8, 1);
-  if (unlikely(__pyx_memslice_transpose(&__pyx_t_8) == 0)) __PYX_ERR(0, 282, __pyx_L1_error)
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_8, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 282, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 282, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 282, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) __PYX_ERR(0, 282, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 282, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 282, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":283
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 283, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 283, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 283, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_3);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 283, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 283, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 283, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 283, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 283, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_out = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":284
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))             # <<<<<<<<<<<<<<
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 284, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 284, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 284, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 284, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 284, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_5);
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 284, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 284, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 284, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 284, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 284, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 284, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_muA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":285
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 285, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 285, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 285, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 285, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 285, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 285, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_5);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 285, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 285, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 285, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 285, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 285, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 285, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_A_mA = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":286
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- *         double[::1] t_mub = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 286, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 286, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 286, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyInt_FromSsize_t((__pyx_v_d.shape[0])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 286, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 286, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_2);
-  __pyx_t_4 = 0;
-  __pyx_t_2 = 0;
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 286, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 286, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 286, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 286, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 286, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 286, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b_mb = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":287
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))             # <<<<<<<<<<<<<<
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 287, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":288
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- *         double[::1] t_mub = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 288, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 288, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 288, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 288, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 288, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 288, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 288, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_4);
-      PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_4);
-      __pyx_t_4 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 288, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 288, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_mub = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":289
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_tmp = np.zeros(num_threads)
- *         int thread_id
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 289, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 289, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 289, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_5);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_5, function);
-    }
-  }
-  if (!__pyx_t_4) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 289, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 289, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 289, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 289, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4); __pyx_t_4 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 289, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 289, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssb = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":290
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         int thread_id
- * 
- */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 290, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 290, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 290, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 290, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 290, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 290, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 290, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 290, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_tmp = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":293
- *         int thread_id
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-  {
-      #ifdef WITH_THREAD
-      PyThreadState *_save;
-      Py_UNBLOCK_THREADS
-      #endif
-      /*try:*/ {
-
-        /* "velocyto/speedboosted.pyx":294
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):             # <<<<<<<<<<<<<<
- *             t = threadid() # or
- * 
- */
-        __pyx_t_11 = __pyx_v_cols;
-        if (1 == 0) abort();
-        {
-            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                #undef likely
-                #undef unlikely
-                #define likely(x)   (x)
-                #define unlikely(x) (x)
-            #endif
-            __pyx_t_13 = (__pyx_t_11 - 0 + 1 - 1/abs(1)) / 1;
-            if (__pyx_t_13 > 0)
-            {
-                #ifdef _OPENMP
-                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_30, __pyx_t_31, __pyx_t_32, __pyx_t_33, __pyx_t_34, __pyx_t_35, __pyx_t_36, __pyx_t_37, __pyx_t_38, __pyx_t_39, __pyx_t_40, __pyx_t_41, __pyx_t_42, __pyx_t_43, __pyx_t_44, __pyx_t_45, __pyx_t_46, __pyx_t_47, __pyx_t_48, __pyx_t_49, __pyx_t_50, __pyx_t_51, __pyx_t_52, __pyx_t_53, __pyx_t_54, __pyx_t_55, __pyx_t_56, __pyx_t_57, __pyx_t_58, __pyx_t_59, __pyx_t_60, __pyx_t_61, __pyx_t_62, __pyx_t_63, __pyx_t_64, __pyx_t_65, __pyx_t_66, __pyx_t_67, __pyx_t_68, __pyx_t_69, __pyx_t_70, __pyx_t_71, __pyx_t_72, __pyx_t_73, __pyx_t_74, __pyx_t_75, __pyx_t_76, __pyx_t_77, __pyx_t_78, __pyx_t_79, __pyx_t_80, __pyx_t_81, __pyx_t_82, __pyx_t_83, __pyx_t_84, __pyx_t_85, __pyx_t_86, __pyx_t_87, __pyx_t_88, __pyx_t_89, __pyx_t_90, __pyx_t_91, __pyx_t_92, __pyx_t_93, __pyx_t_94, __pyx_t_95)
-                #endif /* _OPENMP */
-                {
-                    #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_n) lastprivate(__pyx_v_t) schedule(static)
-                    #endif /* _OPENMP */
-                    for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_13; __pyx_t_12++){
-                        {
-                            __pyx_v_c = (Py_ssize_t)(0 + 1 * __pyx_t_12);
-                            /* Initialize private variables to invalid values */
-                            __pyx_v_i = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_j = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_n = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_t = ((Py_ssize_t)0xbad0bad0);
-
-                            /* "velocyto/speedboosted.pyx":295
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or             # <<<<<<<<<<<<<<
- * 
- *             # subtract the cth column
- */
-                            #ifdef _OPENMP
-                            __pyx_t_14 = omp_get_thread_num();
-                            #else
-                            __pyx_t_14 = 0;
-                            #endif
-                            __pyx_v_t = __pyx_t_14;
-
-                            /* "velocyto/speedboosted.pyx":298
- * 
- *             # subtract the cth column
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":299
- *             # subtract the cth column
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     i = ixs[c, n]
- *                     t_A[t, j, n] = e[j, i] - e[j, c]
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":300
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]             # <<<<<<<<<<<<<<
- *                     t_A[t, j, n] = e[j, i] - e[j, c]
- * 
- */
-                                __pyx_t_19 = __pyx_v_c;
-                                __pyx_t_20 = __pyx_v_n;
-                                __pyx_v_i = (*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_19 * __pyx_v_ixs.strides[0]) )) + __pyx_t_20)) )));
-
-                                /* "velocyto/speedboosted.pyx":301
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- *                     t_A[t, j, n] = e[j, i] - e[j, c]             # <<<<<<<<<<<<<<
- * 
- * 
- */
-                                __pyx_t_21 = __pyx_v_j;
-                                __pyx_t_22 = __pyx_v_i;
-                                __pyx_t_23 = __pyx_v_j;
-                                __pyx_t_24 = __pyx_v_c;
-                                __pyx_t_25 = __pyx_v_t;
-                                __pyx_t_26 = __pyx_v_j;
-                                __pyx_t_27 = __pyx_v_n;
-                                *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_25 * __pyx_v_t_A.strides[0]) ) + __pyx_t_26 * __pyx_v_t_A.strides[1]) )) + __pyx_t_27)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_21 * __pyx_v_e.strides[0]) )) + __pyx_t_22)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_23 * __pyx_v_e.strides[0]) )) + __pyx_t_24)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":305
- * 
- *             #muA = A.mean(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":306
- *             #muA = A.mean(0)
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     i = ixs[c, n]
- *                     t_muA[t, n] += t_A[t, j, n]
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":307
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]             # <<<<<<<<<<<<<<
- *                     t_muA[t, n] += t_A[t, j, n]
- *             for n in range(nrndm):
- */
-                                __pyx_t_28 = __pyx_v_c;
-                                __pyx_t_29 = __pyx_v_n;
-                                __pyx_v_i = (*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_28 * __pyx_v_ixs.strides[0]) )) + __pyx_t_29)) )));
-
-                                /* "velocyto/speedboosted.pyx":308
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- *                     t_muA[t, n] += t_A[t, j, n]             # <<<<<<<<<<<<<<
- *             for n in range(nrndm):
- *                 t_muA[t, n] = t_muA[t, n] / rows
- */
-                                __pyx_t_30 = __pyx_v_t;
-                                __pyx_t_31 = __pyx_v_j;
-                                __pyx_t_32 = __pyx_v_n;
-                                __pyx_t_33 = __pyx_v_t;
-                                __pyx_t_34 = __pyx_v_n;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_33 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_34)) )) += (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_30 * __pyx_v_t_A.strides[0]) ) + __pyx_t_31 * __pyx_v_t_A.strides[1]) )) + __pyx_t_32)) )));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":309
- *                     i = ixs[c, n]
- *                     t_muA[t, n] += t_A[t, j, n]
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_muA[t, n] = t_muA[t, n] / rows
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":310
- *                     t_muA[t, n] += t_A[t, j, n]
- *             for n in range(nrndm):
- *                 t_muA[t, n] = t_muA[t, n] / rows             # <<<<<<<<<<<<<<
- * 
- *             # A_mA = A - muA
- */
-                              __pyx_t_35 = __pyx_v_t;
-                              __pyx_t_36 = __pyx_v_n;
-                              __pyx_t_37 = __pyx_v_t;
-                              __pyx_t_38 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_37 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_38)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_35 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_36)) ))) / __pyx_v_rows);
-                            }
-
-                            /* "velocyto/speedboosted.pyx":313
- * 
- *             # A_mA = A - muA
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":314
- *             # A_mA = A - muA
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]
- * 
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":315
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]             # <<<<<<<<<<<<<<
- * 
- *             # mub = b.mean()
- */
-                                __pyx_t_39 = __pyx_v_t;
-                                __pyx_t_40 = __pyx_v_j;
-                                __pyx_t_41 = __pyx_v_n;
-                                __pyx_t_42 = __pyx_v_t;
-                                __pyx_t_43 = __pyx_v_n;
-                                __pyx_t_44 = __pyx_v_t;
-                                __pyx_t_45 = __pyx_v_j;
-                                __pyx_t_46 = __pyx_v_n;
-                                *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_44 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_45 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_46)) )) = ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_39 * __pyx_v_t_A.strides[0]) ) + __pyx_t_40 * __pyx_v_t_A.strides[1]) )) + __pyx_t_41)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_42 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_43)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":318
- * 
- *             # mub = b.mean()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":319
- *             # mub = b.mean()
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]             # <<<<<<<<<<<<<<
- *             t_mub[t] = t_mub[t] / rows
- * 
- */
-                              __pyx_t_47 = __pyx_v_c;
-                              __pyx_t_48 = __pyx_v_j;
-                              __pyx_t_49 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_49)) )) += (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_47 * __pyx_v_t_b.strides[0]) )) + __pyx_t_48)) )));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":320
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows             # <<<<<<<<<<<<<<
- * 
- *             # b_mb = b - mub
- */
-                            __pyx_t_50 = __pyx_v_t;
-                            __pyx_t_51 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_51)) )) = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_50)) ))) / __pyx_v_rows);
-
-                            /* "velocyto/speedboosted.pyx":323
- * 
- *             # b_mb = b - mub
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]
- * 
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":324
- *             # b_mb = b - mub
- *             for j in range(rows):
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]             # <<<<<<<<<<<<<<
- * 
- *             # ssA = (A_mA**2).sum(0)
- */
-                              __pyx_t_52 = __pyx_v_c;
-                              __pyx_t_53 = __pyx_v_j;
-                              __pyx_t_54 = __pyx_v_t;
-                              __pyx_t_55 = __pyx_v_t;
-                              __pyx_t_56 = __pyx_v_j;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_55 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_56)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_52 * __pyx_v_t_b.strides[0]) )) + __pyx_t_53)) ))) - (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_54)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":327
- * 
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":328
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- *             for n in range(nrndm):
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":329
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]             # <<<<<<<<<<<<<<
- *             for n in range(nrndm):
- *                 t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])
- */
-                                __pyx_t_57 = __pyx_v_t;
-                                __pyx_t_58 = __pyx_v_j;
-                                __pyx_t_59 = __pyx_v_n;
-                                __pyx_t_60 = __pyx_v_t;
-                                __pyx_t_61 = __pyx_v_j;
-                                __pyx_t_62 = __pyx_v_n;
-                                __pyx_t_63 = __pyx_v_t;
-                                __pyx_t_64 = __pyx_v_n;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_63 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_64)) )) += ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_57 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_58 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_59)) ))) * (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_60 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_61 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_62)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":330
- *                 for n in range(nrndm):
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":331
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- *             for n in range(nrndm):
- *                 t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])             # <<<<<<<<<<<<<<
- * 
- *             # ssb = (b_mb**2).sum()
- */
-                              __pyx_t_65 = __pyx_v_t;
-                              __pyx_t_66 = __pyx_v_n;
-                              __pyx_t_67 = __pyx_v_t;
-                              __pyx_t_68 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_67 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_68)) )) = (1. / sqrt((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_65 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_66)) )))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":334
- * 
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":335
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2             # <<<<<<<<<<<<<<
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- * 
- */
-                              __pyx_t_69 = __pyx_v_t;
-                              __pyx_t_70 = __pyx_v_j;
-                              __pyx_t_71 = __pyx_v_t;
-                              __pyx_t_72 = __pyx_v_j;
-                              __pyx_t_73 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_73)) )) += ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_69 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_70)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_71 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_72)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":336
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])             # <<<<<<<<<<<<<<
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- */
-                            __pyx_t_74 = __pyx_v_t;
-                            __pyx_t_75 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_75)) )) = (1. / sqrt((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_74)) )))));
-
-                            /* "velocyto/speedboosted.pyx":339
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for n in range(nrndm):
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":340
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- */
-                              __pyx_t_76 = __pyx_v_t;
-                              __pyx_t_77 = __pyx_v_j;
-                              __pyx_t_78 = __pyx_v_t;
-                              __pyx_t_79 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_79)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_76 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_77)) ))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_78)) ))));
-
-                              /* "velocyto/speedboosted.pyx":341
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     i = ixs[c, n]
- *                     rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":342
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]             # <<<<<<<<<<<<<<
- *                     rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]
- * 
- */
-                                __pyx_t_80 = __pyx_v_c;
-                                __pyx_t_81 = __pyx_v_n;
-                                __pyx_v_i = (*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_80 * __pyx_v_ixs.strides[0]) )) + __pyx_t_81)) )));
-
-                                /* "velocyto/speedboosted.pyx":343
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- *                     rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]             # <<<<<<<<<<<<<<
- * 
- *             # Cleanup
- */
-                                __pyx_t_82 = __pyx_v_t;
-                                __pyx_t_83 = __pyx_v_j;
-                                __pyx_t_84 = __pyx_v_n;
-                                __pyx_t_85 = __pyx_v_t;
-                                __pyx_t_86 = __pyx_v_n;
-                                __pyx_t_87 = __pyx_v_t;
-                                __pyx_t_88 = __pyx_v_c;
-                                __pyx_t_89 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_88 * __pyx_v_rm.strides[0]) )) + __pyx_t_89)) )) += (((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_82 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_83 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_84)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_85 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_86)) )))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_87)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":346
- * 
- *             # Cleanup
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_muA[t, n] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":347
- *             # Cleanup
- *             for n in range(nrndm):
- *                 t_muA[t, n] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_mub[t] = 0
- */
-                              __pyx_t_90 = __pyx_v_t;
-                              __pyx_t_91 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_90 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_91)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":349
- *                 t_muA[t, n] = 0
- * 
- *             t_mub[t] = 0             # <<<<<<<<<<<<<<
- * 
- *             for n in range(nrndm):
- */
-                            __pyx_t_92 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_92)) )) = 0.0;
-
-                            /* "velocyto/speedboosted.pyx":351
- *             t_mub[t] = 0
- * 
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, n] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":352
- * 
- *             for n in range(nrndm):
- *                 t_ssA[t, n] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_ssb[t] = 0
- */
-                              __pyx_t_93 = __pyx_v_t;
-                              __pyx_t_94 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_93 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_94)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":354
- *                 t_ssA[t, n] = 0
- * 
- *             t_ssb[t] = 0             # <<<<<<<<<<<<<<
- * 
- * @cython.boundscheck(False)
- */
-                            __pyx_t_95 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_95)) )) = 0.0;
-                        }
-                    }
-                }
-            }
-        }
-        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-            #undef likely
-            #undef unlikely
-            #define likely(x)   __builtin_expect(!!(x), 1)
-            #define unlikely(x) __builtin_expect(!!(x), 0)
-        #endif
-      }
-
-      /* "velocyto/speedboosted.pyx":293
- *         int thread_id
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-      /*finally:*/ {
-        /*normal exit:*/{
-          #ifdef WITH_THREAD
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L5;
-        }
-        __pyx_L5:;
-      }
-  }
-
-  /* "velocyto/speedboosted.pyx":271
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                         double[:, ::1] d,
- *                         double[:, ::1] rm,
- */
-
-  /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
-  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorpartial", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_out, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_muA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A_mA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b_mb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_mub, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_tmp, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_e, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_d, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_rm, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_ixs, 1);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "velocyto/speedboosted.pyx":359
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorLog10partial(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                              double[:, ::1] d,
- *                              double[:, ::1] rm,
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_8velocyto_12speedboosted_9_colDeltaCorLog10partial(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_8velocyto_12speedboosted_9_colDeltaCorLog10partial = {"_colDeltaCorLog10partial", (PyCFunction)__pyx_pw_8velocyto_12speedboosted_9_colDeltaCorLog10partial, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_8velocyto_12speedboosted_9_colDeltaCorLog10partial(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  __Pyx_memviewslice __pyx_v_e = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_d = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_rm = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_ixs = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_v_num_threads;
-  double __pyx_v_psc;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("_colDeltaCorLog10partial (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_e,&__pyx_n_s_d,&__pyx_n_s_rm,&__pyx_n_s_ixs,&__pyx_n_s_num_threads,&__pyx_n_s_psc,0};
     PyObject* values[6] = {0,0,0,0,0,0};
@@ -8384,31 +6690,31 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_9_colDeltaCorLog10partial(PyO
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_d)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 1); __PYX_ERR(0, 359, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 6, 6, 1); __PYX_ERR(0, 572, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rm)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 2); __PYX_ERR(0, 359, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 6, 6, 2); __PYX_ERR(0, 572, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_ixs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 3); __PYX_ERR(0, 359, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 6, 6, 3); __PYX_ERR(0, 572, __pyx_L3_error)
         }
         case  4:
         if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 4); __PYX_ERR(0, 359, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 6, 6, 4); __PYX_ERR(0, 572, __pyx_L3_error)
         }
         case  5:
         if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_psc)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 5); __PYX_ERR(0, 359, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 6, 6, 5); __PYX_ERR(0, 572, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorLog10partial") < 0)) __PYX_ERR(0, 359, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorpartial") < 0)) __PYX_ERR(0, 572, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
@@ -8420,1531 +6726,156 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_9_colDeltaCorLog10partial(PyO
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
-    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 359, __pyx_L3_error)
-    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 360, __pyx_L3_error)
-    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 361, __pyx_L3_error)
-    __pyx_v_ixs = __Pyx_PyObject_to_MemoryviewSlice_d_dc_Py_ssize_t(values[3]); if (unlikely(!__pyx_v_ixs.memview)) __PYX_ERR(0, 362, __pyx_L3_error)
-    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 363, __pyx_L3_error)
-    __pyx_v_psc = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_psc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 364, __pyx_L3_error)
+    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 572, __pyx_L3_error)
+    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 573, __pyx_L3_error)
+    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 574, __pyx_L3_error)
+    __pyx_v_ixs = __Pyx_PyObject_to_MemoryviewSlice_d_dc_Py_ssize_t(values[3]); if (unlikely(!__pyx_v_ixs.memview)) __PYX_ERR(0, 575, __pyx_L3_error)
+    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 576, __pyx_L3_error)
+    __pyx_v_psc = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_psc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 577, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 359, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_colDeltaCorpartial", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 572, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorLog10partial", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorpartial", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8velocyto_12speedboosted_8_colDeltaCorLog10partial(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_ixs, __pyx_v_num_threads, __pyx_v_psc);
+  __pyx_r = __pyx_pf_8velocyto_12speedboosted_6_colDeltaCorpartial(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_ixs, __pyx_v_num_threads, __pyx_v_psc);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8velocyto_12speedboosted_8_colDeltaCorLog10partial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, double __pyx_v_psc) {
-  Py_ssize_t __pyx_v_rows;
-  CYTHON_UNUSED Py_ssize_t __pyx_v_cols;
-  Py_ssize_t __pyx_v_nrndm;
-  Py_ssize_t __pyx_v_i;
-  Py_ssize_t __pyx_v_j;
-  Py_ssize_t __pyx_v_c;
-  Py_ssize_t __pyx_v_t;
-  Py_ssize_t __pyx_v_n;
-  __Pyx_memviewslice __pyx_v_t_A = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b = { 0, 0, { 0 }, { 0 }, { 0 } };
-  CYTHON_UNUSED __Pyx_memviewslice __pyx_v_t_out = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_muA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_A_mA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b_mb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_mub = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_tmp = { 0, 0, { 0 }, { 0 }, { 0 } };
+static PyObject *__pyx_pf_8velocyto_12speedboosted_6_colDeltaCorpartial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, CYTHON_UNUSED double __pyx_v_psc) {
+  int __pyx_v_rows;
+  int __pyx_v_cols;
+  int __pyx_v_nrndm;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  Py_ssize_t __pyx_t_11;
-  Py_ssize_t __pyx_t_12;
-  Py_ssize_t __pyx_t_13;
-  int __pyx_t_14;
-  Py_ssize_t __pyx_t_15;
-  Py_ssize_t __pyx_t_16;
-  Py_ssize_t __pyx_t_17;
-  Py_ssize_t __pyx_t_18;
-  Py_ssize_t __pyx_t_19;
-  Py_ssize_t __pyx_t_20;
-  Py_ssize_t __pyx_t_21;
-  Py_ssize_t __pyx_t_22;
-  Py_ssize_t __pyx_t_23;
-  Py_ssize_t __pyx_t_24;
-  Py_ssize_t __pyx_t_25;
-  Py_ssize_t __pyx_t_26;
-  int __pyx_t_27;
-  Py_ssize_t __pyx_t_28;
-  Py_ssize_t __pyx_t_29;
-  Py_ssize_t __pyx_t_30;
-  Py_ssize_t __pyx_t_31;
-  Py_ssize_t __pyx_t_32;
-  Py_ssize_t __pyx_t_33;
-  Py_ssize_t __pyx_t_34;
-  Py_ssize_t __pyx_t_35;
-  Py_ssize_t __pyx_t_36;
-  Py_ssize_t __pyx_t_37;
-  Py_ssize_t __pyx_t_38;
-  Py_ssize_t __pyx_t_39;
-  Py_ssize_t __pyx_t_40;
-  Py_ssize_t __pyx_t_41;
-  Py_ssize_t __pyx_t_42;
-  Py_ssize_t __pyx_t_43;
-  Py_ssize_t __pyx_t_44;
-  Py_ssize_t __pyx_t_45;
-  Py_ssize_t __pyx_t_46;
-  Py_ssize_t __pyx_t_47;
-  Py_ssize_t __pyx_t_48;
-  Py_ssize_t __pyx_t_49;
-  Py_ssize_t __pyx_t_50;
-  Py_ssize_t __pyx_t_51;
-  Py_ssize_t __pyx_t_52;
-  Py_ssize_t __pyx_t_53;
-  Py_ssize_t __pyx_t_54;
-  Py_ssize_t __pyx_t_55;
-  Py_ssize_t __pyx_t_56;
-  Py_ssize_t __pyx_t_57;
-  Py_ssize_t __pyx_t_58;
-  Py_ssize_t __pyx_t_59;
-  Py_ssize_t __pyx_t_60;
-  Py_ssize_t __pyx_t_61;
-  Py_ssize_t __pyx_t_62;
-  Py_ssize_t __pyx_t_63;
-  Py_ssize_t __pyx_t_64;
-  Py_ssize_t __pyx_t_65;
-  Py_ssize_t __pyx_t_66;
-  Py_ssize_t __pyx_t_67;
-  Py_ssize_t __pyx_t_68;
-  Py_ssize_t __pyx_t_69;
-  Py_ssize_t __pyx_t_70;
-  Py_ssize_t __pyx_t_71;
-  Py_ssize_t __pyx_t_72;
-  Py_ssize_t __pyx_t_73;
-  Py_ssize_t __pyx_t_74;
-  Py_ssize_t __pyx_t_75;
-  Py_ssize_t __pyx_t_76;
-  Py_ssize_t __pyx_t_77;
-  Py_ssize_t __pyx_t_78;
-  Py_ssize_t __pyx_t_79;
-  Py_ssize_t __pyx_t_80;
-  Py_ssize_t __pyx_t_81;
-  Py_ssize_t __pyx_t_82;
-  Py_ssize_t __pyx_t_83;
-  Py_ssize_t __pyx_t_84;
-  Py_ssize_t __pyx_t_85;
-  Py_ssize_t __pyx_t_86;
-  Py_ssize_t __pyx_t_87;
-  Py_ssize_t __pyx_t_88;
-  Py_ssize_t __pyx_t_89;
-  Py_ssize_t __pyx_t_90;
-  Py_ssize_t __pyx_t_91;
-  Py_ssize_t __pyx_t_92;
-  Py_ssize_t __pyx_t_93;
-  Py_ssize_t __pyx_t_94;
-  Py_ssize_t __pyx_t_95;
-  Py_ssize_t __pyx_t_96;
-  Py_ssize_t __pyx_t_97;
-  Py_ssize_t __pyx_t_98;
-  Py_ssize_t __pyx_t_99;
-  Py_ssize_t __pyx_t_100;
-  Py_ssize_t __pyx_t_101;
-  Py_ssize_t __pyx_t_102;
-  Py_ssize_t __pyx_t_103;
-  __Pyx_RefNannySetupContext("_colDeltaCorLog10partial", 0);
+  Py_ssize_t __pyx_t_1;
+  Py_ssize_t __pyx_t_2;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  Py_ssize_t __pyx_t_9;
+  __Pyx_RefNannySetupContext("_colDeltaCorpartial", 0);
 
-  /* "velocyto/speedboosted.pyx":366
- *                              double psc):
+  /* "velocyto/speedboosted.pyx":579
+ *                         double psc):
  *     cdef:
- *         Py_ssize_t rows = e.shape[0]             # <<<<<<<<<<<<<<
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t nrndm = ixs.shape[1]
+ *         int rows = e.shape[0]             # <<<<<<<<<<<<<<
+ *         int cols = e.shape[1]
+ *         int nrndm = ixs.shape[1]
  */
   __pyx_v_rows = (__pyx_v_e.shape[0]);
 
-  /* "velocyto/speedboosted.pyx":367
+  /* "velocyto/speedboosted.pyx":580
  *     cdef:
- *         Py_ssize_t rows = e.shape[0]
- *         Py_ssize_t cols = e.shape[1]             # <<<<<<<<<<<<<<
- *         Py_ssize_t nrndm = ixs.shape[1]
- *         Py_ssize_t i, j, c, t, n
+ *         int rows = e.shape[0]
+ *         int cols = e.shape[1]             # <<<<<<<<<<<<<<
+ *         int nrndm = ixs.shape[1]
+ * 
  */
   __pyx_v_cols = (__pyx_v_e.shape[1]);
 
-  /* "velocyto/speedboosted.pyx":368
- *         Py_ssize_t rows = e.shape[0]
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t nrndm = ixs.shape[1]             # <<<<<<<<<<<<<<
- *         Py_ssize_t i, j, c, t, n
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
+  /* "velocyto/speedboosted.pyx":581
+ *         int rows = e.shape[0]
+ *         int cols = e.shape[1]
+ *         int nrndm = ixs.shape[1]             # <<<<<<<<<<<<<<
+ * 
+ *     x_colDeltaCorpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads)
  */
   __pyx_v_nrndm = (__pyx_v_ixs.shape[1]);
 
-  /* "velocyto/speedboosted.pyx":370
- *         Py_ssize_t nrndm = ixs.shape[1]
- *         Py_ssize_t i, j, c, t, n
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
+  /* "velocyto/speedboosted.pyx":583
+ *         int nrndm = ixs.shape[1]
+ * 
+ *     x_colDeltaCorpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads)             # <<<<<<<<<<<<<<
+ * 
+ * def _colDeltaCorSqrtpartial(double[:, ::1] e,
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 370, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 370, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 370, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 370, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 370, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 370, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_t_5);
+  __pyx_t_1 = 0;
   __pyx_t_2 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_1 < 0) {
+    __pyx_t_1 += __pyx_v_e.shape[0];
+    if (unlikely(__pyx_t_1 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_1 >= __pyx_v_e.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_2 < 0) {
+    __pyx_t_2 += __pyx_v_e.shape[1];
+    if (unlikely(__pyx_t_2 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_2 >= __pyx_v_e.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 583, __pyx_L1_error)
+  }
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
+  __pyx_t_3 = -1;
+  if (__pyx_t_4 < 0) {
+    __pyx_t_4 += __pyx_v_d.shape[0];
+    if (unlikely(__pyx_t_4 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_4 >= __pyx_v_d.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_5 < 0) {
+    __pyx_t_5 += __pyx_v_d.shape[1];
+    if (unlikely(__pyx_t_5 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_5 >= __pyx_v_d.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 583, __pyx_L1_error)
   }
-  if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 370, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 370, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 370, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 370, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_6);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_6);
-      __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 370, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
+  __pyx_t_6 = 0;
+  __pyx_t_7 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_6 < 0) {
+    __pyx_t_6 += __pyx_v_rm.shape[0];
+    if (unlikely(__pyx_t_6 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_6 >= __pyx_v_rm.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_7 < 0) {
+    __pyx_t_7 += __pyx_v_rm.shape[1];
+    if (unlikely(__pyx_t_7 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_7 >= __pyx_v_rm.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 583, __pyx_L1_error)
   }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_1);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 370, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_t_A = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":371
- *         Py_ssize_t i, j, c, t, n
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 371, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 371, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_8 = __pyx_v_d;
-  __PYX_INC_MEMVIEW(&__pyx_t_8, 1);
-  if (unlikely(__pyx_memslice_transpose(&__pyx_t_8) == 0)) __PYX_ERR(0, 371, __pyx_L1_error)
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_8, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 371, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 371, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 371, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) __PYX_ERR(0, 371, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 371, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 371, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":372
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 372, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 372, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 372, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 372, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 372, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_3);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
+  __pyx_t_8 = 0;
+  __pyx_t_9 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_8 < 0) {
+    __pyx_t_8 += __pyx_v_ixs.shape[0];
+    if (unlikely(__pyx_t_8 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_8 >= __pyx_v_ixs.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_9 < 0) {
+    __pyx_t_9 += __pyx_v_ixs.shape[1];
+    if (unlikely(__pyx_t_9 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_9 >= __pyx_v_ixs.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 583, __pyx_L1_error)
   }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 372, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 372, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 372, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 372, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 372, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 372, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_out = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
+  __pyx_f_8velocyto_12speedboosted_x_colDeltaCorpartial((&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_1 * __pyx_v_e.strides[0]) )) + __pyx_t_2)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_d.data + __pyx_t_4 * __pyx_v_d.strides[0]) )) + __pyx_t_5)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_6 * __pyx_v_rm.strides[0]) )) + __pyx_t_7)) )))), (&(*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_8 * __pyx_v_ixs.strides[0]) )) + __pyx_t_9)) )))), __pyx_v_rows, __pyx_v_cols, __pyx_v_nrndm, __pyx_v_num_threads);
 
-  /* "velocyto/speedboosted.pyx":373
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))             # <<<<<<<<<<<<<<
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 373, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 373, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 373, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 373, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_5);
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 373, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 373, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 373, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 373, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 373, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 373, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_muA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":374
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 374, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 374, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 374, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 374, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 374, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 374, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_5);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 374, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 374, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 374, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 374, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 374, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 374, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_A_mA = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":375
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- *         double[::1] t_mub = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 375, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 375, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 375, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyInt_FromSsize_t((__pyx_v_d.shape[0])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 375, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 375, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_2);
-  __pyx_t_4 = 0;
-  __pyx_t_2 = 0;
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 375, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 375, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 375, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 375, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 375, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 375, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b_mb = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":376
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))             # <<<<<<<<<<<<<<
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 376, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 376, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 376, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 376, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 376, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 376, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 376, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 376, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 376, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 376, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 376, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":377
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- *         double[::1] t_mub = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 377, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 377, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 377, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 377, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 377, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 377, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 377, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_4);
-      PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_4);
-      __pyx_t_4 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 377, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 377, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_mub = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":378
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_tmp = np.zeros(num_threads)
+  /* "velocyto/speedboosted.pyx":572
+ *     x_colDeltaCorLog10(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
  * 
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 378, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 378, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 378, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_5);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_5, function);
-    }
-  }
-  if (!__pyx_t_4) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 378, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 378, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 378, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 378, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4); __pyx_t_4 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 378, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 378, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssb = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":379
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 379, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 379, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 379, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 379, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 379, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 379, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 379, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 379, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 379, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_tmp = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":381
- *         double[::1] t_tmp = np.zeros(num_threads)
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-  {
-      #ifdef WITH_THREAD
-      PyThreadState *_save;
-      Py_UNBLOCK_THREADS
-      #endif
-      /*try:*/ {
-
-        /* "velocyto/speedboosted.pyx":382
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):             # <<<<<<<<<<<<<<
- *             t = threadid() # or
- * 
- */
-        __pyx_t_11 = __pyx_v_cols;
-        if (1 == 0) abort();
-        {
-            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                #undef likely
-                #undef unlikely
-                #define likely(x)   (x)
-                #define unlikely(x) (x)
-            #endif
-            __pyx_t_13 = (__pyx_t_11 - 0 + 1 - 1/abs(1)) / 1;
-            if (__pyx_t_13 > 0)
-            {
-                #ifdef _OPENMP
-                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_100, __pyx_t_101, __pyx_t_102, __pyx_t_103, __pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_30, __pyx_t_31, __pyx_t_32, __pyx_t_33, __pyx_t_34, __pyx_t_35, __pyx_t_36, __pyx_t_37, __pyx_t_38, __pyx_t_39, __pyx_t_40, __pyx_t_41, __pyx_t_42, __pyx_t_43, __pyx_t_44, __pyx_t_45, __pyx_t_46, __pyx_t_47, __pyx_t_48, __pyx_t_49, __pyx_t_50, __pyx_t_51, __pyx_t_52, __pyx_t_53, __pyx_t_54, __pyx_t_55, __pyx_t_56, __pyx_t_57, __pyx_t_58, __pyx_t_59, __pyx_t_60, __pyx_t_61, __pyx_t_62, __pyx_t_63, __pyx_t_64, __pyx_t_65, __pyx_t_66, __pyx_t_67, __pyx_t_68, __pyx_t_69, __pyx_t_70, __pyx_t_71, __pyx_t_72, __pyx_t_73, __pyx_t_74, __pyx_t_75, __pyx_t_76, __pyx_t_77, __pyx_t_78, __pyx_t_79, __pyx_t_80, __pyx_t_81, __pyx_t_82, __pyx_t_83, __pyx_t_84, __pyx_t_85, __pyx_t_86, __pyx_t_87, __pyx_t_88, __pyx_t_89, __pyx_t_90, __pyx_t_91, __pyx_t_92, __pyx_t_93, __pyx_t_94, __pyx_t_95, __pyx_t_96, __pyx_t_97, __pyx_t_98, __pyx_t_99)
-                #endif /* _OPENMP */
-                {
-                    #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_n) lastprivate(__pyx_v_t) schedule(static)
-                    #endif /* _OPENMP */
-                    for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_13; __pyx_t_12++){
-                        {
-                            __pyx_v_c = (Py_ssize_t)(0 + 1 * __pyx_t_12);
-                            /* Initialize private variables to invalid values */
-                            __pyx_v_i = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_j = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_n = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_t = ((Py_ssize_t)0xbad0bad0);
-
-                            /* "velocyto/speedboosted.pyx":383
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or             # <<<<<<<<<<<<<<
- * 
- *             # subtract the cth column
- */
-                            #ifdef _OPENMP
-                            __pyx_t_14 = omp_get_thread_num();
-                            #else
-                            __pyx_t_14 = 0;
-                            #endif
-                            __pyx_v_t = __pyx_t_14;
-
-                            /* "velocyto/speedboosted.pyx":386
- * 
- *             # subtract the cth column
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":387
- *             # subtract the cth column
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     i = ixs[c, n]
- *                     t_tmp[t] = e[j, i] - e[j, c]
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":388
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]             # <<<<<<<<<<<<<<
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:
- */
-                                __pyx_t_19 = __pyx_v_c;
-                                __pyx_t_20 = __pyx_v_n;
-                                __pyx_v_i = (*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_19 * __pyx_v_ixs.strides[0]) )) + __pyx_t_20)) )));
-
-                                /* "velocyto/speedboosted.pyx":389
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- *                     t_tmp[t] = e[j, i] - e[j, c]             # <<<<<<<<<<<<<<
- *                     if t_tmp[t] > 0:
- *                         t_A[t, j, n] = log10(fabs(t_tmp[t]) + psc)
- */
-                                __pyx_t_21 = __pyx_v_j;
-                                __pyx_t_22 = __pyx_v_i;
-                                __pyx_t_23 = __pyx_v_j;
-                                __pyx_t_24 = __pyx_v_c;
-                                __pyx_t_25 = __pyx_v_t;
-                                *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_25)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_21 * __pyx_v_e.strides[0]) )) + __pyx_t_22)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_23 * __pyx_v_e.strides[0]) )) + __pyx_t_24)) ))));
-
-                                /* "velocyto/speedboosted.pyx":390
- *                     i = ixs[c, n]
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:             # <<<<<<<<<<<<<<
- *                         t_A[t, j, n] = log10(fabs(t_tmp[t]) + psc)
- *                     else:
- */
-                                __pyx_t_26 = __pyx_v_t;
-                                __pyx_t_27 = (((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_26)) ))) > 0.0) != 0);
-                                if (__pyx_t_27) {
-
-                                  /* "velocyto/speedboosted.pyx":391
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:
- *                         t_A[t, j, n] = log10(fabs(t_tmp[t]) + psc)             # <<<<<<<<<<<<<<
- *                     else:
- *                         t_A[t, j, n] = -log10(fabs(t_tmp[t]) + psc)
- */
-                                  __pyx_t_28 = __pyx_v_t;
-                                  __pyx_t_29 = __pyx_v_t;
-                                  __pyx_t_30 = __pyx_v_j;
-                                  __pyx_t_31 = __pyx_v_n;
-                                  *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_29 * __pyx_v_t_A.strides[0]) ) + __pyx_t_30 * __pyx_v_t_A.strides[1]) )) + __pyx_t_31)) )) = log10((fabs((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_28)) )))) + __pyx_v_psc));
-
-                                  /* "velocyto/speedboosted.pyx":390
- *                     i = ixs[c, n]
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:             # <<<<<<<<<<<<<<
- *                         t_A[t, j, n] = log10(fabs(t_tmp[t]) + psc)
- *                     else:
- */
-                                  goto __pyx_L14;
-                                }
-
-                                /* "velocyto/speedboosted.pyx":393
- *                         t_A[t, j, n] = log10(fabs(t_tmp[t]) + psc)
- *                     else:
- *                         t_A[t, j, n] = -log10(fabs(t_tmp[t]) + psc)             # <<<<<<<<<<<<<<
- * 
- * 
- */
-                                /*else*/ {
-                                  __pyx_t_32 = __pyx_v_t;
-                                  __pyx_t_33 = __pyx_v_t;
-                                  __pyx_t_34 = __pyx_v_j;
-                                  __pyx_t_35 = __pyx_v_n;
-                                  *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_33 * __pyx_v_t_A.strides[0]) ) + __pyx_t_34 * __pyx_v_t_A.strides[1]) )) + __pyx_t_35)) )) = (-log10((fabs((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_32)) )))) + __pyx_v_psc)));
-                                }
-                                __pyx_L14:;
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":397
- * 
- *             #muA = A.mean(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":398
- *             #muA = A.mean(0)
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     i = ixs[c, n]
- *                     t_muA[t, n] += t_A[t, j, n]
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":399
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]             # <<<<<<<<<<<<<<
- *                     t_muA[t, n] += t_A[t, j, n]
- *             for n in range(nrndm):
- */
-                                __pyx_t_36 = __pyx_v_c;
-                                __pyx_t_37 = __pyx_v_n;
-                                __pyx_v_i = (*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_36 * __pyx_v_ixs.strides[0]) )) + __pyx_t_37)) )));
-
-                                /* "velocyto/speedboosted.pyx":400
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- *                     t_muA[t, n] += t_A[t, j, n]             # <<<<<<<<<<<<<<
- *             for n in range(nrndm):
- *                 t_muA[t, n] = t_muA[t, n] / rows
- */
-                                __pyx_t_38 = __pyx_v_t;
-                                __pyx_t_39 = __pyx_v_j;
-                                __pyx_t_40 = __pyx_v_n;
-                                __pyx_t_41 = __pyx_v_t;
-                                __pyx_t_42 = __pyx_v_n;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_41 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_42)) )) += (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_38 * __pyx_v_t_A.strides[0]) ) + __pyx_t_39 * __pyx_v_t_A.strides[1]) )) + __pyx_t_40)) )));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":401
- *                     i = ixs[c, n]
- *                     t_muA[t, n] += t_A[t, j, n]
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_muA[t, n] = t_muA[t, n] / rows
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":402
- *                     t_muA[t, n] += t_A[t, j, n]
- *             for n in range(nrndm):
- *                 t_muA[t, n] = t_muA[t, n] / rows             # <<<<<<<<<<<<<<
- * 
- *             # A_mA = A - muA
- */
-                              __pyx_t_43 = __pyx_v_t;
-                              __pyx_t_44 = __pyx_v_n;
-                              __pyx_t_45 = __pyx_v_t;
-                              __pyx_t_46 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_45 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_46)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_43 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_44)) ))) / __pyx_v_rows);
-                            }
-
-                            /* "velocyto/speedboosted.pyx":405
- * 
- *             # A_mA = A - muA
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":406
- *             # A_mA = A - muA
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]
- * 
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":407
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]             # <<<<<<<<<<<<<<
- * 
- *             # mub = b.mean()
- */
-                                __pyx_t_47 = __pyx_v_t;
-                                __pyx_t_48 = __pyx_v_j;
-                                __pyx_t_49 = __pyx_v_n;
-                                __pyx_t_50 = __pyx_v_t;
-                                __pyx_t_51 = __pyx_v_n;
-                                __pyx_t_52 = __pyx_v_t;
-                                __pyx_t_53 = __pyx_v_j;
-                                __pyx_t_54 = __pyx_v_n;
-                                *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_52 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_53 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_54)) )) = ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_47 * __pyx_v_t_A.strides[0]) ) + __pyx_t_48 * __pyx_v_t_A.strides[1]) )) + __pyx_t_49)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_50 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_51)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":410
- * 
- *             # mub = b.mean()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":411
- *             # mub = b.mean()
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]             # <<<<<<<<<<<<<<
- *             t_mub[t] = t_mub[t] / rows
- * 
- */
-                              __pyx_t_55 = __pyx_v_c;
-                              __pyx_t_56 = __pyx_v_j;
-                              __pyx_t_57 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_57)) )) += (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_55 * __pyx_v_t_b.strides[0]) )) + __pyx_t_56)) )));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":412
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows             # <<<<<<<<<<<<<<
- * 
- *             # b_mb = b - mub
- */
-                            __pyx_t_58 = __pyx_v_t;
-                            __pyx_t_59 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_59)) )) = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_58)) ))) / __pyx_v_rows);
-
-                            /* "velocyto/speedboosted.pyx":415
- * 
- *             # b_mb = b - mub
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]
- * 
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":416
- *             # b_mb = b - mub
- *             for j in range(rows):
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]             # <<<<<<<<<<<<<<
- * 
- *             # ssA = (A_mA**2).sum(0)
- */
-                              __pyx_t_60 = __pyx_v_c;
-                              __pyx_t_61 = __pyx_v_j;
-                              __pyx_t_62 = __pyx_v_t;
-                              __pyx_t_63 = __pyx_v_t;
-                              __pyx_t_64 = __pyx_v_j;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_63 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_64)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_60 * __pyx_v_t_b.strides[0]) )) + __pyx_t_61)) ))) - (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_62)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":419
- * 
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":420
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- *             for n in range(nrndm):
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":421
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]             # <<<<<<<<<<<<<<
- *             for n in range(nrndm):
- *                 t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])
- */
-                                __pyx_t_65 = __pyx_v_t;
-                                __pyx_t_66 = __pyx_v_j;
-                                __pyx_t_67 = __pyx_v_n;
-                                __pyx_t_68 = __pyx_v_t;
-                                __pyx_t_69 = __pyx_v_j;
-                                __pyx_t_70 = __pyx_v_n;
-                                __pyx_t_71 = __pyx_v_t;
-                                __pyx_t_72 = __pyx_v_n;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_71 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_72)) )) += ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_65 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_66 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_67)) ))) * (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_68 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_69 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_70)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":422
- *                 for n in range(nrndm):
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":423
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- *             for n in range(nrndm):
- *                 t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])             # <<<<<<<<<<<<<<
- * 
- *             # ssb = (b_mb**2).sum()
- */
-                              __pyx_t_73 = __pyx_v_t;
-                              __pyx_t_74 = __pyx_v_n;
-                              __pyx_t_75 = __pyx_v_t;
-                              __pyx_t_76 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_75 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_76)) )) = (1. / sqrt((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_73 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_74)) )))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":426
- * 
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":427
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2             # <<<<<<<<<<<<<<
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- * 
- */
-                              __pyx_t_77 = __pyx_v_t;
-                              __pyx_t_78 = __pyx_v_j;
-                              __pyx_t_79 = __pyx_v_t;
-                              __pyx_t_80 = __pyx_v_j;
-                              __pyx_t_81 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_81)) )) += ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_77 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_78)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_79 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_80)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":428
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])             # <<<<<<<<<<<<<<
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- */
-                            __pyx_t_82 = __pyx_v_t;
-                            __pyx_t_83 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_83)) )) = (1. / sqrt((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_82)) )))));
-
-                            /* "velocyto/speedboosted.pyx":431
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for n in range(nrndm):
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":432
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- */
-                              __pyx_t_84 = __pyx_v_t;
-                              __pyx_t_85 = __pyx_v_j;
-                              __pyx_t_86 = __pyx_v_t;
-                              __pyx_t_87 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_87)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_84 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_85)) ))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_86)) ))));
-
-                              /* "velocyto/speedboosted.pyx":433
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     i = ixs[c, n]
- *                     rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":434
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]             # <<<<<<<<<<<<<<
- *                     rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]
- * 
- */
-                                __pyx_t_88 = __pyx_v_c;
-                                __pyx_t_89 = __pyx_v_n;
-                                __pyx_v_i = (*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_88 * __pyx_v_ixs.strides[0]) )) + __pyx_t_89)) )));
-
-                                /* "velocyto/speedboosted.pyx":435
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- *                     rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]             # <<<<<<<<<<<<<<
- * 
- *             # Cleanup
- */
-                                __pyx_t_90 = __pyx_v_t;
-                                __pyx_t_91 = __pyx_v_j;
-                                __pyx_t_92 = __pyx_v_n;
-                                __pyx_t_93 = __pyx_v_t;
-                                __pyx_t_94 = __pyx_v_n;
-                                __pyx_t_95 = __pyx_v_t;
-                                __pyx_t_96 = __pyx_v_c;
-                                __pyx_t_97 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_96 * __pyx_v_rm.strides[0]) )) + __pyx_t_97)) )) += (((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_90 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_91 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_92)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_93 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_94)) )))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_95)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":438
- * 
- *             # Cleanup
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_muA[t, n] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":439
- *             # Cleanup
- *             for n in range(nrndm):
- *                 t_muA[t, n] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_mub[t] = 0
- */
-                              __pyx_t_98 = __pyx_v_t;
-                              __pyx_t_99 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_98 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_99)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":441
- *                 t_muA[t, n] = 0
- * 
- *             t_mub[t] = 0             # <<<<<<<<<<<<<<
- * 
- *             for n in range(nrndm):
- */
-                            __pyx_t_100 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_100)) )) = 0.0;
-
-                            /* "velocyto/speedboosted.pyx":443
- *             t_mub[t] = 0
- * 
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, n] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":444
- * 
- *             for n in range(nrndm):
- *                 t_ssA[t, n] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_ssb[t] = 0
- */
-                              __pyx_t_101 = __pyx_v_t;
-                              __pyx_t_102 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_101 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_102)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":446
- *                 t_ssA[t, n] = 0
- * 
- *             t_ssb[t] = 0             # <<<<<<<<<<<<<<
- * 
- * 
- */
-                            __pyx_t_103 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_103)) )) = 0.0;
-                        }
-                    }
-                }
-            }
-        }
-        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-            #undef likely
-            #undef unlikely
-            #define likely(x)   __builtin_expect(!!(x), 1)
-            #define unlikely(x) __builtin_expect(!!(x), 0)
-        #endif
-      }
-
-      /* "velocyto/speedboosted.pyx":381
- *         double[::1] t_tmp = np.zeros(num_threads)
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-      /*finally:*/ {
-        /*normal exit:*/{
-          #ifdef WITH_THREAD
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L5;
-        }
-        __pyx_L5:;
-      }
-  }
-
-  /* "velocyto/speedboosted.pyx":359
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorLog10partial(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                              double[:, ::1] d,
- *                              double[:, ::1] rm,
+ * def _colDeltaCorpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                         double[:, ::1] d,
+ *                         double[:, ::1] rm,
  */
 
   /* function exit code */
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
-  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorLog10partial", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorpartial", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_out, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_muA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A_mA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b_mb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_mub, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_tmp, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_e, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_d, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_rm, 1);
@@ -9954,18 +6885,18 @@ static PyObject *__pyx_pf_8velocyto_12speedboosted_8_colDeltaCorLog10partial(CYT
   return __pyx_r;
 }
 
-/* "velocyto/speedboosted.pyx":452
- * @cython.wraparound(False)
- * @cython.cdivision(True)
+/* "velocyto/speedboosted.pyx":585
+ *     x_colDeltaCorpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads)
+ * 
  * def _colDeltaCorSqrtpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                              double[:, ::1] d,
- *                              double[:, ::1] rm,
+ *                             double[:, ::1] d,
+ *                             double[:, ::1] rm,
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8velocyto_12speedboosted_11_colDeltaCorSqrtpartial(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_8velocyto_12speedboosted_11_colDeltaCorSqrtpartial = {"_colDeltaCorSqrtpartial", (PyCFunction)__pyx_pw_8velocyto_12speedboosted_11_colDeltaCorSqrtpartial, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_8velocyto_12speedboosted_11_colDeltaCorSqrtpartial(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8velocyto_12speedboosted_9_colDeltaCorSqrtpartial(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_8velocyto_12speedboosted_9_colDeltaCorSqrtpartial = {"_colDeltaCorSqrtpartial", (PyCFunction)__pyx_pw_8velocyto_12speedboosted_9_colDeltaCorSqrtpartial, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_8velocyto_12speedboosted_9_colDeltaCorSqrtpartial(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_e = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_d = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_rm = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -9999,31 +6930,31 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_11_colDeltaCorSqrtpartial(PyO
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_d)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 1); __PYX_ERR(0, 452, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 1); __PYX_ERR(0, 585, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rm)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 2); __PYX_ERR(0, 452, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 2); __PYX_ERR(0, 585, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_ixs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 3); __PYX_ERR(0, 452, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 3); __PYX_ERR(0, 585, __pyx_L3_error)
         }
         case  4:
         if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 4); __PYX_ERR(0, 452, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 4); __PYX_ERR(0, 585, __pyx_L3_error)
         }
         case  5:
         if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_psc)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 5); __PYX_ERR(0, 452, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, 5); __PYX_ERR(0, 585, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorSqrtpartial") < 0)) __PYX_ERR(0, 452, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorSqrtpartial") < 0)) __PYX_ERR(0, 585, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
@@ -10035,1529 +6966,394 @@ static PyObject *__pyx_pw_8velocyto_12speedboosted_11_colDeltaCorSqrtpartial(PyO
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
-    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 452, __pyx_L3_error)
-    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 453, __pyx_L3_error)
-    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 454, __pyx_L3_error)
-    __pyx_v_ixs = __Pyx_PyObject_to_MemoryviewSlice_d_dc_Py_ssize_t(values[3]); if (unlikely(!__pyx_v_ixs.memview)) __PYX_ERR(0, 455, __pyx_L3_error)
-    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 456, __pyx_L3_error)
-    __pyx_v_psc = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_psc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 457, __pyx_L3_error)
+    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 585, __pyx_L3_error)
+    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 586, __pyx_L3_error)
+    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 587, __pyx_L3_error)
+    __pyx_v_ixs = __Pyx_PyObject_to_MemoryviewSlice_d_dc_Py_ssize_t(values[3]); if (unlikely(!__pyx_v_ixs.memview)) __PYX_ERR(0, 588, __pyx_L3_error)
+    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 589, __pyx_L3_error)
+    __pyx_v_psc = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_psc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 590, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 452, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_colDeltaCorSqrtpartial", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 585, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorSqrtpartial", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8velocyto_12speedboosted_10_colDeltaCorSqrtpartial(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_ixs, __pyx_v_num_threads, __pyx_v_psc);
+  __pyx_r = __pyx_pf_8velocyto_12speedboosted_8_colDeltaCorSqrtpartial(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_ixs, __pyx_v_num_threads, __pyx_v_psc);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8velocyto_12speedboosted_10_colDeltaCorSqrtpartial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, double __pyx_v_psc) {
-  Py_ssize_t __pyx_v_rows;
-  CYTHON_UNUSED Py_ssize_t __pyx_v_cols;
-  Py_ssize_t __pyx_v_nrndm;
-  Py_ssize_t __pyx_v_i;
-  Py_ssize_t __pyx_v_j;
-  Py_ssize_t __pyx_v_c;
-  Py_ssize_t __pyx_v_t;
-  Py_ssize_t __pyx_v_n;
-  __Pyx_memviewslice __pyx_v_t_A = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b = { 0, 0, { 0 }, { 0 }, { 0 } };
-  CYTHON_UNUSED __Pyx_memviewslice __pyx_v_t_out = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_muA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_A_mA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_b_mb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssA = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_mub = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_ssb = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_t_tmp = { 0, 0, { 0 }, { 0 }, { 0 } };
+static PyObject *__pyx_pf_8velocyto_12speedboosted_8_colDeltaCorSqrtpartial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, double __pyx_v_psc) {
+  int __pyx_v_rows;
+  int __pyx_v_cols;
+  int __pyx_v_nrndm;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  Py_ssize_t __pyx_t_11;
-  Py_ssize_t __pyx_t_12;
-  Py_ssize_t __pyx_t_13;
-  int __pyx_t_14;
-  Py_ssize_t __pyx_t_15;
-  Py_ssize_t __pyx_t_16;
-  Py_ssize_t __pyx_t_17;
-  Py_ssize_t __pyx_t_18;
-  Py_ssize_t __pyx_t_19;
-  Py_ssize_t __pyx_t_20;
-  Py_ssize_t __pyx_t_21;
-  Py_ssize_t __pyx_t_22;
-  Py_ssize_t __pyx_t_23;
-  Py_ssize_t __pyx_t_24;
-  Py_ssize_t __pyx_t_25;
-  Py_ssize_t __pyx_t_26;
-  int __pyx_t_27;
-  Py_ssize_t __pyx_t_28;
-  Py_ssize_t __pyx_t_29;
-  Py_ssize_t __pyx_t_30;
-  Py_ssize_t __pyx_t_31;
-  Py_ssize_t __pyx_t_32;
-  Py_ssize_t __pyx_t_33;
-  Py_ssize_t __pyx_t_34;
-  Py_ssize_t __pyx_t_35;
-  Py_ssize_t __pyx_t_36;
-  Py_ssize_t __pyx_t_37;
-  Py_ssize_t __pyx_t_38;
-  Py_ssize_t __pyx_t_39;
-  Py_ssize_t __pyx_t_40;
-  Py_ssize_t __pyx_t_41;
-  Py_ssize_t __pyx_t_42;
-  Py_ssize_t __pyx_t_43;
-  Py_ssize_t __pyx_t_44;
-  Py_ssize_t __pyx_t_45;
-  Py_ssize_t __pyx_t_46;
-  Py_ssize_t __pyx_t_47;
-  Py_ssize_t __pyx_t_48;
-  Py_ssize_t __pyx_t_49;
-  Py_ssize_t __pyx_t_50;
-  Py_ssize_t __pyx_t_51;
-  Py_ssize_t __pyx_t_52;
-  Py_ssize_t __pyx_t_53;
-  Py_ssize_t __pyx_t_54;
-  Py_ssize_t __pyx_t_55;
-  Py_ssize_t __pyx_t_56;
-  Py_ssize_t __pyx_t_57;
-  Py_ssize_t __pyx_t_58;
-  Py_ssize_t __pyx_t_59;
-  Py_ssize_t __pyx_t_60;
-  Py_ssize_t __pyx_t_61;
-  Py_ssize_t __pyx_t_62;
-  Py_ssize_t __pyx_t_63;
-  Py_ssize_t __pyx_t_64;
-  Py_ssize_t __pyx_t_65;
-  Py_ssize_t __pyx_t_66;
-  Py_ssize_t __pyx_t_67;
-  Py_ssize_t __pyx_t_68;
-  Py_ssize_t __pyx_t_69;
-  Py_ssize_t __pyx_t_70;
-  Py_ssize_t __pyx_t_71;
-  Py_ssize_t __pyx_t_72;
-  Py_ssize_t __pyx_t_73;
-  Py_ssize_t __pyx_t_74;
-  Py_ssize_t __pyx_t_75;
-  Py_ssize_t __pyx_t_76;
-  Py_ssize_t __pyx_t_77;
-  Py_ssize_t __pyx_t_78;
-  Py_ssize_t __pyx_t_79;
-  Py_ssize_t __pyx_t_80;
-  Py_ssize_t __pyx_t_81;
-  Py_ssize_t __pyx_t_82;
-  Py_ssize_t __pyx_t_83;
-  Py_ssize_t __pyx_t_84;
-  Py_ssize_t __pyx_t_85;
-  Py_ssize_t __pyx_t_86;
-  Py_ssize_t __pyx_t_87;
-  Py_ssize_t __pyx_t_88;
-  Py_ssize_t __pyx_t_89;
-  Py_ssize_t __pyx_t_90;
-  Py_ssize_t __pyx_t_91;
-  Py_ssize_t __pyx_t_92;
-  Py_ssize_t __pyx_t_93;
-  Py_ssize_t __pyx_t_94;
-  Py_ssize_t __pyx_t_95;
-  Py_ssize_t __pyx_t_96;
-  Py_ssize_t __pyx_t_97;
-  Py_ssize_t __pyx_t_98;
-  Py_ssize_t __pyx_t_99;
-  Py_ssize_t __pyx_t_100;
-  Py_ssize_t __pyx_t_101;
-  Py_ssize_t __pyx_t_102;
-  Py_ssize_t __pyx_t_103;
+  Py_ssize_t __pyx_t_1;
+  Py_ssize_t __pyx_t_2;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  Py_ssize_t __pyx_t_9;
   __Pyx_RefNannySetupContext("_colDeltaCorSqrtpartial", 0);
 
-  /* "velocyto/speedboosted.pyx":459
- *                              double psc):
+  /* "velocyto/speedboosted.pyx":592
+ *                             double psc):
  *     cdef:
- *         Py_ssize_t rows = e.shape[0]             # <<<<<<<<<<<<<<
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t nrndm = ixs.shape[1]
+ *         int rows = e.shape[0]             # <<<<<<<<<<<<<<
+ *         int cols = e.shape[1]
+ *         int nrndm = ixs.shape[1]
  */
   __pyx_v_rows = (__pyx_v_e.shape[0]);
 
-  /* "velocyto/speedboosted.pyx":460
+  /* "velocyto/speedboosted.pyx":593
  *     cdef:
- *         Py_ssize_t rows = e.shape[0]
- *         Py_ssize_t cols = e.shape[1]             # <<<<<<<<<<<<<<
- *         Py_ssize_t nrndm = ixs.shape[1]
- *         Py_ssize_t i, j, c, t, n
+ *         int rows = e.shape[0]
+ *         int cols = e.shape[1]             # <<<<<<<<<<<<<<
+ *         int nrndm = ixs.shape[1]
+ * 
  */
   __pyx_v_cols = (__pyx_v_e.shape[1]);
 
-  /* "velocyto/speedboosted.pyx":461
- *         Py_ssize_t rows = e.shape[0]
- *         Py_ssize_t cols = e.shape[1]
- *         Py_ssize_t nrndm = ixs.shape[1]             # <<<<<<<<<<<<<<
- *         Py_ssize_t i, j, c, t, n
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
+  /* "velocyto/speedboosted.pyx":594
+ *         int rows = e.shape[0]
+ *         int cols = e.shape[1]
+ *         int nrndm = ixs.shape[1]             # <<<<<<<<<<<<<<
+ * 
+ *     x_colDeltaCorSqrtpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)
  */
   __pyx_v_nrndm = (__pyx_v_ixs.shape[1]);
 
-  /* "velocyto/speedboosted.pyx":463
- *         Py_ssize_t nrndm = ixs.shape[1]
- *         Py_ssize_t i, j, c, t, n
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
+  /* "velocyto/speedboosted.pyx":596
+ *         int nrndm = ixs.shape[1]
+ * 
+ *     x_colDeltaCorSqrtpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)             # <<<<<<<<<<<<<<
+ * 
+ * def _colDeltaCorLog10partial(double[:, ::1] e,
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 463, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 463, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 463, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 463, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 463, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 463, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_t_5);
+  __pyx_t_1 = 0;
   __pyx_t_2 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_1 < 0) {
+    __pyx_t_1 += __pyx_v_e.shape[0];
+    if (unlikely(__pyx_t_1 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_1 >= __pyx_v_e.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_2 < 0) {
+    __pyx_t_2 += __pyx_v_e.shape[1];
+    if (unlikely(__pyx_t_2 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_2 >= __pyx_v_e.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 596, __pyx_L1_error)
+  }
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
+  __pyx_t_3 = -1;
+  if (__pyx_t_4 < 0) {
+    __pyx_t_4 += __pyx_v_d.shape[0];
+    if (unlikely(__pyx_t_4 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_4 >= __pyx_v_d.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_5 < 0) {
+    __pyx_t_5 += __pyx_v_d.shape[1];
+    if (unlikely(__pyx_t_5 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_5 >= __pyx_v_d.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 596, __pyx_L1_error)
   }
-  if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 463, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 463, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 463, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 463, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_6);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_6);
-      __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 463, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
+  __pyx_t_6 = 0;
+  __pyx_t_7 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_6 < 0) {
+    __pyx_t_6 += __pyx_v_rm.shape[0];
+    if (unlikely(__pyx_t_6 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_6 >= __pyx_v_rm.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_7 < 0) {
+    __pyx_t_7 += __pyx_v_rm.shape[1];
+    if (unlikely(__pyx_t_7 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_7 >= __pyx_v_rm.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 596, __pyx_L1_error)
   }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_1);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 463, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_t_A = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":464
- *         Py_ssize_t i, j, c, t, n
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 464, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 464, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_8 = __pyx_v_d;
-  __PYX_INC_MEMVIEW(&__pyx_t_8, 1);
-  if (unlikely(__pyx_memslice_transpose(&__pyx_t_8) == 0)) __PYX_ERR(0, 464, __pyx_L1_error)
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_8, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 464, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 464, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 464, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) __PYX_ERR(0, 464, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 464, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 464, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":465
- *         double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 465, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 465, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 465, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 465, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 465, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_3);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
+  __pyx_t_8 = 0;
+  __pyx_t_9 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_8 < 0) {
+    __pyx_t_8 += __pyx_v_ixs.shape[0];
+    if (unlikely(__pyx_t_8 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_8 >= __pyx_v_ixs.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_9 < 0) {
+    __pyx_t_9 += __pyx_v_ixs.shape[1];
+    if (unlikely(__pyx_t_9 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_9 >= __pyx_v_ixs.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 596, __pyx_L1_error)
   }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 465, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 465, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 465, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 465, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 465, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 465, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_out = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
+  __pyx_f_8velocyto_12speedboosted_x_colDeltaCorSqrtpartial((&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_1 * __pyx_v_e.strides[0]) )) + __pyx_t_2)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_d.data + __pyx_t_4 * __pyx_v_d.strides[0]) )) + __pyx_t_5)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_6 * __pyx_v_rm.strides[0]) )) + __pyx_t_7)) )))), (&(*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_8 * __pyx_v_ixs.strides[0]) )) + __pyx_t_9)) )))), __pyx_v_rows, __pyx_v_cols, __pyx_v_nrndm, __pyx_v_num_threads, __pyx_v_psc);
 
-  /* "velocyto/speedboosted.pyx":466
- *         double[:, ::1] t_b = np.array(d.T, order="C")
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))             # <<<<<<<<<<<<<<
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 466, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 466, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 466, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 466, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 466, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_5);
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 466, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 466, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 466, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 466, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 466, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 466, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_muA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":467
- *         double[:, ::1] t_out = np.zeros((num_threads, nrndm))
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyInt_FromSsize_t((__pyx_v_e.shape[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_5);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 467, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 467, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 467, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 467, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 467, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_A_mA = __pyx_t_7;
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":468
- *         double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))             # <<<<<<<<<<<<<<
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- *         double[::1] t_mub = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 468, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 468, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 468, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyInt_FromSsize_t((__pyx_v_d.shape[0])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 468, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 468, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_2);
-  __pyx_t_4 = 0;
-  __pyx_t_2 = 0;
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 468, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 468, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 468, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 468, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 468, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 468, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_b_mb = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":469
- *         double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))             # <<<<<<<<<<<<<<
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 469, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 469, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 469, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_nrndm); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 469, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 469, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-    }
-  }
-  if (!__pyx_t_5) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 469, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 469, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_2};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 469, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 469, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_2);
-      __pyx_t_2 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 469, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 469, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssA = __pyx_t_9;
-  __pyx_t_9.memview = NULL;
-  __pyx_t_9.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":470
- *         double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- *         double[::1] t_mub = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)
- */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 470, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 470, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 470, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (!__pyx_t_2) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 470, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 470, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_2, __pyx_t_4};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 470, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 470, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __pyx_t_2 = NULL;
-      __Pyx_GIVEREF(__pyx_t_4);
-      PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_4);
-      __pyx_t_4 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 470, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 470, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_mub = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":471
- *         double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- *         double[::1] t_tmp = np.zeros(num_threads)
+  /* "velocyto/speedboosted.pyx":585
+ *     x_colDeltaCorpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads)
  * 
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 471, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 471, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 471, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_5);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_5, function);
-    }
-  }
-  if (!__pyx_t_4) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 471, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 471, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_3};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 471, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 471, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4); __pyx_t_4 = NULL;
-      __Pyx_GIVEREF(__pyx_t_3);
-      PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_3);
-      __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 471, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 471, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_ssb = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":472
- *         double[::1] t_mub = np.zeros(num_threads)
- *         double[::1] t_ssb = np.zeros(num_threads)
- *         double[::1] t_tmp = np.zeros(num_threads)             # <<<<<<<<<<<<<<
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 472, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 472, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_num_threads); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 472, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  if (!__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 472, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_6);
-  } else {
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 472, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[2] = {__pyx_t_3, __pyx_t_5};
-      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 472, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 472, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 472, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    }
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 472, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_t_tmp = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "velocyto/speedboosted.pyx":474
- *         double[::1] t_tmp = np.zeros(num_threads)
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-  {
-      #ifdef WITH_THREAD
-      PyThreadState *_save;
-      Py_UNBLOCK_THREADS
-      #endif
-      /*try:*/ {
-
-        /* "velocyto/speedboosted.pyx":475
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):             # <<<<<<<<<<<<<<
- *             t = threadid() # or
- * 
- */
-        __pyx_t_11 = __pyx_v_cols;
-        if (1 == 0) abort();
-        {
-            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                #undef likely
-                #undef unlikely
-                #define likely(x)   (x)
-                #define unlikely(x) (x)
-            #endif
-            __pyx_t_13 = (__pyx_t_11 - 0 + 1 - 1/abs(1)) / 1;
-            if (__pyx_t_13 > 0)
-            {
-                #ifdef _OPENMP
-                #pragma omp parallel num_threads(__pyx_v_num_threads) private(__pyx_t_100, __pyx_t_101, __pyx_t_102, __pyx_t_103, __pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_30, __pyx_t_31, __pyx_t_32, __pyx_t_33, __pyx_t_34, __pyx_t_35, __pyx_t_36, __pyx_t_37, __pyx_t_38, __pyx_t_39, __pyx_t_40, __pyx_t_41, __pyx_t_42, __pyx_t_43, __pyx_t_44, __pyx_t_45, __pyx_t_46, __pyx_t_47, __pyx_t_48, __pyx_t_49, __pyx_t_50, __pyx_t_51, __pyx_t_52, __pyx_t_53, __pyx_t_54, __pyx_t_55, __pyx_t_56, __pyx_t_57, __pyx_t_58, __pyx_t_59, __pyx_t_60, __pyx_t_61, __pyx_t_62, __pyx_t_63, __pyx_t_64, __pyx_t_65, __pyx_t_66, __pyx_t_67, __pyx_t_68, __pyx_t_69, __pyx_t_70, __pyx_t_71, __pyx_t_72, __pyx_t_73, __pyx_t_74, __pyx_t_75, __pyx_t_76, __pyx_t_77, __pyx_t_78, __pyx_t_79, __pyx_t_80, __pyx_t_81, __pyx_t_82, __pyx_t_83, __pyx_t_84, __pyx_t_85, __pyx_t_86, __pyx_t_87, __pyx_t_88, __pyx_t_89, __pyx_t_90, __pyx_t_91, __pyx_t_92, __pyx_t_93, __pyx_t_94, __pyx_t_95, __pyx_t_96, __pyx_t_97, __pyx_t_98, __pyx_t_99)
-                #endif /* _OPENMP */
-                {
-                    #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_c) lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_n) lastprivate(__pyx_v_t) schedule(static)
-                    #endif /* _OPENMP */
-                    for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_13; __pyx_t_12++){
-                        {
-                            __pyx_v_c = (Py_ssize_t)(0 + 1 * __pyx_t_12);
-                            /* Initialize private variables to invalid values */
-                            __pyx_v_i = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_j = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_n = ((Py_ssize_t)0xbad0bad0);
-                            __pyx_v_t = ((Py_ssize_t)0xbad0bad0);
-
-                            /* "velocyto/speedboosted.pyx":476
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or             # <<<<<<<<<<<<<<
- * 
- *             # subtract the cth column
- */
-                            #ifdef _OPENMP
-                            __pyx_t_14 = omp_get_thread_num();
-                            #else
-                            __pyx_t_14 = 0;
-                            #endif
-                            __pyx_v_t = __pyx_t_14;
-
-                            /* "velocyto/speedboosted.pyx":479
- * 
- *             # subtract the cth column
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":480
- *             # subtract the cth column
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     i = ixs[c, n]
- *                     t_tmp[t] = e[j, i] - e[j, c]
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":481
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]             # <<<<<<<<<<<<<<
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:
- */
-                                __pyx_t_19 = __pyx_v_c;
-                                __pyx_t_20 = __pyx_v_n;
-                                __pyx_v_i = (*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_19 * __pyx_v_ixs.strides[0]) )) + __pyx_t_20)) )));
-
-                                /* "velocyto/speedboosted.pyx":482
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- *                     t_tmp[t] = e[j, i] - e[j, c]             # <<<<<<<<<<<<<<
- *                     if t_tmp[t] > 0:
- *                         t_A[t, j, n] = sqrt(fabs(t_tmp[t]) + psc)
- */
-                                __pyx_t_21 = __pyx_v_j;
-                                __pyx_t_22 = __pyx_v_i;
-                                __pyx_t_23 = __pyx_v_j;
-                                __pyx_t_24 = __pyx_v_c;
-                                __pyx_t_25 = __pyx_v_t;
-                                *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_25)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_21 * __pyx_v_e.strides[0]) )) + __pyx_t_22)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_23 * __pyx_v_e.strides[0]) )) + __pyx_t_24)) ))));
-
-                                /* "velocyto/speedboosted.pyx":483
- *                     i = ixs[c, n]
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:             # <<<<<<<<<<<<<<
- *                         t_A[t, j, n] = sqrt(fabs(t_tmp[t]) + psc)
- *                     else:
- */
-                                __pyx_t_26 = __pyx_v_t;
-                                __pyx_t_27 = (((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_26)) ))) > 0.0) != 0);
-                                if (__pyx_t_27) {
-
-                                  /* "velocyto/speedboosted.pyx":484
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:
- *                         t_A[t, j, n] = sqrt(fabs(t_tmp[t]) + psc)             # <<<<<<<<<<<<<<
- *                     else:
- *                         t_A[t, j, n] = -sqrt(fabs(t_tmp[t]) + psc)
- */
-                                  __pyx_t_28 = __pyx_v_t;
-                                  __pyx_t_29 = __pyx_v_t;
-                                  __pyx_t_30 = __pyx_v_j;
-                                  __pyx_t_31 = __pyx_v_n;
-                                  *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_29 * __pyx_v_t_A.strides[0]) ) + __pyx_t_30 * __pyx_v_t_A.strides[1]) )) + __pyx_t_31)) )) = sqrt((fabs((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_28)) )))) + __pyx_v_psc));
-
-                                  /* "velocyto/speedboosted.pyx":483
- *                     i = ixs[c, n]
- *                     t_tmp[t] = e[j, i] - e[j, c]
- *                     if t_tmp[t] > 0:             # <<<<<<<<<<<<<<
- *                         t_A[t, j, n] = sqrt(fabs(t_tmp[t]) + psc)
- *                     else:
- */
-                                  goto __pyx_L14;
-                                }
-
-                                /* "velocyto/speedboosted.pyx":486
- *                         t_A[t, j, n] = sqrt(fabs(t_tmp[t]) + psc)
- *                     else:
- *                         t_A[t, j, n] = -sqrt(fabs(t_tmp[t]) + psc)             # <<<<<<<<<<<<<<
- * 
- * 
- */
-                                /*else*/ {
-                                  __pyx_t_32 = __pyx_v_t;
-                                  __pyx_t_33 = __pyx_v_t;
-                                  __pyx_t_34 = __pyx_v_j;
-                                  __pyx_t_35 = __pyx_v_n;
-                                  *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_33 * __pyx_v_t_A.strides[0]) ) + __pyx_t_34 * __pyx_v_t_A.strides[1]) )) + __pyx_t_35)) )) = (-sqrt((fabs((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_32)) )))) + __pyx_v_psc)));
-                                }
-                                __pyx_L14:;
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":490
- * 
- *             #muA = A.mean(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":491
- *             #muA = A.mean(0)
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     i = ixs[c, n]
- *                     t_muA[t, n] += t_A[t, j, n]
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":492
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]             # <<<<<<<<<<<<<<
- *                     t_muA[t, n] += t_A[t, j, n]
- *             for n in range(nrndm):
- */
-                                __pyx_t_36 = __pyx_v_c;
-                                __pyx_t_37 = __pyx_v_n;
-                                __pyx_v_i = (*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_36 * __pyx_v_ixs.strides[0]) )) + __pyx_t_37)) )));
-
-                                /* "velocyto/speedboosted.pyx":493
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- *                     t_muA[t, n] += t_A[t, j, n]             # <<<<<<<<<<<<<<
- *             for n in range(nrndm):
- *                 t_muA[t, n] = t_muA[t, n] / rows
- */
-                                __pyx_t_38 = __pyx_v_t;
-                                __pyx_t_39 = __pyx_v_j;
-                                __pyx_t_40 = __pyx_v_n;
-                                __pyx_t_41 = __pyx_v_t;
-                                __pyx_t_42 = __pyx_v_n;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_41 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_42)) )) += (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_38 * __pyx_v_t_A.strides[0]) ) + __pyx_t_39 * __pyx_v_t_A.strides[1]) )) + __pyx_t_40)) )));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":494
- *                     i = ixs[c, n]
- *                     t_muA[t, n] += t_A[t, j, n]
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_muA[t, n] = t_muA[t, n] / rows
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":495
- *                     t_muA[t, n] += t_A[t, j, n]
- *             for n in range(nrndm):
- *                 t_muA[t, n] = t_muA[t, n] / rows             # <<<<<<<<<<<<<<
- * 
- *             # A_mA = A - muA
- */
-                              __pyx_t_43 = __pyx_v_t;
-                              __pyx_t_44 = __pyx_v_n;
-                              __pyx_t_45 = __pyx_v_t;
-                              __pyx_t_46 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_45 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_46)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_43 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_44)) ))) / __pyx_v_rows);
-                            }
-
-                            /* "velocyto/speedboosted.pyx":498
- * 
- *             # A_mA = A - muA
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":499
- *             # A_mA = A - muA
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]
- * 
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":500
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]             # <<<<<<<<<<<<<<
- * 
- *             # mub = b.mean()
- */
-                                __pyx_t_47 = __pyx_v_t;
-                                __pyx_t_48 = __pyx_v_j;
-                                __pyx_t_49 = __pyx_v_n;
-                                __pyx_t_50 = __pyx_v_t;
-                                __pyx_t_51 = __pyx_v_n;
-                                __pyx_t_52 = __pyx_v_t;
-                                __pyx_t_53 = __pyx_v_j;
-                                __pyx_t_54 = __pyx_v_n;
-                                *((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_52 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_53 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_54)) )) = ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A.data + __pyx_t_47 * __pyx_v_t_A.strides[0]) ) + __pyx_t_48 * __pyx_v_t_A.strides[1]) )) + __pyx_t_49)) ))) - (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_50 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_51)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":503
- * 
- *             # mub = b.mean()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":504
- *             # mub = b.mean()
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]             # <<<<<<<<<<<<<<
- *             t_mub[t] = t_mub[t] / rows
- * 
- */
-                              __pyx_t_55 = __pyx_v_c;
-                              __pyx_t_56 = __pyx_v_j;
-                              __pyx_t_57 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_57)) )) += (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_55 * __pyx_v_t_b.strides[0]) )) + __pyx_t_56)) )));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":505
- *             for j in range(rows):
- *                 t_mub[t] += t_b[c, j]
- *             t_mub[t] = t_mub[t] / rows             # <<<<<<<<<<<<<<
- * 
- *             # b_mb = b - mub
- */
-                            __pyx_t_58 = __pyx_v_t;
-                            __pyx_t_59 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_59)) )) = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_58)) ))) / __pyx_v_rows);
-
-                            /* "velocyto/speedboosted.pyx":508
- * 
- *             # b_mb = b - mub
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]
- * 
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":509
- *             # b_mb = b - mub
- *             for j in range(rows):
- *                 t_b_mb[t, j] = t_b[c, j] - t_mub[t]             # <<<<<<<<<<<<<<
- * 
- *             # ssA = (A_mA**2).sum(0)
- */
-                              __pyx_t_60 = __pyx_v_c;
-                              __pyx_t_61 = __pyx_v_j;
-                              __pyx_t_62 = __pyx_v_t;
-                              __pyx_t_63 = __pyx_v_t;
-                              __pyx_t_64 = __pyx_v_j;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_63 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_64)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b.data + __pyx_t_60 * __pyx_v_t_b.strides[0]) )) + __pyx_t_61)) ))) - (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_62)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":512
- * 
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":513
- *             # ssA = (A_mA**2).sum(0)
- *             for j in range(rows):
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- *             for n in range(nrndm):
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":514
- *             for j in range(rows):
- *                 for n in range(nrndm):
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]             # <<<<<<<<<<<<<<
- *             for n in range(nrndm):
- *                 t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])
- */
-                                __pyx_t_65 = __pyx_v_t;
-                                __pyx_t_66 = __pyx_v_j;
-                                __pyx_t_67 = __pyx_v_n;
-                                __pyx_t_68 = __pyx_v_t;
-                                __pyx_t_69 = __pyx_v_j;
-                                __pyx_t_70 = __pyx_v_n;
-                                __pyx_t_71 = __pyx_v_t;
-                                __pyx_t_72 = __pyx_v_n;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_71 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_72)) )) += ((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_65 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_66 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_67)) ))) * (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_68 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_69 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_70)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":515
- *                 for n in range(nrndm):
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":516
- *                     t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
- *             for n in range(nrndm):
- *                 t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])             # <<<<<<<<<<<<<<
- * 
- *             # ssb = (b_mb**2).sum()
- */
-                              __pyx_t_73 = __pyx_v_t;
-                              __pyx_t_74 = __pyx_v_n;
-                              __pyx_t_75 = __pyx_v_t;
-                              __pyx_t_76 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_75 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_76)) )) = (1. / sqrt((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_73 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_74)) )))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":519
- * 
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":520
- *             # ssb = (b_mb**2).sum()
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2             # <<<<<<<<<<<<<<
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])
- * 
- */
-                              __pyx_t_77 = __pyx_v_t;
-                              __pyx_t_78 = __pyx_v_j;
-                              __pyx_t_79 = __pyx_v_t;
-                              __pyx_t_80 = __pyx_v_j;
-                              __pyx_t_81 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_81)) )) += ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_77 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_78)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_79 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_80)) ))));
-                            }
-
-                            /* "velocyto/speedboosted.pyx":521
- *             for j in range(rows):
- *                 t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
- *             t_ssb[t] = 1. / sqrt(t_ssb[t])             # <<<<<<<<<<<<<<
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- */
-                            __pyx_t_82 = __pyx_v_t;
-                            __pyx_t_83 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_83)) )) = (1. / sqrt((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_82)) )))));
-
-                            /* "velocyto/speedboosted.pyx":524
- * 
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):             # <<<<<<<<<<<<<<
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for n in range(nrndm):
- */
-                            __pyx_t_15 = __pyx_v_rows;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_j = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":525
- *             # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]             # <<<<<<<<<<<<<<
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- */
-                              __pyx_t_84 = __pyx_v_t;
-                              __pyx_t_85 = __pyx_v_j;
-                              __pyx_t_86 = __pyx_v_t;
-                              __pyx_t_87 = __pyx_v_t;
-                              *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_87)) )) = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_b_mb.data + __pyx_t_84 * __pyx_v_t_b_mb.strides[0]) )) + __pyx_t_85)) ))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_86)) ))));
-
-                              /* "velocyto/speedboosted.pyx":526
- *             for j in range(rows):
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                     i = ixs[c, n]
- *                     rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]
- */
-                              __pyx_t_17 = __pyx_v_nrndm;
-                              for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
-                                __pyx_v_n = __pyx_t_18;
-
-                                /* "velocyto/speedboosted.pyx":527
- *                 t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]             # <<<<<<<<<<<<<<
- *                     rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]
- * 
- */
-                                __pyx_t_88 = __pyx_v_c;
-                                __pyx_t_89 = __pyx_v_n;
-                                __pyx_v_i = (*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_88 * __pyx_v_ixs.strides[0]) )) + __pyx_t_89)) )));
-
-                                /* "velocyto/speedboosted.pyx":528
- *                 for n in range(nrndm):
- *                     i = ixs[c, n]
- *                     rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]             # <<<<<<<<<<<<<<
- * 
- *             # Cleanup
- */
-                                __pyx_t_90 = __pyx_v_t;
-                                __pyx_t_91 = __pyx_v_j;
-                                __pyx_t_92 = __pyx_v_n;
-                                __pyx_t_93 = __pyx_v_t;
-                                __pyx_t_94 = __pyx_v_n;
-                                __pyx_t_95 = __pyx_v_t;
-                                __pyx_t_96 = __pyx_v_c;
-                                __pyx_t_97 = __pyx_v_i;
-                                *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_96 * __pyx_v_rm.strides[0]) )) + __pyx_t_97)) )) += (((*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_t_A_mA.data + __pyx_t_90 * __pyx_v_t_A_mA.strides[0]) ) + __pyx_t_91 * __pyx_v_t_A_mA.strides[1]) )) + __pyx_t_92)) ))) * (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_93 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_94)) )))) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_tmp.data) + __pyx_t_95)) ))));
-                              }
-                            }
-
-                            /* "velocyto/speedboosted.pyx":531
- * 
- *             # Cleanup
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_muA[t, n] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":532
- *             # Cleanup
- *             for n in range(nrndm):
- *                 t_muA[t, n] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_mub[t] = 0
- */
-                              __pyx_t_98 = __pyx_v_t;
-                              __pyx_t_99 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_muA.data + __pyx_t_98 * __pyx_v_t_muA.strides[0]) )) + __pyx_t_99)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":534
- *                 t_muA[t, n] = 0
- * 
- *             t_mub[t] = 0             # <<<<<<<<<<<<<<
- * 
- *             for n in range(nrndm):
- */
-                            __pyx_t_100 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_mub.data) + __pyx_t_100)) )) = 0.0;
-
-                            /* "velocyto/speedboosted.pyx":536
- *             t_mub[t] = 0
- * 
- *             for n in range(nrndm):             # <<<<<<<<<<<<<<
- *                 t_ssA[t, n] = 0
- * 
- */
-                            __pyx_t_15 = __pyx_v_nrndm;
-                            for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
-                              __pyx_v_n = __pyx_t_16;
-
-                              /* "velocyto/speedboosted.pyx":537
- * 
- *             for n in range(nrndm):
- *                 t_ssA[t, n] = 0             # <<<<<<<<<<<<<<
- * 
- *             t_ssb[t] = 0
- */
-                              __pyx_t_101 = __pyx_v_t;
-                              __pyx_t_102 = __pyx_v_n;
-                              *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_t_ssA.data + __pyx_t_101 * __pyx_v_t_ssA.strides[0]) )) + __pyx_t_102)) )) = 0.0;
-                            }
-
-                            /* "velocyto/speedboosted.pyx":539
- *                 t_ssA[t, n] = 0
- * 
- *             t_ssb[t] = 0             # <<<<<<<<<<<<<<
- */
-                            __pyx_t_103 = __pyx_v_t;
-                            *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_t_ssb.data) + __pyx_t_103)) )) = 0.0;
-                        }
-                    }
-                }
-            }
-        }
-        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-            #undef likely
-            #undef unlikely
-            #define likely(x)   __builtin_expect(!!(x), 1)
-            #define unlikely(x) __builtin_expect(!!(x), 0)
-        #endif
-      }
-
-      /* "velocyto/speedboosted.pyx":474
- *         double[::1] t_tmp = np.zeros(num_threads)
- * 
- *     with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):             # <<<<<<<<<<<<<<
- *         for c in prange(cols, schedule='static', num_threads=num_threads):
- *             t = threadid() # or
- */
-      /*finally:*/ {
-        /*normal exit:*/{
-          #ifdef WITH_THREAD
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L5;
-        }
-        __pyx_L5:;
-      }
-  }
-
-  /* "velocyto/speedboosted.pyx":452
- * @cython.wraparound(False)
- * @cython.cdivision(True)
  * def _colDeltaCorSqrtpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                              double[:, ::1] d,
- *                              double[:, ::1] rm,
+ *                             double[:, ::1] d,
+ *                             double[:, ::1] rm,
  */
 
   /* function exit code */
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorSqrtpartial", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_out, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_muA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_A_mA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_b_mb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssA, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_mub, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_ssb, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_t_tmp, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_e, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_d, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_rm, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_ixs, 1);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "velocyto/speedboosted.pyx":598
+ *     x_colDeltaCorSqrtpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)
+ * 
+ * def _colDeltaCorLog10partial(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                             double[:, ::1] d,
+ *                             double[:, ::1] rm,
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_8velocyto_12speedboosted_11_colDeltaCorLog10partial(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_8velocyto_12speedboosted_11_colDeltaCorLog10partial = {"_colDeltaCorLog10partial", (PyCFunction)__pyx_pw_8velocyto_12speedboosted_11_colDeltaCorLog10partial, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_8velocyto_12speedboosted_11_colDeltaCorLog10partial(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __Pyx_memviewslice __pyx_v_e = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_d = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_rm = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_ixs = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_num_threads;
+  double __pyx_v_psc;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("_colDeltaCorLog10partial (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_e,&__pyx_n_s_d,&__pyx_n_s_rm,&__pyx_n_s_ixs,&__pyx_n_s_num_threads,&__pyx_n_s_psc,0};
+    PyObject* values[6] = {0,0,0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_e)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        case  1:
+        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_d)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 1); __PYX_ERR(0, 598, __pyx_L3_error)
+        }
+        case  2:
+        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rm)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 2); __PYX_ERR(0, 598, __pyx_L3_error)
+        }
+        case  3:
+        if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_ixs)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 3); __PYX_ERR(0, 598, __pyx_L3_error)
+        }
+        case  4:
+        if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 4); __PYX_ERR(0, 598, __pyx_L3_error)
+        }
+        case  5:
+        if (likely((values[5] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_psc)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, 5); __PYX_ERR(0, 598, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_colDeltaCorLog10partial") < 0)) __PYX_ERR(0, 598, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+      values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+    }
+    __pyx_v_e = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_e.memview)) __PYX_ERR(0, 598, __pyx_L3_error)
+    __pyx_v_d = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_d.memview)) __PYX_ERR(0, 599, __pyx_L3_error)
+    __pyx_v_rm = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[2]); if (unlikely(!__pyx_v_rm.memview)) __PYX_ERR(0, 600, __pyx_L3_error)
+    __pyx_v_ixs = __Pyx_PyObject_to_MemoryviewSlice_d_dc_Py_ssize_t(values[3]); if (unlikely(!__pyx_v_ixs.memview)) __PYX_ERR(0, 601, __pyx_L3_error)
+    __pyx_v_num_threads = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 602, __pyx_L3_error)
+    __pyx_v_psc = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_psc == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 603, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("_colDeltaCorLog10partial", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 598, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorLog10partial", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_8velocyto_12speedboosted_10_colDeltaCorLog10partial(__pyx_self, __pyx_v_e, __pyx_v_d, __pyx_v_rm, __pyx_v_ixs, __pyx_v_num_threads, __pyx_v_psc);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_8velocyto_12speedboosted_10_colDeltaCorLog10partial(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_e, __Pyx_memviewslice __pyx_v_d, __Pyx_memviewslice __pyx_v_rm, __Pyx_memviewslice __pyx_v_ixs, int __pyx_v_num_threads, double __pyx_v_psc) {
+  int __pyx_v_rows;
+  int __pyx_v_cols;
+  int __pyx_v_nrndm;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  Py_ssize_t __pyx_t_1;
+  Py_ssize_t __pyx_t_2;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  Py_ssize_t __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  Py_ssize_t __pyx_t_9;
+  __Pyx_RefNannySetupContext("_colDeltaCorLog10partial", 0);
+
+  /* "velocyto/speedboosted.pyx":605
+ *                             double psc):
+ *     cdef:
+ *         int rows = e.shape[0]             # <<<<<<<<<<<<<<
+ *         int cols = e.shape[1]
+ *         int nrndm = ixs.shape[1]
+ */
+  __pyx_v_rows = (__pyx_v_e.shape[0]);
+
+  /* "velocyto/speedboosted.pyx":606
+ *     cdef:
+ *         int rows = e.shape[0]
+ *         int cols = e.shape[1]             # <<<<<<<<<<<<<<
+ *         int nrndm = ixs.shape[1]
+ * 
+ */
+  __pyx_v_cols = (__pyx_v_e.shape[1]);
+
+  /* "velocyto/speedboosted.pyx":607
+ *         int rows = e.shape[0]
+ *         int cols = e.shape[1]
+ *         int nrndm = ixs.shape[1]             # <<<<<<<<<<<<<<
+ * 
+ *     x_colDeltaCorLog10partial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)
+ */
+  __pyx_v_nrndm = (__pyx_v_ixs.shape[1]);
+
+  /* "velocyto/speedboosted.pyx":609
+ *         int nrndm = ixs.shape[1]
+ * 
+ *     x_colDeltaCorLog10partial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)             # <<<<<<<<<<<<<<
+ */
+  __pyx_t_1 = 0;
+  __pyx_t_2 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_1 < 0) {
+    __pyx_t_1 += __pyx_v_e.shape[0];
+    if (unlikely(__pyx_t_1 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_1 >= __pyx_v_e.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_2 < 0) {
+    __pyx_t_2 += __pyx_v_e.shape[1];
+    if (unlikely(__pyx_t_2 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_2 >= __pyx_v_e.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 609, __pyx_L1_error)
+  }
+  __pyx_t_4 = 0;
+  __pyx_t_5 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_4 < 0) {
+    __pyx_t_4 += __pyx_v_d.shape[0];
+    if (unlikely(__pyx_t_4 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_4 >= __pyx_v_d.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_5 < 0) {
+    __pyx_t_5 += __pyx_v_d.shape[1];
+    if (unlikely(__pyx_t_5 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_5 >= __pyx_v_d.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 609, __pyx_L1_error)
+  }
+  __pyx_t_6 = 0;
+  __pyx_t_7 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_6 < 0) {
+    __pyx_t_6 += __pyx_v_rm.shape[0];
+    if (unlikely(__pyx_t_6 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_6 >= __pyx_v_rm.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_7 < 0) {
+    __pyx_t_7 += __pyx_v_rm.shape[1];
+    if (unlikely(__pyx_t_7 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_7 >= __pyx_v_rm.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 609, __pyx_L1_error)
+  }
+  __pyx_t_8 = 0;
+  __pyx_t_9 = 0;
+  __pyx_t_3 = -1;
+  if (__pyx_t_8 < 0) {
+    __pyx_t_8 += __pyx_v_ixs.shape[0];
+    if (unlikely(__pyx_t_8 < 0)) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_8 >= __pyx_v_ixs.shape[0])) __pyx_t_3 = 0;
+  if (__pyx_t_9 < 0) {
+    __pyx_t_9 += __pyx_v_ixs.shape[1];
+    if (unlikely(__pyx_t_9 < 0)) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_9 >= __pyx_v_ixs.shape[1])) __pyx_t_3 = 1;
+  if (unlikely(__pyx_t_3 != -1)) {
+    __Pyx_RaiseBufferIndexError(__pyx_t_3);
+    __PYX_ERR(0, 609, __pyx_L1_error)
+  }
+  __pyx_f_8velocyto_12speedboosted_x_colDeltaCorLog10partial((&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_e.data + __pyx_t_1 * __pyx_v_e.strides[0]) )) + __pyx_t_2)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_d.data + __pyx_t_4 * __pyx_v_d.strides[0]) )) + __pyx_t_5)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_rm.data + __pyx_t_6 * __pyx_v_rm.strides[0]) )) + __pyx_t_7)) )))), (&(*((Py_ssize_t *) ( /* dim=1 */ ((char *) (((Py_ssize_t *) ( /* dim=0 */ (__pyx_v_ixs.data + __pyx_t_8 * __pyx_v_ixs.strides[0]) )) + __pyx_t_9)) )))), __pyx_v_rows, __pyx_v_cols, __pyx_v_nrndm, __pyx_v_num_threads, __pyx_v_psc);
+
+  /* "velocyto/speedboosted.pyx":598
+ *     x_colDeltaCorSqrtpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)
+ * 
+ * def _colDeltaCorLog10partial(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                             double[:, ::1] d,
+ *                             double[:, ::1] rm,
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("velocyto.speedboosted._colDeltaCorLog10partial", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_e, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_d, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_rm, 1);
@@ -26425,7 +22221,6 @@ static struct PyModuleDef __pyx_moduledef = {
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ASCII, __pyx_k_ASCII, sizeof(__pyx_k_ASCII), 0, 0, 1, 1},
   {&__pyx_kp_s_Buffer_view_does_not_expose_stri, __pyx_k_Buffer_view_does_not_expose_stri, sizeof(__pyx_k_Buffer_view_does_not_expose_stri), 0, 0, 1, 0},
-  {&__pyx_n_s_C, __pyx_k_C, sizeof(__pyx_k_C), 0, 0, 1, 1},
   {&__pyx_kp_s_Can_only_create_a_buffer_that_is, __pyx_k_Can_only_create_a_buffer_that_is, sizeof(__pyx_k_Can_only_create_a_buffer_that_is), 0, 0, 1, 0},
   {&__pyx_kp_s_Cannot_index_with_type_s, __pyx_k_Cannot_index_with_type_s, sizeof(__pyx_k_Cannot_index_with_type_s), 0, 0, 1, 0},
   {&__pyx_n_s_Ellipsis, __pyx_k_Ellipsis, sizeof(__pyx_k_Ellipsis), 0, 0, 1, 1},
@@ -26448,7 +22243,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
-  {&__pyx_n_s_array, __pyx_k_array, sizeof(__pyx_k_array), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
@@ -26474,17 +22268,14 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_k_home_gioele_Github_velocyto_py, sizeof(__pyx_k_home_gioele_Github_velocyto_py), 0, 0, 1, 0},
-  {&__pyx_n_s_i, __pyx_k_i, sizeof(__pyx_k_i), 0, 0, 1, 1},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
   {&__pyx_n_s_ixs, __pyx_k_ixs, sizeof(__pyx_k_ixs), 0, 0, 1, 1},
-  {&__pyx_n_s_j, __pyx_k_j, sizeof(__pyx_k_j), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
-  {&__pyx_n_s_n, __pyx_k_n, sizeof(__pyx_k_n), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_name_2, __pyx_k_name_2, sizeof(__pyx_k_name_2), 0, 0, 1, 1},
   {&__pyx_kp_u_ndarray_is_not_C_contiguous, __pyx_k_ndarray_is_not_C_contiguous, sizeof(__pyx_k_ndarray_is_not_C_contiguous), 0, 1, 0, 0},
@@ -26497,7 +22288,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_numpy_core_multiarray_failed_to, __pyx_k_numpy_core_multiarray_failed_to, sizeof(__pyx_k_numpy_core_multiarray_failed_to), 0, 0, 1, 0},
   {&__pyx_kp_s_numpy_core_umath_failed_to_impor, __pyx_k_numpy_core_umath_failed_to_impor, sizeof(__pyx_k_numpy_core_umath_failed_to_impor), 0, 0, 1, 0},
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
-  {&__pyx_n_s_order, __pyx_k_order, sizeof(__pyx_k_order), 0, 0, 1, 1},
   {&__pyx_n_s_pack, __pyx_k_pack, sizeof(__pyx_k_pack), 0, 0, 1, 1},
   {&__pyx_n_s_psc, __pyx_k_psc, sizeof(__pyx_k_psc), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_getbuffer, __pyx_k_pyx_getbuffer, sizeof(__pyx_k_pyx_getbuffer), 0, 0, 1, 1},
@@ -26514,29 +22304,16 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_strided_and_direct_or_indirect, __pyx_k_strided_and_direct_or_indirect, sizeof(__pyx_k_strided_and_direct_or_indirect), 0, 0, 1, 0},
   {&__pyx_kp_s_strided_and_indirect, __pyx_k_strided_and_indirect, sizeof(__pyx_k_strided_and_indirect), 0, 0, 1, 0},
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
-  {&__pyx_n_s_t, __pyx_k_t, sizeof(__pyx_k_t), 0, 0, 1, 1},
-  {&__pyx_n_s_t_A, __pyx_k_t_A, sizeof(__pyx_k_t_A), 0, 0, 1, 1},
-  {&__pyx_n_s_t_A_mA, __pyx_k_t_A_mA, sizeof(__pyx_k_t_A_mA), 0, 0, 1, 1},
-  {&__pyx_n_s_t_b, __pyx_k_t_b, sizeof(__pyx_k_t_b), 0, 0, 1, 1},
-  {&__pyx_n_s_t_b_mb, __pyx_k_t_b_mb, sizeof(__pyx_k_t_b_mb), 0, 0, 1, 1},
-  {&__pyx_n_s_t_muA, __pyx_k_t_muA, sizeof(__pyx_k_t_muA), 0, 0, 1, 1},
-  {&__pyx_n_s_t_mub, __pyx_k_t_mub, sizeof(__pyx_k_t_mub), 0, 0, 1, 1},
-  {&__pyx_n_s_t_out, __pyx_k_t_out, sizeof(__pyx_k_t_out), 0, 0, 1, 1},
-  {&__pyx_n_s_t_ssA, __pyx_k_t_ssA, sizeof(__pyx_k_t_ssA), 0, 0, 1, 1},
-  {&__pyx_n_s_t_ssb, __pyx_k_t_ssb, sizeof(__pyx_k_t_ssb), 0, 0, 1, 1},
-  {&__pyx_n_s_t_tmp, __pyx_k_t_tmp, sizeof(__pyx_k_t_tmp), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_n_s_thread_id, __pyx_k_thread_id, sizeof(__pyx_k_thread_id), 0, 0, 1, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
   {&__pyx_n_s_velocyto_speedboosted, __pyx_k_velocyto_speedboosted, sizeof(__pyx_k_velocyto_speedboosted), 0, 0, 1, 1},
-  {&__pyx_n_s_zeros, __pyx_k_zeros, sizeof(__pyx_k_zeros), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 27, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 218, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 799, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 989, __pyx_L1_error)
@@ -26798,77 +22575,77 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
 
-  /* "velocyto/speedboosted.pyx":10
- * @cython.wraparound(False)
- * @cython.cdivision(True)
+  /* "velocyto/speedboosted.pyx":540
+ * 
+ * # Functions accessible from python, adapt the C function to python thorugh cPython API
  * def _colDeltaCor(double[:, ::1] e,             # <<<<<<<<<<<<<<
  *                  double[:, ::1] d,
  *                  double[:, ::1] rm,
  */
-  __pyx_tuple__23 = PyTuple_Pack(21, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_num_threads, __pyx_n_s_rows, __pyx_n_s_cols, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_c, __pyx_n_s_t, __pyx_n_s_t_A, __pyx_n_s_t_b, __pyx_n_s_t_out, __pyx_n_s_t_muA, __pyx_n_s_t_A_mA, __pyx_n_s_t_b_mb, __pyx_n_s_t_ssA, __pyx_n_s_t_mub, __pyx_n_s_t_ssb, __pyx_n_s_t_tmp, __pyx_n_s_thread_id); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 10, __pyx_L1_error)
+  __pyx_tuple__23 = PyTuple_Pack(6, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_num_threads, __pyx_n_s_rows, __pyx_n_s_cols); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 540, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
-  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(4, 0, 21, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCor, 10, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 10, __pyx_L1_error)
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(4, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCor, 540, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 540, __pyx_L1_error)
 
-  /* "velocyto/speedboosted.pyx":93
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorLog10(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                       double[:, ::1] d,
- *                       double[:, ::1] rm,
+  /* "velocyto/speedboosted.pyx":550
+ *     x_colDeltaCor(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads)
+ * 
+ * def _colDeltaCorSqrt(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                      double[:, ::1] d,
+ *                      double[:, ::1] rm,
  */
-  __pyx_tuple__25 = PyTuple_Pack(22, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_num_threads, __pyx_n_s_psc, __pyx_n_s_rows, __pyx_n_s_cols, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_c, __pyx_n_s_t, __pyx_n_s_t_A, __pyx_n_s_t_b, __pyx_n_s_t_out, __pyx_n_s_t_muA, __pyx_n_s_t_A_mA, __pyx_n_s_t_b_mb, __pyx_n_s_t_ssA, __pyx_n_s_t_mub, __pyx_n_s_t_ssb, __pyx_n_s_t_tmp, __pyx_n_s_thread_id); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 93, __pyx_L1_error)
+  __pyx_tuple__25 = PyTuple_Pack(7, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_num_threads, __pyx_n_s_psc, __pyx_n_s_rows, __pyx_n_s_cols); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 550, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__25);
   __Pyx_GIVEREF(__pyx_tuple__25);
-  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(5, 0, 22, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorLog10, 93, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 93, __pyx_L1_error)
+  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(5, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorSqrt, 550, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 550, __pyx_L1_error)
 
-  /* "velocyto/speedboosted.pyx":182
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorSqrt(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                       double[:, ::1] d,
- *                       double[:, ::1] rm,
+  /* "velocyto/speedboosted.pyx":561
+ *     x_colDeltaCorSqrt(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
+ * 
+ * def _colDeltaCorLog10(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                      double[:, ::1] d,
+ *                      double[:, ::1] rm,
  */
-  __pyx_tuple__27 = PyTuple_Pack(22, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_num_threads, __pyx_n_s_psc, __pyx_n_s_rows, __pyx_n_s_cols, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_c, __pyx_n_s_t, __pyx_n_s_t_A, __pyx_n_s_t_b, __pyx_n_s_t_out, __pyx_n_s_t_muA, __pyx_n_s_t_A_mA, __pyx_n_s_t_b_mb, __pyx_n_s_t_ssA, __pyx_n_s_t_mub, __pyx_n_s_t_ssb, __pyx_n_s_t_tmp, __pyx_n_s_thread_id); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_tuple__27 = PyTuple_Pack(7, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_num_threads, __pyx_n_s_psc, __pyx_n_s_rows, __pyx_n_s_cols); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 561, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__27);
   __Pyx_GIVEREF(__pyx_tuple__27);
-  __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(5, 0, 22, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorSqrt, 182, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(5, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorLog10, 561, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(0, 561, __pyx_L1_error)
 
-  /* "velocyto/speedboosted.pyx":271
- * @cython.wraparound(False)
- * @cython.cdivision(True)
+  /* "velocyto/speedboosted.pyx":572
+ *     x_colDeltaCorLog10(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
+ * 
  * def _colDeltaCorpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
  *                         double[:, ::1] d,
  *                         double[:, ::1] rm,
  */
-  __pyx_tuple__29 = PyTuple_Pack(24, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_ixs, __pyx_n_s_num_threads, __pyx_n_s_rows, __pyx_n_s_cols, __pyx_n_s_nrndm, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_c, __pyx_n_s_t, __pyx_n_s_n, __pyx_n_s_t_A, __pyx_n_s_t_b, __pyx_n_s_t_out, __pyx_n_s_t_muA, __pyx_n_s_t_A_mA, __pyx_n_s_t_b_mb, __pyx_n_s_t_ssA, __pyx_n_s_t_mub, __pyx_n_s_t_ssb, __pyx_n_s_t_tmp, __pyx_n_s_thread_id); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_tuple__29 = PyTuple_Pack(9, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_ixs, __pyx_n_s_num_threads, __pyx_n_s_psc, __pyx_n_s_rows, __pyx_n_s_cols, __pyx_n_s_nrndm); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 572, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
-  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(5, 0, 24, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorpartial, 271, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(6, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorpartial, 572, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 572, __pyx_L1_error)
 
-  /* "velocyto/speedboosted.pyx":359
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorLog10partial(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                              double[:, ::1] d,
- *                              double[:, ::1] rm,
+  /* "velocyto/speedboosted.pyx":585
+ *     x_colDeltaCorpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads)
+ * 
+ * def _colDeltaCorSqrtpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                             double[:, ::1] d,
+ *                             double[:, ::1] rm,
  */
-  __pyx_tuple__31 = PyTuple_Pack(24, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_ixs, __pyx_n_s_num_threads, __pyx_n_s_psc, __pyx_n_s_rows, __pyx_n_s_cols, __pyx_n_s_nrndm, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_c, __pyx_n_s_t, __pyx_n_s_n, __pyx_n_s_t_A, __pyx_n_s_t_b, __pyx_n_s_t_out, __pyx_n_s_t_muA, __pyx_n_s_t_A_mA, __pyx_n_s_t_b_mb, __pyx_n_s_t_ssA, __pyx_n_s_t_mub, __pyx_n_s_t_ssb, __pyx_n_s_t_tmp); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 359, __pyx_L1_error)
+  __pyx_tuple__31 = PyTuple_Pack(9, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_ixs, __pyx_n_s_num_threads, __pyx_n_s_psc, __pyx_n_s_rows, __pyx_n_s_cols, __pyx_n_s_nrndm); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 585, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__31);
   __Pyx_GIVEREF(__pyx_tuple__31);
-  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(6, 0, 24, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorLog10partial, 359, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 359, __pyx_L1_error)
+  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(6, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorSqrtpartial, 585, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 585, __pyx_L1_error)
 
-  /* "velocyto/speedboosted.pyx":452
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorSqrtpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                              double[:, ::1] d,
- *                              double[:, ::1] rm,
+  /* "velocyto/speedboosted.pyx":598
+ *     x_colDeltaCorSqrtpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)
+ * 
+ * def _colDeltaCorLog10partial(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                             double[:, ::1] d,
+ *                             double[:, ::1] rm,
  */
-  __pyx_tuple__33 = PyTuple_Pack(24, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_ixs, __pyx_n_s_num_threads, __pyx_n_s_psc, __pyx_n_s_rows, __pyx_n_s_cols, __pyx_n_s_nrndm, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_c, __pyx_n_s_t, __pyx_n_s_n, __pyx_n_s_t_A, __pyx_n_s_t_b, __pyx_n_s_t_out, __pyx_n_s_t_muA, __pyx_n_s_t_A_mA, __pyx_n_s_t_b_mb, __pyx_n_s_t_ssA, __pyx_n_s_t_mub, __pyx_n_s_t_ssb, __pyx_n_s_t_tmp); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 452, __pyx_L1_error)
+  __pyx_tuple__33 = PyTuple_Pack(9, __pyx_n_s_e, __pyx_n_s_d, __pyx_n_s_rm, __pyx_n_s_ixs, __pyx_n_s_num_threads, __pyx_n_s_psc, __pyx_n_s_rows, __pyx_n_s_cols, __pyx_n_s_nrndm); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 598, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__33);
   __Pyx_GIVEREF(__pyx_tuple__33);
-  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(6, 0, 24, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorSqrtpartial, 452, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 452, __pyx_L1_error)
+  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(6, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_gioele_Github_velocyto_py, __pyx_n_s_colDeltaCorLog10partial, 598, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 598, __pyx_L1_error)
 
   /* "View.MemoryView":282
  *         return self.name
@@ -27092,83 +22869,83 @@ PyMODINIT_FUNC PyInit_speedboosted(void)
  * import cython
  * import numpy as np             # <<<<<<<<<<<<<<
  * cimport numpy as np
- * from libc.math cimport sqrt, fabs, log10
+ * from libc.stdlib cimport malloc, free
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "velocyto/speedboosted.pyx":10
- * @cython.wraparound(False)
- * @cython.cdivision(True)
+  /* "velocyto/speedboosted.pyx":540
+ * 
+ * # Functions accessible from python, adapt the C function to python thorugh cPython API
  * def _colDeltaCor(double[:, ::1] e,             # <<<<<<<<<<<<<<
  *                  double[:, ::1] d,
  *                  double[:, ::1] rm,
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_1_colDeltaCor, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 10, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_1_colDeltaCor, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 540, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCor, __pyx_t_1) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCor, __pyx_t_1) < 0) __PYX_ERR(0, 540, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "velocyto/speedboosted.pyx":93
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorLog10(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                       double[:, ::1] d,
- *                       double[:, ::1] rm,
- */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_3_colDeltaCorLog10, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorLog10, __pyx_t_1) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "velocyto/speedboosted.pyx":182
- * @cython.wraparound(False)
- * @cython.cdivision(True)
+  /* "velocyto/speedboosted.pyx":550
+ *     x_colDeltaCor(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads)
+ * 
  * def _colDeltaCorSqrt(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                       double[:, ::1] d,
- *                       double[:, ::1] rm,
+ *                      double[:, ::1] d,
+ *                      double[:, ::1] rm,
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_5_colDeltaCorSqrt, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_3_colDeltaCorSqrt, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 550, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorSqrt, __pyx_t_1) < 0) __PYX_ERR(0, 182, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorSqrt, __pyx_t_1) < 0) __PYX_ERR(0, 550, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "velocyto/speedboosted.pyx":271
- * @cython.wraparound(False)
- * @cython.cdivision(True)
+  /* "velocyto/speedboosted.pyx":561
+ *     x_colDeltaCorSqrt(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
+ * 
+ * def _colDeltaCorLog10(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                      double[:, ::1] d,
+ *                      double[:, ::1] rm,
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_5_colDeltaCorLog10, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 561, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorLog10, __pyx_t_1) < 0) __PYX_ERR(0, 561, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "velocyto/speedboosted.pyx":572
+ *     x_colDeltaCorLog10(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
+ * 
  * def _colDeltaCorpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
  *                         double[:, ::1] d,
  *                         double[:, ::1] rm,
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_7_colDeltaCorpartial, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_7_colDeltaCorpartial, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 572, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorpartial, __pyx_t_1) < 0) __PYX_ERR(0, 271, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorpartial, __pyx_t_1) < 0) __PYX_ERR(0, 572, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "velocyto/speedboosted.pyx":359
- * @cython.wraparound(False)
- * @cython.cdivision(True)
- * def _colDeltaCorLog10partial(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                              double[:, ::1] d,
- *                              double[:, ::1] rm,
- */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_9_colDeltaCorLog10partial, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 359, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorLog10partial, __pyx_t_1) < 0) __PYX_ERR(0, 359, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "velocyto/speedboosted.pyx":452
- * @cython.wraparound(False)
- * @cython.cdivision(True)
+  /* "velocyto/speedboosted.pyx":585
+ *     x_colDeltaCorpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads)
+ * 
  * def _colDeltaCorSqrtpartial(double[:, ::1] e,             # <<<<<<<<<<<<<<
- *                              double[:, ::1] d,
- *                              double[:, ::1] rm,
+ *                             double[:, ::1] d,
+ *                             double[:, ::1] rm,
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_11_colDeltaCorSqrtpartial, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 452, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_9_colDeltaCorSqrtpartial, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 585, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorSqrtpartial, __pyx_t_1) < 0) __PYX_ERR(0, 452, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorSqrtpartial, __pyx_t_1) < 0) __PYX_ERR(0, 585, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "velocyto/speedboosted.pyx":598
+ *     x_colDeltaCorSqrtpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)
+ * 
+ * def _colDeltaCorLog10partial(double[:, ::1] e,             # <<<<<<<<<<<<<<
+ *                             double[:, ::1] d,
+ *                             double[:, ::1] rm,
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8velocyto_12speedboosted_11_colDeltaCorLog10partial, NULL, __pyx_n_s_velocyto_speedboosted); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 598, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_colDeltaCorLog10partial, __pyx_t_1) < 0) __PYX_ERR(0, 598, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "velocyto/speedboosted.pyx":1
@@ -27520,248 +23297,14 @@ bad:
     return -1;
 }
 
-/* GetModuleGlobalName */
-static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name) {
-    PyObject *result;
-#if !CYTHON_AVOID_BORROWED_REFS
-    result = PyDict_GetItem(__pyx_d, name);
-    if (likely(result)) {
-        Py_INCREF(result);
-    } else {
-#else
-    result = PyObject_GetItem(__pyx_d, name);
-    if (!result) {
-        PyErr_Clear();
-#endif
-        result = __Pyx_GetBuiltinName(name);
-    }
-    return result;
+/* BufferIndexError */
+static void __Pyx_RaiseBufferIndexError(int axis) {
+  PyErr_Format(PyExc_IndexError,
+     "Out of bounds on buffer access (axis %d)", axis);
 }
-
-/* PyCFunctionFastCall */
-  #if CYTHON_FAST_PYCCALL
-static CYTHON_INLINE PyObject * __Pyx_PyCFunction_FastCall(PyObject *func_obj, PyObject **args, Py_ssize_t nargs) {
-    PyCFunctionObject *func = (PyCFunctionObject*)func_obj;
-    PyCFunction meth = PyCFunction_GET_FUNCTION(func);
-    PyObject *self = PyCFunction_GET_SELF(func);
-    assert(PyCFunction_Check(func));
-    assert(METH_FASTCALL == (PyCFunction_GET_FLAGS(func) & ~(METH_CLASS | METH_STATIC | METH_COEXIST)));
-    assert(nargs >= 0);
-    assert(nargs == 0 || args != NULL);
-    /* _PyCFunction_FastCallDict() must not be called with an exception set,
-       because it may clear it (directly or indirectly) and so the
-       caller loses its exception */
-    assert(!PyErr_Occurred());
-    return (*((__Pyx_PyCFunctionFast)meth)) (self, args, nargs, NULL);
-}
-#endif  // CYTHON_FAST_PYCCALL
-
-/* PyFunctionFastCall */
-  #if CYTHON_FAST_PYCALL
-#include "frameobject.h"
-static PyObject* __Pyx_PyFunction_FastCallNoKw(PyCodeObject *co, PyObject **args, Py_ssize_t na,
-                                               PyObject *globals) {
-    PyFrameObject *f;
-    PyThreadState *tstate = PyThreadState_GET();
-    PyObject **fastlocals;
-    Py_ssize_t i;
-    PyObject *result;
-    assert(globals != NULL);
-    /* XXX Perhaps we should create a specialized
-       PyFrame_New() that doesn't take locals, but does
-       take builtins without sanity checking them.
-       */
-    assert(tstate != NULL);
-    f = PyFrame_New(tstate, co, globals, NULL);
-    if (f == NULL) {
-        return NULL;
-    }
-    fastlocals = f->f_localsplus;
-    for (i = 0; i < na; i++) {
-        Py_INCREF(*args);
-        fastlocals[i] = *args++;
-    }
-    result = PyEval_EvalFrameEx(f,0);
-    ++tstate->recursion_depth;
-    Py_DECREF(f);
-    --tstate->recursion_depth;
-    return result;
-}
-#if 1 || PY_VERSION_HEX < 0x030600B1
-static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, int nargs, PyObject *kwargs) {
-    PyCodeObject *co = (PyCodeObject *)PyFunction_GET_CODE(func);
-    PyObject *globals = PyFunction_GET_GLOBALS(func);
-    PyObject *argdefs = PyFunction_GET_DEFAULTS(func);
-    PyObject *closure;
-#if PY_MAJOR_VERSION >= 3
-    PyObject *kwdefs;
-#endif
-    PyObject *kwtuple, **k;
-    PyObject **d;
-    Py_ssize_t nd;
-    Py_ssize_t nk;
-    PyObject *result;
-    assert(kwargs == NULL || PyDict_Check(kwargs));
-    nk = kwargs ? PyDict_Size(kwargs) : 0;
-    if (Py_EnterRecursiveCall((char*)" while calling a Python object")) {
-        return NULL;
-    }
-    if (
-#if PY_MAJOR_VERSION >= 3
-            co->co_kwonlyargcount == 0 &&
-#endif
-            likely(kwargs == NULL || nk == 0) &&
-            co->co_flags == (CO_OPTIMIZED | CO_NEWLOCALS | CO_NOFREE)) {
-        if (argdefs == NULL && co->co_argcount == nargs) {
-            result = __Pyx_PyFunction_FastCallNoKw(co, args, nargs, globals);
-            goto done;
-        }
-        else if (nargs == 0 && argdefs != NULL
-                 && co->co_argcount == Py_SIZE(argdefs)) {
-            /* function called with no arguments, but all parameters have
-               a default value: use default values as arguments .*/
-            args = &PyTuple_GET_ITEM(argdefs, 0);
-            result =__Pyx_PyFunction_FastCallNoKw(co, args, Py_SIZE(argdefs), globals);
-            goto done;
-        }
-    }
-    if (kwargs != NULL) {
-        Py_ssize_t pos, i;
-        kwtuple = PyTuple_New(2 * nk);
-        if (kwtuple == NULL) {
-            result = NULL;
-            goto done;
-        }
-        k = &PyTuple_GET_ITEM(kwtuple, 0);
-        pos = i = 0;
-        while (PyDict_Next(kwargs, &pos, &k[i], &k[i+1])) {
-            Py_INCREF(k[i]);
-            Py_INCREF(k[i+1]);
-            i += 2;
-        }
-        nk = i / 2;
-    }
-    else {
-        kwtuple = NULL;
-        k = NULL;
-    }
-    closure = PyFunction_GET_CLOSURE(func);
-#if PY_MAJOR_VERSION >= 3
-    kwdefs = PyFunction_GET_KW_DEFAULTS(func);
-#endif
-    if (argdefs != NULL) {
-        d = &PyTuple_GET_ITEM(argdefs, 0);
-        nd = Py_SIZE(argdefs);
-    }
-    else {
-        d = NULL;
-        nd = 0;
-    }
-#if PY_MAJOR_VERSION >= 3
-    result = PyEval_EvalCodeEx((PyObject*)co, globals, (PyObject *)NULL,
-                               args, nargs,
-                               k, (int)nk,
-                               d, (int)nd, kwdefs, closure);
-#else
-    result = PyEval_EvalCodeEx(co, globals, (PyObject *)NULL,
-                               args, nargs,
-                               k, (int)nk,
-                               d, (int)nd, closure);
-#endif
-    Py_XDECREF(kwtuple);
-done:
-    Py_LeaveRecursiveCall();
-    return result;
-}
-#endif  // CPython < 3.6
-#endif  // CYTHON_FAST_PYCALL
-
-/* PyObjectCall */
-  #if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
-    PyObject *result;
-    ternaryfunc call = func->ob_type->tp_call;
-    if (unlikely(!call))
-        return PyObject_Call(func, arg, kw);
-    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
-        return NULL;
-    result = (*call)(func, arg, kw);
-    Py_LeaveRecursiveCall();
-    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
-        PyErr_SetString(
-            PyExc_SystemError,
-            "NULL result without error in PyObject_Call");
-    }
-    return result;
-}
-#endif
-
-/* PyObjectCallMethO */
-  #if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg) {
-    PyObject *self, *result;
-    PyCFunction cfunc;
-    cfunc = PyCFunction_GET_FUNCTION(func);
-    self = PyCFunction_GET_SELF(func);
-    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
-        return NULL;
-    result = cfunc(self, arg);
-    Py_LeaveRecursiveCall();
-    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
-        PyErr_SetString(
-            PyExc_SystemError,
-            "NULL result without error in PyObject_Call");
-    }
-    return result;
-}
-#endif
-
-/* PyObjectCallOneArg */
-  #if CYTHON_COMPILING_IN_CPYTHON
-static PyObject* __Pyx__PyObject_CallOneArg(PyObject *func, PyObject *arg) {
-    PyObject *result;
-    PyObject *args = PyTuple_New(1);
-    if (unlikely(!args)) return NULL;
-    Py_INCREF(arg);
-    PyTuple_SET_ITEM(args, 0, arg);
-    result = __Pyx_PyObject_Call(func, args, NULL);
-    Py_DECREF(args);
-    return result;
-}
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
-#if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(func)) {
-        return __Pyx_PyFunction_FastCall(func, &arg, 1);
-    }
-#endif
-#ifdef __Pyx_CyFunction_USED
-    if (likely(PyCFunction_Check(func) || PyObject_TypeCheck(func, __pyx_CyFunctionType))) {
-#else
-    if (likely(PyCFunction_Check(func))) {
-#endif
-        if (likely(PyCFunction_GET_FLAGS(func) & METH_O)) {
-            return __Pyx_PyObject_CallMethO(func, arg);
-#if CYTHON_FAST_PYCCALL
-        } else if (PyCFunction_GET_FLAGS(func) & METH_FASTCALL) {
-            return __Pyx_PyCFunction_FastCall(func, &arg, 1);
-#endif
-        }
-    }
-    return __Pyx__PyObject_CallOneArg(func, arg);
-}
-#else
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
-    PyObject *result;
-    PyObject *args = PyTuple_Pack(1, arg);
-    if (unlikely(!args)) return NULL;
-    result = __Pyx_PyObject_Call(func, args, NULL);
-    Py_DECREF(args);
-    return result;
-}
-#endif
 
 /* BufferFormatCheck */
-    static CYTHON_INLINE int __Pyx_IsLittleEndian(void) {
+static CYTHON_INLINE int __Pyx_IsLittleEndian(void) {
   unsigned int n = 1;
   return *(unsigned char*)(&n) != 0;
 }
@@ -28311,7 +23854,7 @@ static CYTHON_INLINE void __Pyx_SafeReleaseBuffer(Py_buffer* info) {
 }
 
 /* MemviewSliceInit */
-      static int
+  static int
 __Pyx_init_memviewslice(struct __pyx_memoryview_obj *memview,
                         int ndim,
                         __Pyx_memviewslice *memviewslice,
@@ -28445,8 +23988,28 @@ static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *memslice,
     }
 }
 
+/* PyObjectCall */
+  #if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
+    PyObject *result;
+    ternaryfunc call = func->ob_type->tp_call;
+    if (unlikely(!call))
+        return PyObject_Call(func, arg, kw);
+    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
+        return NULL;
+    result = (*call)(func, arg, kw);
+    Py_LeaveRecursiveCall();
+    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
+        PyErr_SetString(
+            PyExc_SystemError,
+            "NULL result without error in PyObject_Call");
+    }
+    return result;
+}
+#endif
+
 /* PyErrFetchRestore */
-      #if CYTHON_FAST_THREAD_STATE
+  #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE void __Pyx_ErrRestoreInState(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
     PyObject *tmp_type, *tmp_value, *tmp_tb;
     tmp_type = tstate->curexc_type;
@@ -28470,7 +24033,7 @@ static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject 
 #endif
 
 /* RaiseException */
-      #if PY_MAJOR_VERSION < 3
+  #if PY_MAJOR_VERSION < 3
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb,
                         CYTHON_UNUSED PyObject *cause) {
     __Pyx_PyThreadState_declare
@@ -28633,25 +24196,25 @@ bad:
 #endif
 
 /* RaiseTooManyValuesToUnpack */
-        static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
+    static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
     PyErr_Format(PyExc_ValueError,
                  "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
 }
 
 /* RaiseNeedMoreValuesToUnpack */
-        static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
+    static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
     PyErr_Format(PyExc_ValueError,
                  "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
                  index, (index == 1) ? "" : "s");
 }
 
 /* RaiseNoneIterError */
-        static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void) {
+    static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
 }
 
 /* ExtTypeTest */
-        static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type) {
+    static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type) {
     if (unlikely(!type)) {
         PyErr_SetString(PyExc_SystemError, "Missing type object");
         return 0;
@@ -28664,7 +24227,7 @@ bad:
 }
 
 /* SaveResetException */
-        #if CYTHON_FAST_THREAD_STATE
+    #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
     *type = tstate->exc_type;
     *value = tstate->exc_value;
@@ -28688,7 +24251,7 @@ static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject 
 #endif
 
 /* PyErrExceptionMatches */
-        #if CYTHON_FAST_THREAD_STATE
+    #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE int __Pyx_PyErr_ExceptionMatchesInState(PyThreadState* tstate, PyObject* err) {
     PyObject *exc_type = tstate->curexc_type;
     if (exc_type == err) return 1;
@@ -28698,7 +24261,7 @@ static CYTHON_INLINE int __Pyx_PyErr_ExceptionMatchesInState(PyThreadState* tsta
 #endif
 
 /* GetException */
-        #if CYTHON_FAST_THREAD_STATE
+    #if CYTHON_FAST_THREAD_STATE
 static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
 #else
 static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb) {
@@ -28759,7 +24322,7 @@ bad:
 }
 
 /* ArgTypeTest */
-          static void __Pyx_RaiseArgumentTypeInvalid(const char* name, PyObject *obj, PyTypeObject *type) {
+      static void __Pyx_RaiseArgumentTypeInvalid(const char* name, PyObject *obj, PyTypeObject *type) {
     PyErr_Format(PyExc_TypeError,
         "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
         name, type->tp_name, Py_TYPE(obj)->tp_name);
@@ -28786,7 +24349,7 @@ static CYTHON_INLINE int __Pyx_ArgTypeTest(PyObject *obj, PyTypeObject *type, in
 }
 
 /* BytesEquals */
-          static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
+      static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
 #if CYTHON_COMPILING_IN_PYPY
     return PyObject_RichCompareBool(s1, s2, equals);
 #else
@@ -28824,7 +24387,7 @@ static CYTHON_INLINE int __Pyx_ArgTypeTest(PyObject *obj, PyTypeObject *type, in
 }
 
 /* UnicodeEquals */
-          static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
+      static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int equals) {
 #if CYTHON_COMPILING_IN_PYPY
     return PyObject_RichCompareBool(s1, s2, equals);
 #else
@@ -28908,7 +24471,7 @@ return_ne:
 }
 
 /* None */
-          static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t a, Py_ssize_t b) {
+      static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t a, Py_ssize_t b) {
     Py_ssize_t q = a / b;
     Py_ssize_t r = a - q*b;
     q -= ((r != 0) & ((r ^ b) < 0));
@@ -28916,7 +24479,7 @@ return_ne:
 }
 
 /* GetAttr */
-          static CYTHON_INLINE PyObject *__Pyx_GetAttr(PyObject *o, PyObject *n) {
+      static CYTHON_INLINE PyObject *__Pyx_GetAttr(PyObject *o, PyObject *n) {
 #if CYTHON_COMPILING_IN_CPYTHON
 #if PY_MAJOR_VERSION >= 3
     if (likely(PyUnicode_Check(n)))
@@ -28929,7 +24492,7 @@ return_ne:
 }
 
 /* decode_c_string */
-          static CYTHON_INLINE PyObject* __Pyx_decode_c_string(
+      static CYTHON_INLINE PyObject* __Pyx_decode_c_string(
          const char* cstring, Py_ssize_t start, Py_ssize_t stop,
          const char* encoding, const char* errors,
          PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
@@ -28962,7 +24525,7 @@ return_ne:
 }
 
 /* SwapException */
-          #if CYTHON_FAST_THREAD_STATE
+      #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
     PyObject *tmp_type, *tmp_value, *tmp_tb;
     tmp_type = tstate->exc_type;
@@ -28987,7 +24550,7 @@ static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value,
 #endif
 
 /* Import */
-          static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
+      static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
     PyObject *empty_list = 0;
     PyObject *module = 0;
     PyObject *global_dict = 0;
@@ -29060,8 +24623,146 @@ bad:
     return module;
 }
 
+/* PyFunctionFastCall */
+      #if CYTHON_FAST_PYCALL
+#include "frameobject.h"
+static PyObject* __Pyx_PyFunction_FastCallNoKw(PyCodeObject *co, PyObject **args, Py_ssize_t na,
+                                               PyObject *globals) {
+    PyFrameObject *f;
+    PyThreadState *tstate = PyThreadState_GET();
+    PyObject **fastlocals;
+    Py_ssize_t i;
+    PyObject *result;
+    assert(globals != NULL);
+    /* XXX Perhaps we should create a specialized
+       PyFrame_New() that doesn't take locals, but does
+       take builtins without sanity checking them.
+       */
+    assert(tstate != NULL);
+    f = PyFrame_New(tstate, co, globals, NULL);
+    if (f == NULL) {
+        return NULL;
+    }
+    fastlocals = f->f_localsplus;
+    for (i = 0; i < na; i++) {
+        Py_INCREF(*args);
+        fastlocals[i] = *args++;
+    }
+    result = PyEval_EvalFrameEx(f,0);
+    ++tstate->recursion_depth;
+    Py_DECREF(f);
+    --tstate->recursion_depth;
+    return result;
+}
+#if 1 || PY_VERSION_HEX < 0x030600B1
+static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, int nargs, PyObject *kwargs) {
+    PyCodeObject *co = (PyCodeObject *)PyFunction_GET_CODE(func);
+    PyObject *globals = PyFunction_GET_GLOBALS(func);
+    PyObject *argdefs = PyFunction_GET_DEFAULTS(func);
+    PyObject *closure;
+#if PY_MAJOR_VERSION >= 3
+    PyObject *kwdefs;
+#endif
+    PyObject *kwtuple, **k;
+    PyObject **d;
+    Py_ssize_t nd;
+    Py_ssize_t nk;
+    PyObject *result;
+    assert(kwargs == NULL || PyDict_Check(kwargs));
+    nk = kwargs ? PyDict_Size(kwargs) : 0;
+    if (Py_EnterRecursiveCall((char*)" while calling a Python object")) {
+        return NULL;
+    }
+    if (
+#if PY_MAJOR_VERSION >= 3
+            co->co_kwonlyargcount == 0 &&
+#endif
+            likely(kwargs == NULL || nk == 0) &&
+            co->co_flags == (CO_OPTIMIZED | CO_NEWLOCALS | CO_NOFREE)) {
+        if (argdefs == NULL && co->co_argcount == nargs) {
+            result = __Pyx_PyFunction_FastCallNoKw(co, args, nargs, globals);
+            goto done;
+        }
+        else if (nargs == 0 && argdefs != NULL
+                 && co->co_argcount == Py_SIZE(argdefs)) {
+            /* function called with no arguments, but all parameters have
+               a default value: use default values as arguments .*/
+            args = &PyTuple_GET_ITEM(argdefs, 0);
+            result =__Pyx_PyFunction_FastCallNoKw(co, args, Py_SIZE(argdefs), globals);
+            goto done;
+        }
+    }
+    if (kwargs != NULL) {
+        Py_ssize_t pos, i;
+        kwtuple = PyTuple_New(2 * nk);
+        if (kwtuple == NULL) {
+            result = NULL;
+            goto done;
+        }
+        k = &PyTuple_GET_ITEM(kwtuple, 0);
+        pos = i = 0;
+        while (PyDict_Next(kwargs, &pos, &k[i], &k[i+1])) {
+            Py_INCREF(k[i]);
+            Py_INCREF(k[i+1]);
+            i += 2;
+        }
+        nk = i / 2;
+    }
+    else {
+        kwtuple = NULL;
+        k = NULL;
+    }
+    closure = PyFunction_GET_CLOSURE(func);
+#if PY_MAJOR_VERSION >= 3
+    kwdefs = PyFunction_GET_KW_DEFAULTS(func);
+#endif
+    if (argdefs != NULL) {
+        d = &PyTuple_GET_ITEM(argdefs, 0);
+        nd = Py_SIZE(argdefs);
+    }
+    else {
+        d = NULL;
+        nd = 0;
+    }
+#if PY_MAJOR_VERSION >= 3
+    result = PyEval_EvalCodeEx((PyObject*)co, globals, (PyObject *)NULL,
+                               args, nargs,
+                               k, (int)nk,
+                               d, (int)nd, kwdefs, closure);
+#else
+    result = PyEval_EvalCodeEx(co, globals, (PyObject *)NULL,
+                               args, nargs,
+                               k, (int)nk,
+                               d, (int)nd, closure);
+#endif
+    Py_XDECREF(kwtuple);
+done:
+    Py_LeaveRecursiveCall();
+    return result;
+}
+#endif  // CPython < 3.6
+#endif  // CYTHON_FAST_PYCALL
+
+/* PyCFunctionFastCall */
+      #if CYTHON_FAST_PYCCALL
+static CYTHON_INLINE PyObject * __Pyx_PyCFunction_FastCall(PyObject *func_obj, PyObject **args, Py_ssize_t nargs) {
+    PyCFunctionObject *func = (PyCFunctionObject*)func_obj;
+    PyCFunction meth = PyCFunction_GET_FUNCTION(func);
+    PyObject *self = PyCFunction_GET_SELF(func);
+    assert(PyCFunction_Check(func));
+    assert(METH_FASTCALL == (PyCFunction_GET_FLAGS(func) & ~(METH_CLASS | METH_STATIC | METH_COEXIST)));
+    assert(nargs >= 0);
+    assert(nargs == 0 || args != NULL);
+    /* _PyCFunction_FastCallDict() must not be called with an exception set,
+       because it may clear it (directly or indirectly) and so the
+       caller loses its exception */
+    assert(!PyErr_Occurred());
+    return (*((__Pyx_PyCFunctionFast)meth)) (self, args, nargs, NULL);
+}
+#endif  // CYTHON_FAST_PYCCALL
+
 /* GetItemInt */
-          static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
+      static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
     PyObject *r;
     if (!j) return NULL;
     r = PyObject_GetItem(o, j);
@@ -29142,7 +24843,7 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, 
 }
 
 /* PyIntBinop */
-          #if !CYTHON_COMPILING_IN_PYPY
+      #if !CYTHON_COMPILING_IN_PYPY
 static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, CYTHON_UNUSED int inplace) {
     #if PY_MAJOR_VERSION < 3
     if (likely(PyInt_CheckExact(op1))) {
@@ -29258,12 +24959,12 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED
 #endif
 
 /* None */
-          static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname) {
+      static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname) {
     PyErr_Format(PyExc_UnboundLocalError, "local variable '%s' referenced before assignment", varname);
 }
 
 /* None */
-          static CYTHON_INLINE long __Pyx_div_long(long a, long b) {
+      static CYTHON_INLINE long __Pyx_div_long(long a, long b) {
     long q = a / b;
     long r = a - q*b;
     q -= ((r != 0) & ((r ^ b) < 0));
@@ -29271,7 +24972,7 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED
 }
 
 /* WriteUnraisableException */
-          static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
+      static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
                                   CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
                                   int full_traceback, CYTHON_UNUSED int nogil) {
     PyObject *old_exc, *old_val, *old_tb;
@@ -29312,8 +25013,72 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED
 #endif
 }
 
+/* PyObjectCallMethO */
+      #if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg) {
+    PyObject *self, *result;
+    PyCFunction cfunc;
+    cfunc = PyCFunction_GET_FUNCTION(func);
+    self = PyCFunction_GET_SELF(func);
+    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
+        return NULL;
+    result = cfunc(self, arg);
+    Py_LeaveRecursiveCall();
+    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
+        PyErr_SetString(
+            PyExc_SystemError,
+            "NULL result without error in PyObject_Call");
+    }
+    return result;
+}
+#endif
+
+/* PyObjectCallOneArg */
+      #if CYTHON_COMPILING_IN_CPYTHON
+static PyObject* __Pyx__PyObject_CallOneArg(PyObject *func, PyObject *arg) {
+    PyObject *result;
+    PyObject *args = PyTuple_New(1);
+    if (unlikely(!args)) return NULL;
+    Py_INCREF(arg);
+    PyTuple_SET_ITEM(args, 0, arg);
+    result = __Pyx_PyObject_Call(func, args, NULL);
+    Py_DECREF(args);
+    return result;
+}
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
+#if CYTHON_FAST_PYCALL
+    if (PyFunction_Check(func)) {
+        return __Pyx_PyFunction_FastCall(func, &arg, 1);
+    }
+#endif
+#ifdef __Pyx_CyFunction_USED
+    if (likely(PyCFunction_Check(func) || PyObject_TypeCheck(func, __pyx_CyFunctionType))) {
+#else
+    if (likely(PyCFunction_Check(func))) {
+#endif
+        if (likely(PyCFunction_GET_FLAGS(func) & METH_O)) {
+            return __Pyx_PyObject_CallMethO(func, arg);
+#if CYTHON_FAST_PYCCALL
+        } else if (PyCFunction_GET_FLAGS(func) & METH_FASTCALL) {
+            return __Pyx_PyCFunction_FastCall(func, &arg, 1);
+#endif
+        }
+    }
+    return __Pyx__PyObject_CallOneArg(func, arg);
+}
+#else
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
+    PyObject *result;
+    PyObject *args = PyTuple_Pack(1, arg);
+    if (unlikely(!args)) return NULL;
+    result = __Pyx_PyObject_Call(func, args, NULL);
+    Py_DECREF(args);
+    return result;
+}
+#endif
+
 /* SetVTable */
-          static int __Pyx_SetVtable(PyObject *dict, void *vtable) {
+        static int __Pyx_SetVtable(PyObject *dict, void *vtable) {
 #if PY_VERSION_HEX >= 0x02070000
     PyObject *ob = PyCapsule_New(vtable, 0, 0);
 #else
@@ -29331,7 +25096,7 @@ bad:
 }
 
 /* CodeObjectCache */
-          static int __pyx_bisect_code_objects(__Pyx_CodeObjectCacheEntry* entries, int count, int code_line) {
+        static int __pyx_bisect_code_objects(__Pyx_CodeObjectCacheEntry* entries, int count, int code_line) {
     int start = 0, mid = 0, end = count - 1;
     if (end >= 0 && code_line > entries[end].code_line) {
         return count;
@@ -29411,7 +25176,7 @@ static void __pyx_insert_code_object(int code_line, PyCodeObject* code_object) {
 }
 
 /* AddTraceback */
-          #include "compile.h"
+        #include "compile.h"
 #include "frameobject.h"
 #include "traceback.h"
 static PyCodeObject* __Pyx_CreateCodeObjectForTraceback(
@@ -29514,8 +25279,8 @@ static void __Pyx_ReleaseBuffer(Py_buffer *view) {
 #endif
 
 
-          /* MemviewSliceIsContig */
-          static int
+        /* MemviewSliceIsContig */
+        static int
 __pyx_memviewslice_is_contig(const __Pyx_memviewslice mvs,
                              char order, int ndim)
 {
@@ -29538,7 +25303,7 @@ __pyx_memviewslice_is_contig(const __Pyx_memviewslice mvs,
 }
 
 /* OverlappingSlices */
-          static void
+        static void
 __pyx_get_array_memory_extents(__Pyx_memviewslice *slice,
                                void **out_start, void **out_end,
                                int ndim, size_t itemsize)
@@ -29574,7 +25339,7 @@ __pyx_slices_overlap(__Pyx_memviewslice *slice1,
 }
 
 /* Capsule */
-          static CYTHON_INLINE PyObject *
+        static CYTHON_INLINE PyObject *
 __pyx_capsule_create(void *p, CYTHON_UNUSED const char *sig)
 {
     PyObject *cobj;
@@ -29587,7 +25352,7 @@ __pyx_capsule_create(void *p, CYTHON_UNUSED const char *sig)
 }
 
 /* TypeInfoCompare */
-          static int
+        static int
 __pyx_typeinfo_cmp(__Pyx_TypeInfo *a, __Pyx_TypeInfo *b)
 {
     int i;
@@ -29628,7 +25393,7 @@ __pyx_typeinfo_cmp(__Pyx_TypeInfo *a, __Pyx_TypeInfo *b)
 }
 
 /* MemviewSliceValidateAndInit */
-          static int
+        static int
 __pyx_check_strides(Py_buffer *buf, int dim, int ndim, int spec)
 {
     if (buf->shape[dim] <= 1)
@@ -29810,7 +25575,7 @@ no_fail:
 }
 
 /* ObjectToMemviewSlice */
-          static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(PyObject *obj) {
+        static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
     int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_FOLLOW), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
@@ -29833,7 +25598,7 @@ __pyx_fail:
 }
 
 /* CIntFromPyVerify */
-          #define __PYX_VERIFY_RETURN_INT(target_type, func_type, func_value)\
+        #define __PYX_VERIFY_RETURN_INT(target_type, func_type, func_value)\
     __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 0)
 #define __PYX_VERIFY_RETURN_INT_EXC(target_type, func_type, func_value)\
     __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 1)
@@ -29855,7 +25620,7 @@ __pyx_fail:
     }
 
 /* ObjectToMemviewSlice */
-          static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_Py_ssize_t(PyObject *obj) {
+        static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_Py_ssize_t(PyObject *obj) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
     int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_FOLLOW), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
@@ -29878,7 +25643,7 @@ __pyx_fail:
 }
 
 /* CIntToPy */
-          static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
+        static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
     const int neg_one = (int) -1, const_zero = (int) 0;
     const int is_unsigned = neg_one > const_zero;
     if (is_unsigned) {
@@ -29908,20 +25673,8 @@ __pyx_fail:
     }
 }
 
-/* MemviewDtypeToObject */
-          static CYTHON_INLINE PyObject *__pyx_memview_get_double(const char *itemp) {
-    return (PyObject *) PyFloat_FromDouble(*(double *) itemp);
-}
-static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *obj) {
-    double value = __pyx_PyFloat_AsDouble(obj);
-    if ((value == (double)-1) && PyErr_Occurred())
-        return 0;
-    *(double *) itemp = value;
-    return 1;
-}
-
 /* Declarations */
-          #if CYTHON_CCOMPLEX
+        #if CYTHON_CCOMPLEX
   #ifdef __cplusplus
     static CYTHON_INLINE __pyx_t_float_complex __pyx_t_float_complex_from_parts(float x, float y) {
       return ::std::complex< float >(x, y);
@@ -29941,7 +25694,7 @@ static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *o
 #endif
 
 /* Arithmetic */
-          #if CYTHON_CCOMPLEX
+        #if CYTHON_CCOMPLEX
 #else
     static CYTHON_INLINE int __Pyx_c_eq_float(__pyx_t_float_complex a, __pyx_t_float_complex b) {
        return (a.real == b.real) && (a.imag == b.imag);
@@ -30076,7 +25829,7 @@ static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *o
 #endif
 
 /* Declarations */
-          #if CYTHON_CCOMPLEX
+        #if CYTHON_CCOMPLEX
   #ifdef __cplusplus
     static CYTHON_INLINE __pyx_t_double_complex __pyx_t_double_complex_from_parts(double x, double y) {
       return ::std::complex< double >(x, y);
@@ -30096,7 +25849,7 @@ static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *o
 #endif
 
 /* Arithmetic */
-          #if CYTHON_CCOMPLEX
+        #if CYTHON_CCOMPLEX
 #else
     static CYTHON_INLINE int __Pyx_c_eq_double(__pyx_t_double_complex a, __pyx_t_double_complex b) {
        return (a.real == b.real) && (a.imag == b.imag);
@@ -30231,7 +25984,7 @@ static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *o
 #endif
 
 /* CIntToPy */
-          static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum__NPY_TYPES(enum NPY_TYPES value) {
+        static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum__NPY_TYPES(enum NPY_TYPES value) {
     const enum NPY_TYPES neg_one = (enum NPY_TYPES) -1, const_zero = (enum NPY_TYPES) 0;
     const int is_unsigned = neg_one > const_zero;
     if (is_unsigned) {
@@ -30262,7 +26015,7 @@ static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *o
 }
 
 /* MemviewSliceCopyTemplate */
-          static __Pyx_memviewslice
+        static __Pyx_memviewslice
 __pyx_memoryview_copy_new_contig(const __Pyx_memviewslice *from_mvs,
                                  const char *mode, int ndim,
                                  size_t sizeof_dtype, int contig_flag,
@@ -30329,7 +26082,7 @@ no_fail:
 }
 
 /* CIntFromPy */
-          static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *x) {
+        static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *x) {
     const int neg_one = (int) -1, const_zero = (int) 0;
     const int is_unsigned = neg_one > const_zero;
 #if PY_MAJOR_VERSION < 3
@@ -30518,7 +26271,7 @@ raise_neg_overflow:
 }
 
 /* CIntToPy */
-          static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
+        static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
     const long neg_one = (long) -1, const_zero = (long) 0;
     const int is_unsigned = neg_one > const_zero;
     if (is_unsigned) {
@@ -30549,7 +26302,7 @@ raise_neg_overflow:
 }
 
 /* CIntFromPy */
-          static CYTHON_INLINE char __Pyx_PyInt_As_char(PyObject *x) {
+        static CYTHON_INLINE char __Pyx_PyInt_As_char(PyObject *x) {
     const char neg_one = (char) -1, const_zero = (char) 0;
     const int is_unsigned = neg_one > const_zero;
 #if PY_MAJOR_VERSION < 3
@@ -30738,7 +26491,7 @@ raise_neg_overflow:
 }
 
 /* CIntFromPy */
-          static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *x) {
+        static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *x) {
     const long neg_one = (long) -1, const_zero = (long) 0;
     const int is_unsigned = neg_one > const_zero;
 #if PY_MAJOR_VERSION < 3
@@ -30926,54 +26679,8 @@ raise_neg_overflow:
     return (long) -1;
 }
 
-/* ObjectToMemviewSlice */
-          static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(PyObject *obj) {
-    __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
-    __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_FOLLOW), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_FOLLOW), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
-    int retcode;
-    if (obj == Py_None) {
-        result.memview = (struct __pyx_memoryview_obj *) Py_None;
-        return result;
-    }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
-                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 3,
-                                                 &__Pyx_TypeInfo_double, stack,
-                                                 &result, obj);
-    if (unlikely(retcode == -1))
-        goto __pyx_fail;
-    return result;
-__pyx_fail:
-    result.memview = NULL;
-    result.data = NULL;
-    return result;
-}
-
-/* ObjectToMemviewSlice */
-          static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dc_double(PyObject *obj) {
-    __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
-    __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
-    int retcode;
-    if (obj == Py_None) {
-        result.memview = (struct __pyx_memoryview_obj *) Py_None;
-        return result;
-    }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
-                                                 (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT | PyBUF_WRITABLE), 1,
-                                                 &__Pyx_TypeInfo_double, stack,
-                                                 &result, obj);
-    if (unlikely(retcode == -1))
-        goto __pyx_fail;
-    return result;
-__pyx_fail:
-    result.memview = NULL;
-    result.data = NULL;
-    return result;
-}
-
 /* CheckBinaryVersion */
-          static int __Pyx_check_binary_version(void) {
+        static int __Pyx_check_binary_version(void) {
     char ctversion[4], rtversion[4];
     PyOS_snprintf(ctversion, 4, "%d.%d", PY_MAJOR_VERSION, PY_MINOR_VERSION);
     PyOS_snprintf(rtversion, 4, "%s", Py_GetVersion());
@@ -30989,7 +26696,7 @@ __pyx_fail:
 }
 
 /* ModuleImport */
-          #ifndef __PYX_HAVE_RT_ImportModule
+        #ifndef __PYX_HAVE_RT_ImportModule
 #define __PYX_HAVE_RT_ImportModule
 static PyObject *__Pyx_ImportModule(const char *name) {
     PyObject *py_name = 0;
@@ -31007,7 +26714,7 @@ bad:
 #endif
 
 /* TypeImport */
-          #ifndef __PYX_HAVE_RT_ImportType
+        #ifndef __PYX_HAVE_RT_ImportType
 #define __PYX_HAVE_RT_ImportType
 static PyTypeObject *__Pyx_ImportType(const char *module_name, const char *class_name,
     size_t size, int strict)
@@ -31072,7 +26779,7 @@ bad:
 #endif
 
 /* InitStrings */
-          static int __Pyx_InitStrings(__Pyx_StringTabEntry *t) {
+        static int __Pyx_InitStrings(__Pyx_StringTabEntry *t) {
     while (t->p) {
         #if PY_MAJOR_VERSION < 3
         if (t->is_unicode) {

@@ -19,6 +19,7 @@ from .estimation import fit_slope, fit_slope_offset, fit_slope_weighted, fit_slo
 from .estimation import clusters_stats
 from .estimation import colDeltaCor, colDeltaCorLog10, colDeltaCorpartial, colDeltaCorSqrtpartial, colDeltaCorLog10partial
 from .diffusion import Diffusion
+from .serialization import dump_hdf5, load_hdf5
 from typing import *
 
 
@@ -86,6 +87,26 @@ class VelocytoLoom:
         except KeyError:
             logging.debug("The file did not specify the _Valid column attribute")
 
+    def to_hdf5(self, filename: str, **kwargs: Dict[str, Any]) -> None:
+        """Serialize the VelocytoLoom object in its current state
+
+        Arguments
+        ---------
+        filename:
+            The name of the file that will be generated (the suffix hdf5 is suggested but not enforced)
+        **kwargs:
+            The fucntion accepts the arguments of `dump_hdf5`
+
+        Returns
+        -------
+        Nothing. It saves a file that can be used to recreate the object in another session.
+
+        Note
+        ----
+        The object can be reloaded calling ``load_velocyto_hdf5(filename)``
+        """
+        dump_hdf5(self, filename, **kwargs)
+
     def plot_fractions(self, save2file: str=None) -> None:
         """Plots a barplot showing the abundance of spliced/unspliced molecules in the dataset
 
@@ -128,7 +149,7 @@ class VelocytoLoom:
             plt.savefig(save2file, bbox_inches="tight")
 
     def filter_cells(self, bool_array: np.ndarray) -> None:
-        """Filter cells using a boolean array. 
+        """Filter cells using a boolean array.
 
         Arguments
         ---------
@@ -155,7 +176,7 @@ class VelocytoLoom:
             A vector of strings containing the name of the cluster for each cells
         cluster_colors_dict: dict[str, List[float]]
             A mapping  cluster_name -> rgb_color_triplette for example "StemCell":[0.65,0.1,0.4]
-        colormap: 
+        colormap:
             (optional)
             In alternative to cluster_colors_dict a colormap object (e.g. from matplotlib or similar callable) can be passed
 
@@ -164,7 +185,7 @@ class VelocytoLoom:
         Notghing, the attributes `cluster_labels, colorandum, cluster_ix, cluster_uid` are created.
 
         """
-        self.cluster_labels = cluster_labels
+        self.cluster_labels = np.array(cluster_labels)
         if cluster_colors_dict:
             self.colorandum = np.array([cluster_colors_dict[i] for i in cluster_labels])
             self.cluster_colors_dict = cluster_colors_dict
@@ -730,7 +751,7 @@ class VelocytoLoom:
     def perform_PCA_imputed(self, n_components: int=None) -> None:
         """Simply performs PCA of `Sx_norm` and save the result as  `pcax`"""
         self.pcax = PCA(n_components=n_components)
-        self.pcax = self.pcax.fit_transform(self.Sx_norm.T)
+        self.pcsx = self.pcax.fit_transform(self.Sx_norm.T)
 
     def plot_pca_imputed(self, dim: List[int]=[0, 1, 2], elev: float=60, azim: float=-140) -> None:
         """Plot 3d PCA of the smoothed data
@@ -777,7 +798,7 @@ class VelocytoLoom:
         Returns
         -------
         Nothing but it creates the attributes:
-        knn: scipy.sparse.csr_matrix 
+        knn: scipy.sparse.csr_matrix
             knn contiguity matrix
         knn_smoothig_w: scipy.sparse.lil_matrix
             the weights used for the smoothing
@@ -848,7 +869,7 @@ class VelocytoLoom:
 
     def gene_knn_imputation(self, k: int=15, pca_space: float=False, metric: str="correlation", diag: float=1,
                             scale_weights: bool=True, balanced: bool=True, b_sight: int=100, b_maxl: int=18,
-                             n_jobs: int=8) -> None:
+                            n_jobs: int=8) -> None:
         """Performs genes k-nn smoothing of the genes
 
         Arguments
@@ -878,7 +899,7 @@ class VelocytoLoom:
         Returns
         -------
         Nothing but it creates the attributes:
-        gknn: scipy.sparse.csr_matrix 
+        gknn: scipy.sparse.csr_matrix
             genes knn contiguity matrix
         gknn_smoothig_w: scipy.sparse.lil_matrix
             the weights used for the smoothing of the genes
@@ -933,7 +954,7 @@ class VelocytoLoom:
         weights: string or np.ndarray, default="maxmin_diag"
             the method to determine the weights of the least squares fit.
             "maxmin_diag", "maxmin", "sum", "prod", "maxmin_weighted" are supported
-            if a 2d np.ndarray is provided the entry (i,j) is the weight of the cell j when fitting gamma to gene i 
+            if a 2d np.ndarray is provided the entry (i,j) is the weight of the cell j when fitting gamma to gene i
         limit_gamma: np.ndarray, default=True
             whether to limit gamma when unspliced is much higher than spliced
         maxmin_perc: List[flaot], default=[2,98]
@@ -1198,7 +1219,7 @@ class VelocytoLoom:
                                  ndims: int=None, n_neighbors: int=None, psc: float = 1.0,
                                  knn_random: bool=False, sampled_fraction: float=0.3, delta_kind: str="clipped",
                                  sampling_pobs: Tuple[float, float]=(0.5, 0.1), max_dist_embed: float=None,
-                                 n_jobs: int=4, random_seed: int=15071990) -> None:
+                                 n_jobs: int=4, threads: int=None, random_seed: int=15071990) -> None:
         """Use correlation to estimate transition probabilities for every cells to its embedding neighborhood
         
         Arguments
@@ -1230,7 +1251,11 @@ class VelocytoLoom:
             If None it will be set to 0.25 * average_distance_two_points_taken_at_random
         n_jobs: int, default=4
             number of jobs to calkulate knn
-            this only applies to the knn search, by default half of the cps will be used for the actual correlation computation
+            this only applies to the knn search, for the more time consuming correlation computation see threads
+        threads: int, default=None
+            The threads will be used for the actual correlation computation by default half of the total.
+        random_seed: int, default=15071990
+            Random seed to make knn_random mode reproducible
         
         Returns
         -------
@@ -1286,16 +1311,16 @@ class VelocytoLoom:
             logging.debug(f"Correlation Calculation '{self.corr_calc}'")
             if transform == "log":
                 delta_hi_dim = hi_dim_t - hi_dim
-                self.corrcoef = colDeltaCorLog10partial(hi_dim, np.log10(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), neigh_ixs, psc=psc)
+                self.corrcoef = colDeltaCorLog10partial(hi_dim, np.log10(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), neigh_ixs, threads=threads, psc=psc)
             elif transform == "logratio":
                 log2hidim = np.log2(hi_dim + 1)
                 delta_hi_dim = np.log2(np.abs(hi_dim_t) + 1) - log2hidim
-                self.corrcoef = colDeltaCorpartial(log2hidim, delta_hi_dim, neigh_ixs)
+                self.corrcoef = colDeltaCorpartial(log2hidim, delta_hi_dim, neigh_ixs, threads=threads)
             elif transform == "linear":
-                self.corrcoef = colDeltaCorpartial(hi_dim, hi_dim_t - hi_dim, neigh_ixs)
+                self.corrcoef = colDeltaCorpartial(hi_dim, hi_dim_t - hi_dim, neigh_ixs, threads=threads)
             elif transform == "sqrt":
                 delta_hi_dim = hi_dim_t - hi_dim
-                self.corrcoef = colDeltaCorSqrtpartial(hi_dim, np.sqrt(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), neigh_ixs, psc=psc)
+                self.corrcoef = colDeltaCorSqrtpartial(hi_dim, np.sqrt(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), neigh_ixs, threads=threads, psc=psc)
             else:
                 raise NotImplementedError(f"tranform={transform} is not a valid parameter")
             np.fill_diagonal(self.corrcoef, 0)
@@ -1322,11 +1347,11 @@ class VelocytoLoom:
             logging.debug("Correlation Calculation 'full'")
             if transform == "log":
                 delta_hi_dim = hi_dim_t - hi_dim
-                self.corrcoef = colDeltaCorLog10(hi_dim, np.log10(np.abs(delta_hi_dim) + 1) * np.sign(delta_hi_dim))
+                self.corrcoef = colDeltaCorLog10(hi_dim, np.log10(np.abs(delta_hi_dim) + 1) * np.sign(delta_hi_dim), threads=threads)
             elif transform == "logratio":
                 log2hidim = np.log2(hi_dim + 1)
                 delta_hi_dim = np.log2(np.abs(hi_dim_t) + 1) - log2hidim
-                self.corrcoef = colDeltaCor(log2hidim, delta_hi_dim)
+                self.corrcoef = colDeltaCor(log2hidim, delta_hi_dim, threads=threads)
             elif transform == "linear":
                 self.corrcoef = colDeltaCor(hi_dim, hi_dim_t - hi_dim)
             elif transform == "sqrt":
@@ -1951,3 +1976,22 @@ def scale_to_match_median(sparse_matrix: sparse.csr_matrix, genes_total: np.ndar
 def gaussian_kernel(X: np.ndarray, mu: float=0, sigma: float=1) -> np.ndarray:
     """Compute gaussian kernel"""
     return np.exp(-(X - mu)**2 / (2 * sigma**2)) / np.sqrt(2 * np.pi * sigma**2)
+
+
+def load_velocyto_hdf5(filename: str) -> VelocytoLoom:
+    """Loads a Velocyto loom object from an hdf5 file
+
+    Arguments
+    ---------
+    filename: str
+        The name of the serialized file
+
+    Returns
+    -------
+    A VelocytoLoom object
+
+    Note
+    ----
+    The hdf5 file must have been created using ``VelocytoLoom.to_hdf5`` or the ``dump_hdf5`` function
+    """
+    return load_hdf5(filename, obj_class=VelocytoLoom)

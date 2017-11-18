@@ -1,539 +1,609 @@
 import cython
 import numpy as np
 cimport numpy as np
+from libc.stdlib cimport malloc, free
+from libc.string cimport memset
 from libc.math cimport sqrt, fabs, log10
 from cython.parallel import threadid, parallel, prange
+
+# Pure C function (written in cython, just for syntactic sugar)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef void x_colDeltaCor(double *e,
+                       double *d,
+                       double *rm,
+                       int rows,
+                       int cols,
+                       int num_threads):
+    cdef:
+        int i, j, c
+    
+    with nogil:
+        for c in prange(cols, schedule='guided', num_threads=num_threads):
+            A = <double *>malloc(rows * cols * sizeof(double))
+            tmp = <double *>malloc(1 * sizeof(double)) 
+            # subtract the cth column
+            for j in range(rows):
+                for i in range(cols):
+                    A[j*cols + i] = e[j*cols + i] - e[j*cols + c]
+            
+            #muA = A.mean(0)
+            muA = <double *>malloc(cols * sizeof(double))
+            memset(muA, 0, cols * sizeof(double))
+            for j in range(rows):
+                for i in range(cols):
+                    muA[i] += A[j*cols + i]
+            for i in range(cols):
+                muA[i] = muA[i] / rows
+
+            # A_mA = A - muA
+            A_mA = <double *>malloc(rows * cols * sizeof(double))
+            for j in range(rows):
+                for i in range(cols):
+                    A_mA[j*cols + i] = A[j*cols + i] - muA[i]
+
+            # mub = b.mean()
+            mub = <double *>malloc(1 * sizeof(double))
+            mub[0] = 0
+            for j in range(rows):
+                mub[0] += d[j*cols + c]
+            mub[0] = mub[0] / rows
+
+            # b_mb = b - mub
+            b_mb = <double *>malloc(rows * sizeof(double))
+            for j in range(rows):
+                b_mb[j] = d[j*cols + c] - mub[0]
+
+            # ssA = (A_mA**2).sum(0)
+            ssA = <double *>malloc(cols * sizeof(double))
+            memset(ssA, 0, cols * sizeof(double))
+            for j in range(rows):
+                for i in range(cols):
+                    ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+            for i in range(cols):
+                ssA[i] = 1. / sqrt(ssA[i])
+
+            # ssb = (b_mb**2).sum()
+            ssb = <double *>malloc(1 * sizeof(double))
+            ssb[0] = 0
+            for j in range(rows):
+                ssb[0] += b_mb[j] * b_mb[j] # **2
+            ssb[0] = 1. / sqrt(ssb[0])
+
+            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+            for j in range(rows):
+                tmp[0] = b_mb[j] * ssb[0]
+                for i in range(cols):
+                    rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+            
+            free(A)
+            free(tmp)
+            free(muA)
+            free(A_mA)
+            free(mub)
+            free(b_mb)
+            free(ssA)
+            free(ssb)
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
+cdef void x_colDeltaCorSqrt(double *e,
+                            double *d,
+                            double *rm,
+                            int rows,
+                            int cols,
+                            int num_threads,
+                            double psc):
+    cdef:
+        int i, j, c
+    
+    with nogil:
+        for c in prange(cols, schedule='guided', num_threads=num_threads):
+            A = <double *>malloc(rows * cols * sizeof(double))
+            tmp = <double *>malloc(1 * sizeof(double)) 
+            # subtract the cth column
+            for j in range(rows):
+                for i in range(cols):
+                    tmp[0] = e[j*cols + i] - e[j*cols + c]
+                    if tmp[0] > 0:
+                        A[j*cols + i] = sqrt(tmp[0] + psc)
+                    else:
+                        A[j*cols + i] = -sqrt(-tmp[0] + psc)
+            
+            #muA = A.mean(0)
+            muA = <double *>malloc(cols * sizeof(double))
+            memset(muA, 0, cols * sizeof(double))
+            for j in range(rows):
+                for i in range(cols):
+                    muA[i] += A[j*cols + i]
+            for i in range(cols):
+                muA[i] = muA[i] / rows
+
+            # A_mA = A - muA
+            A_mA = <double *>malloc(rows * cols * sizeof(double))
+            for j in range(rows):
+                for i in range(cols):
+                    A_mA[j*cols + i] = A[j*cols + i] - muA[i]
+
+            # mub = b.mean()
+            mub = <double *>malloc(1 * sizeof(double))
+            mub[0] = 0
+            for j in range(rows):
+                mub[0] += d[j*cols + c]
+            mub[0] = mub[0] / rows
+
+            # b_mb = b - mub
+            b_mb = <double *>malloc(rows * sizeof(double))
+            for j in range(rows):
+                b_mb[j] = d[j*cols + c] - mub[0]
+
+            # ssA = (A_mA**2).sum(0)
+            ssA = <double *>malloc(cols * sizeof(double))
+            memset(ssA, 0, cols * sizeof(double))
+            for j in range(rows):
+                for i in range(cols):
+                    ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+            for i in range(cols):
+                ssA[i] = 1. / sqrt(ssA[i])
+
+            # ssb = (b_mb**2).sum()
+            ssb = <double *>malloc(1 * sizeof(double))
+            ssb[0] = 0
+            for j in range(rows):
+                ssb[0] += b_mb[j] * b_mb[j] # **2
+            ssb[0] = 1. / sqrt(ssb[0])
+
+            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+            for j in range(rows):
+                tmp[0] = b_mb[j] * ssb[0]
+                for i in range(cols):
+                    rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+            
+            free(A)
+            free(tmp)
+            free(muA)
+            free(A_mA)
+            free(mub)
+            free(b_mb)
+            free(ssA)
+            free(ssb)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef void x_colDeltaCorLog10(double *e,
+                      double *d,
+                      double *rm,
+                      int rows,
+                      int cols,
+                      int num_threads,
+                      double psc):
+    cdef:
+        int i, j, c
+    
+    with nogil:
+        for c in prange(cols, schedule='guided', num_threads=num_threads):
+            A = <double *>malloc(rows * cols * sizeof(double))
+            tmp = <double *>malloc(1 * sizeof(double)) 
+            # subtract the cth column
+            for j in range(rows):
+                for i in range(cols):
+                    tmp[0] = e[j*cols + i] - e[j*cols + c]
+                    if tmp[0] > 0:
+                        A[j*cols + i] = log10(tmp[0] + psc)
+                    else:
+                        A[j*cols + i] = -log10(-tmp[0] + psc)
+            
+            #muA = A.mean(0)
+            muA = <double *>malloc(cols * sizeof(double))
+            memset(muA, 0, cols * sizeof(double))
+            for j in range(rows):
+                for i in range(cols):
+                    muA[i] += A[j*cols + i]
+            for i in range(cols):
+                muA[i] = muA[i] / rows
+
+            # A_mA = A - muA
+            A_mA = <double *>malloc(rows * cols * sizeof(double))
+            for j in range(rows):
+                for i in range(cols):
+                    A_mA[j*cols + i] = A[j*cols + i] - muA[i]
+
+            # mub = b.mean()
+            mub = <double *>malloc(1 * sizeof(double))
+            mub[0] = 0
+            for j in range(rows):
+                mub[0] += d[j*cols + c]
+            mub[0] = mub[0] / rows
+
+            # b_mb = b - mub
+            b_mb = <double *>malloc(rows * sizeof(double))
+            for j in range(rows):
+                b_mb[j] = d[j*cols + c] - mub[0]
+
+            # ssA = (A_mA**2).sum(0)
+            ssA = <double *>malloc(cols * sizeof(double))
+            memset(ssA, 0, cols * sizeof(double))
+            for j in range(rows):
+                for i in range(cols):
+                    ssA[i] += A_mA[j*cols + i] * A_mA[j*cols + i]
+            for i in range(cols):
+                ssA[i] = 1. / sqrt(ssA[i])
+
+            # ssb = (b_mb**2).sum()
+            ssb = <double *>malloc(1 * sizeof(double))
+            ssb[0] = 0
+            for j in range(rows):
+                ssb[0] += b_mb[j] * b_mb[j] # **2
+            ssb[0] = 1. / sqrt(ssb[0])
+
+            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+            for j in range(rows):
+                tmp[0] = b_mb[j] * ssb[0]
+                for i in range(cols):
+                    rm[c*cols + i] += (A_mA[j*cols + i] * ssA[i]) * tmp[0]
+            
+            free(A)
+            free(tmp)
+            free(muA)
+            free(A_mA)
+            free(mub)
+            free(b_mb)
+            free(ssA)
+            free(ssb)
+
+# "partial" functions act on a random sample of the neighbours to reduce computation time
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef void x_colDeltaCorpartial(double *e,
+                                   double *d,
+                                   double *rm,
+                                   Py_ssize_t *ixs,
+                                   int rows,
+                                   int cols,
+                                   int nrndm,
+                                   int num_threads):
+    cdef:
+        int i, j, c, n
+    
+    with nogil:
+        for c in prange(cols, schedule='guided', num_threads=num_threads):
+            A = <double*> malloc(rows * nrndm * sizeof(double))
+            tmp = <double*> malloc(sizeof(double)) 
+            # subtract the cth column
+            for j in range(rows):
+                for n in range(nrndm):
+                    i = ixs[c*nrndm + n]
+                    A[j*nrndm + n] = e[j*cols + i] - e[j*cols + c]
+            
+            #muA = A.mean(0)
+            muA = <double*> malloc(nrndm * sizeof(double))
+            memset(muA, 0, nrndm * sizeof(double))
+            for j in range(rows):
+                for n in range(nrndm):
+                    muA[n] += A[j*nrndm + n]
+            for n in range(nrndm):
+                muA[n] = muA[n] / rows
+
+            # A_mA = A - muA
+            A_mA = <double*> malloc(rows * nrndm * sizeof(double))
+            for j in range(rows):
+                for n in range(nrndm):
+                    A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]
+
+            # mub = b.mean()
+            mub = <double*> malloc(sizeof(double))
+            mub[0] = 0
+            for j in range(rows):
+                mub[0] += d[j*cols + c]
+            mub[0] = mub[0] / rows
+
+            # b_mb = b - mub
+            b_mb = <double*> malloc(rows * sizeof(double))
+            for j in range(rows):
+                b_mb[j] = d[j*cols + c] - mub[0]
+
+            # ssA = (A_mA**2).sum(0)
+            ssA = <double*> malloc(nrndm * sizeof(double))
+            memset(ssA, 0, nrndm * sizeof(double))
+            for j in range(rows):
+                for n in range(nrndm):
+                    ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]
+                    
+            # one division and many multiplication (below) faster than many divisions
+            for n in range(nrndm):
+                ssA[n] = 1. / sqrt(ssA[n])
+
+            # ssb = (b_mb**2).sum()
+            ssb = <double*> malloc(sizeof(double))
+            ssb[0] = 0
+            for j in range(rows):
+                ssb[0] += b_mb[j] * b_mb[j] # **2
+            
+            # one division and many multiplication (below) faster than many divisions
+            ssb[0] = 1. / sqrt(ssb[0]) 
+
+            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+            for j in range(rows):
+                tmp[0] = b_mb[j] * ssb[0]
+                for n in range(nrndm):
+                    i = ixs[c*nrndm + n]
+                    rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]
+                    
+            # Cleanup
+            free(A)
+            free(tmp)
+            free(muA)
+            free(A_mA)
+            free(mub)
+            free(b_mb)
+            free(ssA)
+            free(ssb)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef void x_colDeltaCorSqrtpartial(double *e,
+                                   double *d,
+                                   double *rm,
+                                   Py_ssize_t *ixs,
+                                   int rows,
+                                   int cols,
+                                   int nrndm,
+                                   int num_threads,
+                                   double psc):
+    cdef:
+        int i, j, c, n
+    
+    with nogil:
+        for c in prange(cols, schedule='guided', num_threads=num_threads):
+            A = <double*> malloc(rows * nrndm * sizeof(double))
+            tmp = <double*> malloc(sizeof(double)) 
+            # subtract the cth column
+            for j in range(rows):
+                for n in range(nrndm):
+                    i = ixs[c*nrndm + n]
+                    tmp[0] = e[j*cols + i] - e[j*cols + c]
+                    if tmp[0] >= 0:
+                        A[j*nrndm + n] = sqrt(tmp[0] + psc)
+                    else:
+                        A[j*nrndm + n] = -sqrt(-tmp[0] + psc)
+                    
+            
+            #muA = A.mean(0)
+            muA = <double*> malloc(nrndm * sizeof(double))
+            memset(muA, 0, nrndm * sizeof(double))
+            for j in range(rows):
+                for n in range(nrndm):
+                    muA[n] += A[j*nrndm + n]
+            for n in range(nrndm):
+                muA[n] = muA[n] / rows
+
+            # A_mA = A - muA
+            A_mA = <double*> malloc(rows * nrndm * sizeof(double))
+            for j in range(rows):
+                for n in range(nrndm):
+                    A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]
+
+            # mub = b.mean()
+            mub = <double*> malloc(sizeof(double))
+            mub[0] = 0
+            for j in range(rows):
+                mub[0] += d[j*cols + c]
+            mub[0] = mub[0] / rows
+
+            # b_mb = b - mub
+            b_mb = <double*> malloc(rows * sizeof(double))
+            for j in range(rows):
+                b_mb[j] = d[j*cols + c] - mub[0]
+
+            # ssA = (A_mA**2).sum(0)
+            ssA = <double*> malloc(nrndm * sizeof(double))
+            memset(ssA, 0, nrndm * sizeof(double))
+            for j in range(rows):
+                for n in range(nrndm):
+                    ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]
+                    
+            # one division and many multiplication (below) faster than many divisions
+            for n in range(nrndm):
+                ssA[n] = 1. / sqrt(ssA[n])
+
+            # ssb = (b_mb**2).sum()
+            ssb = <double*> malloc(sizeof(double))
+            ssb[0] = 0
+            for j in range(rows):
+                ssb[0] += b_mb[j] * b_mb[j] # **2
+            
+            # one division and many multiplication (below) faster than many divisions
+            ssb[0] = 1. / sqrt(ssb[0]) 
+
+            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+            for j in range(rows):
+                tmp[0] = b_mb[j] * ssb[0]
+                for n in range(nrndm):
+                    i = ixs[c*nrndm + n]
+                    rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]
+                    
+            # Cleanup
+            free(A)
+            free(tmp)
+            free(muA)
+            free(A_mA)
+            free(mub)
+            free(b_mb)
+            free(ssA)
+            free(ssb)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef void x_colDeltaCorLog10partial(double *e,
+                                   double *d,
+                                   double *rm,
+                                   Py_ssize_t *ixs,
+                                   int rows,
+                                   int cols,
+                                   int nrndm,
+                                   int num_threads,
+                                   double psc):
+    cdef:
+        int i, j, c, n
+    
+    with nogil:
+        for c in prange(cols, schedule='guided', num_threads=num_threads):
+            A = <double*> malloc(rows * nrndm * sizeof(double))
+            tmp = <double*> malloc(sizeof(double)) 
+            # subtract the cth column
+            for j in range(rows):
+                for n in range(nrndm):
+                    i = ixs[c*nrndm + n]
+                    tmp[0] = e[j*cols + i] - e[j*cols + c]
+                    if tmp[0] >= 0:
+                        A[j*nrndm + n] = log10(tmp[0] + psc)
+                    else:
+                        A[j*nrndm + n] = -log10(-tmp[0] + psc)
+                    
+            
+            #muA = A.mean(0)
+            muA = <double*> malloc(nrndm * sizeof(double))
+            memset(muA, 0, nrndm * sizeof(double))
+            for j in range(rows):
+                for n in range(nrndm):
+                    muA[n] += A[j*nrndm + n]
+            for n in range(nrndm):
+                muA[n] = muA[n] / rows
+
+            # A_mA = A - muA
+            A_mA = <double*> malloc(rows * nrndm * sizeof(double))
+            for j in range(rows):
+                for n in range(nrndm):
+                    A_mA[j*nrndm + n] = A[j*nrndm + n] - muA[n]
+
+            # mub = b.mean()
+            mub = <double*> malloc(sizeof(double))
+            mub[0] = 0
+            for j in range(rows):
+                mub[0] += d[j*cols + c]
+            mub[0] = mub[0] / rows
+
+            # b_mb = b - mub
+            b_mb = <double*> malloc(rows * sizeof(double))
+            for j in range(rows):
+                b_mb[j] = d[j*cols + c] - mub[0]
+
+            # ssA = (A_mA**2).sum(0)
+            ssA = <double*> malloc(nrndm * sizeof(double))
+            memset(ssA, 0, nrndm * sizeof(double))
+            for j in range(rows):
+                for n in range(nrndm):
+                    ssA[n] += A_mA[j*nrndm + n] * A_mA[j*nrndm + n]
+                    
+            # one division and many multiplication (below) faster than many divisions
+            for n in range(nrndm):
+                ssA[n] = 1. / sqrt(ssA[n])
+
+            # ssb = (b_mb**2).sum()
+            ssb = <double*> malloc(sizeof(double))
+            ssb[0] = 0
+            for j in range(rows):
+                ssb[0] += b_mb[j] * b_mb[j] # **2
+            
+            # one division and many multiplication (below) faster than many divisions
+            ssb[0] = 1. / sqrt(ssb[0]) 
+
+            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
+            for j in range(rows):
+                tmp[0] = b_mb[j] * ssb[0]
+                for n in range(nrndm):
+                    i = ixs[c*nrndm + n]
+                    rm[c*cols + i] += (A_mA[j*nrndm + n] * ssA[n]) * tmp[0]
+                    
+            # Cleanup
+            free(A)
+            free(tmp)
+            free(muA)
+            free(A_mA)
+            free(mub)
+            free(b_mb)
+            free(ssA)
+            free(ssb)
+    
+
+# Functions accessible from python, adapt the C function to python thorugh cPython API
 def _colDeltaCor(double[:, ::1] e,
                  double[:, ::1] d,
                  double[:, ::1] rm,
                  int num_threads):
     cdef:
-        Py_ssize_t rows = e.shape[0]
-        Py_ssize_t cols = e.shape[1]
-        Py_ssize_t i, j, c, t
-        double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
-        double[:, ::1] t_b = np.array(d.T, order="C")
-        double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
-        double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
-        double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
-        double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
-        double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
-        double[::1] t_mub = np.zeros(num_threads)
-        double[::1] t_ssb = np.zeros(num_threads)
-        double[::1] t_tmp = np.zeros(num_threads)
-        int thread_id
-    
-    with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
-        for c in prange(cols, schedule='static', num_threads=num_threads):
-            t = threadid() # or 
-            
-            # subtract the cth column
-            for j in range(rows):
-                for i in range(cols):
-                    t_A[t, j, i] = e[j, i] - e[j, c]
-            
-            #muA = A.mean(0)
-            for j in range(rows):
-                for i in range(cols):
-                    t_muA[t, i] += t_A[t, j, i]
-            for i in range(cols):
-                t_muA[t, i] = t_muA[t, i] / rows
+        int rows = e.shape[0]
+        int cols = e.shape[1]
+        
+    x_colDeltaCor(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads)
 
-            # A_mA = A - muA
-            for j in range(rows):
-                for i in range(cols):
-                    t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]
-
-            # mub = b.mean()
-            for j in range(rows):
-                t_mub[t] += t_b[c, j]
-            t_mub[t] = t_mub[t] / rows
-
-            # b_mb = b - mub
-            for j in range(rows):
-                t_b_mb[t, j] = t_b[c, j] - t_mub[t]
-
-            # ssA = (A_mA**2).sum(0)
-            for j in range(rows):
-                for i in range(cols):
-                    t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
-            for i in range(cols):
-                t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])
-
-            # ssb = (b_mb**2).sum()
-            for j in range(rows):
-                t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
-            t_ssb[t] = 1. / sqrt(t_ssb[t])
-
-            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
-            for j in range(rows):
-                t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
-                for i in range(cols):
-                    rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]
-                    
-            # Cleanup
-            for i in range(cols):
-                t_muA[t, i] = 0
-            
-            t_mub[t] = 0
-                
-            for i in range(cols):
-                t_ssA[t, i] = 0
-                
-            t_ssb[t] = 0
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.cdivision(True)
-def _colDeltaCorLog10(double[:, ::1] e,
-                      double[:, ::1] d,
-                      double[:, ::1] rm,
-                      int num_threads,
-                      double psc):
-    cdef:
-        Py_ssize_t rows = e.shape[0]
-        Py_ssize_t cols = e.shape[1]
-        Py_ssize_t i, j, c, t
-        double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
-        double[:, ::1] t_b = np.array(d.T, order="C")
-        double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
-        double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
-        double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
-        double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
-        double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
-        double[::1] t_mub = np.zeros(num_threads)
-        double[::1] t_ssb = np.zeros(num_threads)
-        double[::1] t_tmp = np.zeros(num_threads)
-        int thread_id
-    
-    with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
-        for c in prange(cols, schedule='static', num_threads=num_threads):
-            t = threadid() # or 
-            
-            # subtract the cth column
-            for j in range(rows):
-                for i in range(cols):
-                    t_tmp[t] = e[j, i] - e[j, c]
-                    if t_tmp[t] > 0:
-                        t_A[t, j, i] = log10(fabs(t_tmp[t]) + psc)
-                    else:
-                        t_A[t, j, i] = -log10(fabs(t_tmp[t]) + psc)
-                    
-            
-            #muA = A.mean(0)
-            for j in range(rows):
-                for i in range(cols):
-                    t_muA[t, i] += t_A[t, j, i]
-            for i in range(cols):
-                t_muA[t, i] = t_muA[t, i] / rows
-
-            # A_mA = A - muA
-            for j in range(rows):
-                for i in range(cols):
-                    t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]
-
-            # mub = b.mean()
-            for j in range(rows):
-                t_mub[t] += t_b[c, j]
-            t_mub[t] = t_mub[t] / rows
-
-            # b_mb = b - mub
-            for j in range(rows):
-                t_b_mb[t, j] = t_b[c, j] - t_mub[t]
-
-            # ssA = (A_mA**2).sum(0)
-            for j in range(rows):
-                for i in range(cols):
-                    t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
-            for i in range(cols):
-                t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])
-
-            # ssb = (b_mb**2).sum()
-            for j in range(rows):
-                t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
-            t_ssb[t] = 1. / sqrt(t_ssb[t])
-
-            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
-            for j in range(rows):
-                t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
-                for i in range(cols):
-                    rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]
-                    
-            # Cleanup
-            for i in range(cols):
-                t_muA[t, i] = 0
-            
-            t_mub[t] = 0
-                
-            for i in range(cols):
-                t_ssA[t, i] = 0
-                
-            t_ssb[t] = 0
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.cdivision(True)
 def _colDeltaCorSqrt(double[:, ::1] e,
-                      double[:, ::1] d,
-                      double[:, ::1] rm,
-                      int num_threads,
-                      double psc):
+                     double[:, ::1] d,
+                     double[:, ::1] rm,
+                     int num_threads,
+                     double psc):
     cdef:
-        Py_ssize_t rows = e.shape[0]
-        Py_ssize_t cols = e.shape[1]
-        Py_ssize_t i, j, c, t
-        double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], e.shape[1])) # np.tile(e, (3,1,1))
-        double[:, ::1] t_b = np.array(d.T, order="C")
-        double[:, ::1] t_out = np.zeros((num_threads, e.shape[1]))
-        double[:, ::1] t_muA = np.zeros((num_threads, e.shape[1]))
-        double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], e.shape[1]))
-        double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
-        double[:, ::1] t_ssA = np.zeros((num_threads, e.shape[1]))
-        double[::1] t_mub = np.zeros(num_threads)
-        double[::1] t_ssb = np.zeros(num_threads)
-        double[::1] t_tmp = np.zeros(num_threads)
-        int thread_id
-    
-    with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
-        for c in prange(cols, schedule='static', num_threads=num_threads):
-            t = threadid() # or 
-            
-            # subtract the cth column
-            for j in range(rows):
-                for i in range(cols):
-                    t_tmp[t] = e[j, i] - e[j, c]
-                    if t_tmp[t] > 0:
-                        t_A[t, j, i] = log10(fabs(t_tmp[t]) + 1)
-                    else:
-                        t_A[t, j, i] = -log10(fabs(t_tmp[t]) + 1)
-                    
-            
-            #muA = A.mean(0)
-            for j in range(rows):
-                for i in range(cols):
-                    t_muA[t, i] += t_A[t, j, i]
-            for i in range(cols):
-                t_muA[t, i] = t_muA[t, i] / rows
+        int rows = e.shape[0]
+        int cols = e.shape[1]
+        
+    x_colDeltaCorSqrt(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
 
-            # A_mA = A - muA
-            for j in range(rows):
-                for i in range(cols):
-                    t_A_mA[t, j, i] = t_A[t, j, i] - t_muA[t, i]
+def _colDeltaCorLog10(double[:, ::1] e,
+                     double[:, ::1] d,
+                     double[:, ::1] rm,
+                     int num_threads,
+                     double psc):
+    cdef:
+        int rows = e.shape[0]
+        int cols = e.shape[1]
+        
+    x_colDeltaCorLog10(&e[0,0], &d[0,0], &rm[0,0], rows, cols, num_threads, psc)
 
-            # mub = b.mean()
-            for j in range(rows):
-                t_mub[t] += t_b[c, j]
-            t_mub[t] = t_mub[t] / rows
-
-            # b_mb = b - mub
-            for j in range(rows):
-                t_b_mb[t, j] = t_b[c, j] - t_mub[t]
-
-            # ssA = (A_mA**2).sum(0)
-            for j in range(rows):
-                for i in range(cols):
-                    t_ssA[t, i] += t_A_mA[t, j, i] * t_A_mA[t, j, i]
-            for i in range(cols):
-                t_ssA[t, i] = 1. / sqrt(t_ssA[t, i])
-
-            # ssb = (b_mb**2).sum()
-            for j in range(rows):
-                t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
-            t_ssb[t] = 1. / sqrt(t_ssb[t])
-
-            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
-            for j in range(rows):
-                t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
-                for i in range(cols):
-                    rm[c, i] += (t_A_mA[t, j, i] * t_ssA[t, i]) * t_tmp[t]
-                    
-            # Cleanup
-            for i in range(cols):
-                t_muA[t, i] = 0
-            
-            t_mub[t] = 0
-                
-            for i in range(cols):
-                t_ssA[t, i] = 0
-                
-            t_ssb[t] = 0
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.cdivision(True)
 def _colDeltaCorpartial(double[:, ::1] e,
                         double[:, ::1] d,
                         double[:, ::1] rm,
                         Py_ssize_t[:, ::1] ixs,
-                        int num_threads):
+                        int num_threads,
+                        double psc):
     cdef:
-        Py_ssize_t rows = e.shape[0]
-        Py_ssize_t cols = e.shape[1]
-        Py_ssize_t nrndm = ixs.shape[1]
-        Py_ssize_t i, j, c, t, n
-        double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
-        double[:, ::1] t_b = np.array(d.T, order="C")
-        double[:, ::1] t_out = np.zeros((num_threads, nrndm))
-        double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
-        double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
-        double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
-        double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
-        double[::1] t_mub = np.zeros(num_threads)
-        double[::1] t_ssb = np.zeros(num_threads)
-        double[::1] t_tmp = np.zeros(num_threads)
-        int thread_id
-    
-    with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
-        for c in prange(cols, schedule='static', num_threads=num_threads):
-            t = threadid() # or
-            
-            # subtract the cth column
-            for j in range(rows):
-                for n in range(nrndm):
-                    i = ixs[c, n]
-                    t_A[t, j, n] = e[j, i] - e[j, c]
-                    
-            
-            #muA = A.mean(0)
-            for j in range(rows):
-                for n in range(nrndm):
-                    i = ixs[c, n]
-                    t_muA[t, n] += t_A[t, j, n]
-            for n in range(nrndm):
-                t_muA[t, n] = t_muA[t, n] / rows
+        int rows = e.shape[0]
+        int cols = e.shape[1]
+        int nrndm = ixs.shape[1]
+        
+    x_colDeltaCorpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads)
 
-            # A_mA = A - muA
-            for j in range(rows):
-                for n in range(nrndm):
-                    t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]
-
-            # mub = b.mean()
-            for j in range(rows):
-                t_mub[t] += t_b[c, j]
-            t_mub[t] = t_mub[t] / rows
-
-            # b_mb = b - mub
-            for j in range(rows):
-                t_b_mb[t, j] = t_b[c, j] - t_mub[t]
-
-            # ssA = (A_mA**2).sum(0)
-            for j in range(rows):
-                for n in range(nrndm):
-                    t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
-            for n in range(nrndm):
-                t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])
-
-            # ssb = (b_mb**2).sum()
-            for j in range(rows):
-                t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
-            t_ssb[t] = 1. / sqrt(t_ssb[t])
-
-            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
-            for j in range(rows):
-                t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
-                for n in range(nrndm):
-                    i = ixs[c, n]
-                    rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]
-                    
-            # Cleanup
-            for n in range(nrndm):
-                t_muA[t, n] = 0
-            
-            t_mub[t] = 0
-                
-            for n in range(nrndm):
-                t_ssA[t, n] = 0
-                
-            t_ssb[t] = 0
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.cdivision(True)
-def _colDeltaCorLog10partial(double[:, ::1] e,
-                             double[:, ::1] d,
-                             double[:, ::1] rm,
-                             Py_ssize_t[:, ::1] ixs,
-                             int num_threads,
-                             double psc):
-    cdef:
-        Py_ssize_t rows = e.shape[0]
-        Py_ssize_t cols = e.shape[1]
-        Py_ssize_t nrndm = ixs.shape[1]
-        Py_ssize_t i, j, c, t, n
-        double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
-        double[:, ::1] t_b = np.array(d.T, order="C")
-        double[:, ::1] t_out = np.zeros((num_threads, nrndm))
-        double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
-        double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
-        double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
-        double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
-        double[::1] t_mub = np.zeros(num_threads)
-        double[::1] t_ssb = np.zeros(num_threads)
-        double[::1] t_tmp = np.zeros(num_threads)
-    
-    with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
-        for c in prange(cols, schedule='static', num_threads=num_threads):
-            t = threadid() # or
-            
-            # subtract the cth column
-            for j in range(rows):
-                for n in range(nrndm):
-                    i = ixs[c, n]
-                    t_tmp[t] = e[j, i] - e[j, c]
-                    if t_tmp[t] > 0:
-                        t_A[t, j, n] = log10(fabs(t_tmp[t]) + psc)
-                    else:
-                        t_A[t, j, n] = -log10(fabs(t_tmp[t]) + psc)
-                    
-            
-            #muA = A.mean(0)
-            for j in range(rows):
-                for n in range(nrndm):
-                    i = ixs[c, n]
-                    t_muA[t, n] += t_A[t, j, n]
-            for n in range(nrndm):
-                t_muA[t, n] = t_muA[t, n] / rows
-
-            # A_mA = A - muA
-            for j in range(rows):
-                for n in range(nrndm):
-                    t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]
-
-            # mub = b.mean()
-            for j in range(rows):
-                t_mub[t] += t_b[c, j]
-            t_mub[t] = t_mub[t] / rows
-
-            # b_mb = b - mub
-            for j in range(rows):
-                t_b_mb[t, j] = t_b[c, j] - t_mub[t]
-
-            # ssA = (A_mA**2).sum(0)
-            for j in range(rows):
-                for n in range(nrndm):
-                    t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
-            for n in range(nrndm):
-                t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])
-
-            # ssb = (b_mb**2).sum()
-            for j in range(rows):
-                t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
-            t_ssb[t] = 1. / sqrt(t_ssb[t])
-
-            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
-            for j in range(rows):
-                t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
-                for n in range(nrndm):
-                    i = ixs[c, n]
-                    rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]
-                    
-            # Cleanup
-            for n in range(nrndm):
-                t_muA[t, n] = 0
-            
-            t_mub[t] = 0
-                
-            for n in range(nrndm):
-                t_ssA[t, n] = 0
-                
-            t_ssb[t] = 0
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.cdivision(True)
 def _colDeltaCorSqrtpartial(double[:, ::1] e,
-                             double[:, ::1] d,
-                             double[:, ::1] rm,
-                             Py_ssize_t[:, ::1] ixs,
-                             int num_threads,
-                             double psc):
+                            double[:, ::1] d,
+                            double[:, ::1] rm,
+                            Py_ssize_t[:, ::1] ixs,
+                            int num_threads,
+                            double psc):
     cdef:
-        Py_ssize_t rows = e.shape[0]
-        Py_ssize_t cols = e.shape[1]
-        Py_ssize_t nrndm = ixs.shape[1]
-        Py_ssize_t i, j, c, t, n
-        double[:, :, ::1] t_A = np.zeros((num_threads, e.shape[0], nrndm)) # np.tile(e, (3,1,1))
-        double[:, ::1] t_b = np.array(d.T, order="C")
-        double[:, ::1] t_out = np.zeros((num_threads, nrndm))
-        double[:, ::1] t_muA = np.zeros((num_threads, nrndm))
-        double[:, :, ::1] t_A_mA = np.zeros((num_threads, e.shape[0], nrndm))
-        double[:, ::1] t_b_mb = np.zeros((num_threads, d.shape[0]))
-        double[:, ::1] t_ssA = np.zeros((num_threads, nrndm))
-        double[::1] t_mub = np.zeros(num_threads)
-        double[::1] t_ssb = np.zeros(num_threads)
-        double[::1] t_tmp = np.zeros(num_threads)
-    
-    with nogil, cython.boundscheck(False), cython.wraparound(False), cython.cdivision(True):
-        for c in prange(cols, schedule='static', num_threads=num_threads):
-            t = threadid() # or
-            
-            # subtract the cth column
-            for j in range(rows):
-                for n in range(nrndm):
-                    i = ixs[c, n]
-                    t_tmp[t] = e[j, i] - e[j, c]
-                    if t_tmp[t] > 0:
-                        t_A[t, j, n] = sqrt(fabs(t_tmp[t]) + psc)
-                    else:
-                        t_A[t, j, n] = -sqrt(fabs(t_tmp[t]) + psc)
-                    
-            
-            #muA = A.mean(0)
-            for j in range(rows):
-                for n in range(nrndm):
-                    i = ixs[c, n]
-                    t_muA[t, n] += t_A[t, j, n]
-            for n in range(nrndm):
-                t_muA[t, n] = t_muA[t, n] / rows
+        int rows = e.shape[0]
+        int cols = e.shape[1]
+        int nrndm = ixs.shape[1]
+        
+    x_colDeltaCorSqrtpartial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)
 
-            # A_mA = A - muA
-            for j in range(rows):
-                for n in range(nrndm):
-                    t_A_mA[t, j, n] = t_A[t, j, n] - t_muA[t, n]
-
-            # mub = b.mean()
-            for j in range(rows):
-                t_mub[t] += t_b[c, j]
-            t_mub[t] = t_mub[t] / rows
-
-            # b_mb = b - mub
-            for j in range(rows):
-                t_b_mb[t, j] = t_b[c, j] - t_mub[t]
-
-            # ssA = (A_mA**2).sum(0)
-            for j in range(rows):
-                for n in range(nrndm):
-                    t_ssA[t, n] += t_A_mA[t, j, n] * t_A_mA[t, j, n]
-            for n in range(nrndm):
-                t_ssA[t, n] = 1. / sqrt(t_ssA[t, n])
-
-            # ssb = (b_mb**2).sum()
-            for j in range(rows):
-                t_ssb[t] += t_b_mb[t, j] * t_b_mb[t, j] # **2
-            t_ssb[t] = 1. / sqrt(t_ssb[t])
-
-            # np.dot(b_mb, A_mA)/(np.sqrt(ssA) * np.sqrt(ssb))
-            for j in range(rows):
-                t_tmp[t] = t_b_mb[t, j] * t_ssb[t]
-                for n in range(nrndm):
-                    i = ixs[c, n]
-                    rm[c, i] += (t_A_mA[t, j, n] * t_ssA[t, n]) * t_tmp[t]
-                    
-            # Cleanup
-            for n in range(nrndm):
-                t_muA[t, n] = 0
-            
-            t_mub[t] = 0
-                
-            for n in range(nrndm):
-                t_ssA[t, n] = 0
-                
-            t_ssb[t] = 0
+def _colDeltaCorLog10partial(double[:, ::1] e,
+                            double[:, ::1] d,
+                            double[:, ::1] rm,
+                            Py_ssize_t[:, ::1] ixs,
+                            int num_threads,
+                            double psc):
+    cdef:
+        int rows = e.shape[0]
+        int cols = e.shape[1]
+        int nrndm = ixs.shape[1]
+        
+    x_colDeltaCorLog10partial(&e[0,0], &d[0,0], &rm[0,0], &ixs[0,0], rows, cols, nrndm, num_threads, psc)
