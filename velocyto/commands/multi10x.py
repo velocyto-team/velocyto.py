@@ -47,6 +47,9 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
                               file_okay=True,
                               dir_okay=False,
                               readable=True))
+@click.option("--introns", "-z",
+              help="introns validation heuristic mode. if `strict` if will require exon-intron spanning evidence; if `permissive` it does not check for spanning",
+              default="strict")
 @click.option("--logfolder", "-l",
               help="Folder where all the log files will be generated",
               default=None,
@@ -57,7 +60,7 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
               is_flag=True)
 def multi10x(parentfolder: str, ivlfile: str,
              number: int, wait: int,
-             metadatatable: str, repmask: str,
+             metadatatable: str, repmask: str, introns: str,
              logfolder: str, debug: bool) -> None:
     """Runs the velocity analysis on multiple a Chromium samples in parallel, spawning several subprocesses
     """
