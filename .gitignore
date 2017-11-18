@@ -6,6 +6,8 @@
 # cache
 velocyto/__pycache__/*
 velocyto/__pycache__
+velocyto/commands/__pycache__/*
+velocyto/commands/__pycache__
 
 # eggs
 velocyto.egg-info/*
