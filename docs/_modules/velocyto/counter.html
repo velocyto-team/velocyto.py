@@ -243,17 +243,52 @@
 </div>
         <span class="k">return</span> <span class="n">segments</span><span class="p">,</span> <span class="n">spliced</span><span class="p">,</span> <span class="n">clip5</span><span class="p">,</span> <span class="n">clip3</span>
 
+<div class="viewcode-block" id="ExInCounter.peek"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.peek">[docs]</a>    <span class="k">def</span> <span class="nf">peek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lines</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Peeks into the samfile to determine if it is a cellranger or dropseq file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Peeking into </span><span class="si">{samfile}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">fin</span> <span class="o">=</span> <span class="n">pysam</span><span class="o">.</span><span class="n">AlignmentFile</span><span class="p">(</span><span class="n">samfile</span><span class="p">)</span>  <span class="c1"># type: pysam.AlignmentFile</span>
+        <span class="n">cellranger</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dropseq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">failed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">read</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fin</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">is_unmapped</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">has_tag</span><span class="p">(</span><span class="s2">&quot;CB&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">read</span><span class="o">.</span><span class="n">has_tag</span><span class="p">(</span><span class="s2">&quot;UB&quot;</span><span class="p">):</span>
+                <span class="n">cellranger</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">read</span><span class="o">.</span><span class="n">has_tag</span><span class="p">(</span><span class="s2">&quot;XC&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">read</span><span class="o">.</span><span class="n">has_tag</span><span class="p">(</span><span class="s2">&quot;XM&quot;</span><span class="p">):</span>
+                <span class="n">dropseq</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Not found cell and umi barcode&quot;</span><span class="p">)</span>
+                <span class="n">failed</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">cellranger</span> <span class="o">&gt;</span> <span class="n">lines</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cellbarcode_str</span> <span class="o">=</span> <span class="s2">&quot;CB&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">umibarcode_str</span> <span class="o">=</span> <span class="s2">&quot;UB&quot;</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">dropseq</span> <span class="o">&gt;</span> <span class="n">lines</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cellbarcode_str</span> <span class="o">=</span> <span class="s2">&quot;XC&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">umibarcode_str</span> <span class="o">=</span> <span class="s2">&quot;XM&quot;</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">failed</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">lines</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;The bam file does not contain cell and umi barcodes appropriatelly formatted&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span></div>
+        <span class="n">fin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
 <div class="viewcode-block" id="ExInCounter.iter_unique_alignments"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.iter_unique_alignments">[docs]</a>    <span class="k">def</span> <span class="nf">iter_unique_alignments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">yield_line</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Iterates over the bam/sam file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">samfile</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Reading </span><span class="si">{samfile}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">fin</span> <span class="o">=</span> <span class="n">pysam</span><span class="o">.</span><span class="n">AlignmentFile</span><span class="p">(</span><span class="n">samfile</span><span class="p">)</span>  <span class="c1"># type: pysam.AlignmentFile</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">read</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fin</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">is_unmapped</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">bc</span> <span class="o">=</span> <span class="n">read</span><span class="o">.</span><span class="n">get_tag</span><span class="p">(</span><span class="s2">&quot;CB&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;-1&quot;</span><span class="p">)</span>
-                <span class="n">umi</span> <span class="o">=</span> <span class="n">read</span><span class="o">.</span><span class="n">get_tag</span><span class="p">(</span><span class="s2">&quot;UB&quot;</span><span class="p">)</span>
+                <span class="n">bc</span> <span class="o">=</span> <span class="n">read</span><span class="o">.</span><span class="n">get_tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cellbarcode_str</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;-1&quot;</span><span class="p">)</span>  <span class="c1"># NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dorpseq</span>
+                <span class="n">umi</span> <span class="o">=</span> <span class="n">read</span><span class="o">.</span><span class="n">get_tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">umibarcode_str</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="k">continue</span>
+                <span class="k">continue</span>  <span class="c1"># NOTE: Here errors could go unnoticed</span>
             <span class="k">if</span> <span class="n">bc</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_bcs2idx</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mode</span><span class="p">:</span>
                     <span class="k">continue</span>
@@ -343,7 +378,7 @@
             <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ivls</span><span class="p">)</span></div>
         <span class="k">return</span> <span class="n">n</span>
 
-<div class="viewcode-block" id="ExInCounter.mark_up_introns"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.mark_up_introns">[docs]</a>    <span class="k">def</span> <span class="nf">mark_up_introns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ExInCounter.mark_up_introns"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.mark_up_introns">[docs]</a>    <span class="k">def</span> <span class="nf">mark_up_introns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">intron_validation</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Mark up introns that have reads across junctions to exons ?and count last exon reads? &quot;&quot;&quot;</span>
         <span class="c1"># Read the file</span>
         <span class="n">currchrom</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -382,7 +417,7 @@
 
         <span class="c1"># Validate the intron intervals on the basis of occurrences of Exon/Intron spanning reads</span>
         <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">:</span></div>
-            <span class="n">gene</span><span class="o">.</span><span class="n">validate_intron_ivls</span><span class="p">()</span>  <span class="c1"># NOTE: this condition might be stricter than we want</span>
+            <span class="n">gene</span><span class="o">.</span><span class="n">validate_intron_ivls</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="n">intron_validation</span><span class="p">)</span>  <span class="c1"># NOTE: this condition might be stricter than we want</span>
 
         <span class="c1"># NOTE: did we properly deal with the reads added to the genes so that self.count() does not get confused?</span>
 

@@ -238,6 +238,34 @@
 </tbody>
 </table>
 <dl class="method">
+<dt id="velocyto.analysis.VelocytoLoom.to_hdf5">
+<code class="descname">to_hdf5</code><span class="sig-paren">(</span><em>filename: str</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.to_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.to_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serialize the VelocytoLoom object in its current state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> – The name of the file that will be generated (the suffix hdf5 is suggested but not enforced)</li>
+<li><strong>**kwargs</strong> – The fucntion accepts the arguments of <cite>dump_hdf5</cite></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing. It saves a file that can be used to recreate the object in another session.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The object can be reloaded calling <code class="docutils literal"><span class="pre">load_velocyto_hdf5(filename)</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.plot_fractions">
 <code class="descname">plot_fractions</code><span class="sig-paren">(</span><em>save2file: str = None</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.plot_fractions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.plot_fractions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots a barplot showing the abundance of spliced/unspliced molecules in the dataset</p>
@@ -893,7 +921,7 @@ constant_unspliced (described in the paper as Model II)</li>
 
 <dl class="method">
 <dt id="velocyto.analysis.VelocytoLoom.estimate_transition_prob">
-<code class="descname">estimate_transition_prob</code><span class="sig-paren">(</span><em>hidim: str = 'Sx_sz'</em>, <em>embed: str = 'ts'</em>, <em>transform: str = 'sqrt'</em>, <em>ndims: int = None</em>, <em>n_neighbors: int = None</em>, <em>psc: float = 1.0</em>, <em>knn_random: bool = False</em>, <em>sampled_fraction: float = 0.3</em>, <em>delta_kind: str = 'clipped'</em>, <em>sampling_pobs: typing.Tuple[float</em>, <em>float] = (0.5</em>, <em>0.1)</em>, <em>max_dist_embed: float = None</em>, <em>n_jobs: int = 4</em>, <em>random_seed: int = 15071990</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.estimate_transition_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.estimate_transition_prob" title="Permalink to this definition">¶</a></dt>
+<code class="descname">estimate_transition_prob</code><span class="sig-paren">(</span><em>hidim: str = 'Sx_sz'</em>, <em>embed: str = 'ts'</em>, <em>transform: str = 'sqrt'</em>, <em>ndims: int = None</em>, <em>n_neighbors: int = None</em>, <em>psc: float = 1.0</em>, <em>knn_random: bool = False</em>, <em>sampled_fraction: float = 0.3</em>, <em>delta_kind: str = 'clipped'</em>, <em>sampling_pobs: typing.Tuple[float</em>, <em>float] = (0.5</em>, <em>0.1)</em>, <em>max_dist_embed: float = None</em>, <em>n_jobs: int = 4</em>, <em>threads: int = None</em>, <em>random_seed: int = 15071990</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/analysis.html#VelocytoLoom.estimate_transition_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.VelocytoLoom.estimate_transition_prob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use correlation to estimate transition probabilities for every cells to its embedding neighborhood</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -917,7 +945,9 @@ It makes sense only when using principal components</li>
 The maximum distance allowed
 If None it will be set to 0.25 * average_distance_two_points_taken_at_random</li>
 <li><strong>n_jobs</strong> (<em>int</em><em>, </em><em>default=4</em>) – number of jobs to calkulate knn
-this only applies to the knn search, by default half of the cps will be used for the actual correlation computation</li>
+this only applies to the knn search, for the more time consuming correlation computation see threads</li>
+<li><strong>threads</strong> (<em>int</em><em>, </em><em>default=None</em>) – The threads will be used for the actual correlation computation by default half of the total.</li>
+<li><strong>random_seed</strong> (<em>int</em><em>, </em><em>default=15071990</em>) – Random seed to make knn_random mode reproducible</li>
 </ul>
 </td>
 </tr>
@@ -1284,6 +1314,28 @@ if False <cite>S, U, A, ca, ra</cite> will be loaded sepratelly as <cite>raw_S, 
 <dt id="velocyto.analysis.gaussian_kernel">
 <code class="descclassname">velocyto.analysis.</code><code class="descname">gaussian_kernel</code><span class="sig-paren">(</span><em>X: numpy.ndarray</em>, <em>mu: float = 0</em>, <em>sigma: float = 1</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/velocyto/analysis.html#gaussian_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.gaussian_kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute gaussian kernel</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.analysis.load_velocyto_hdf5">
+<code class="descclassname">velocyto.analysis.</code><code class="descname">load_velocyto_hdf5</code><span class="sig-paren">(</span><em>filename: str</em><span class="sig-paren">)</span> &#x2192; velocyto.analysis.VelocytoLoom<a class="reference internal" href="../_modules/velocyto/analysis.html#load_velocyto_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.analysis.load_velocyto_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a Velocyto loom object from an hdf5 file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – The name of the serialized file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">A VelocytoLoom object</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The hdf5 file must have been created using <code class="docutils literal"><span class="pre">VelocytoLoom.to_hdf5</span></code> or the <code class="docutils literal"><span class="pre">dump_hdf5</span></code> function</p>
+</div>
 </dd></dl>
 
 </div>

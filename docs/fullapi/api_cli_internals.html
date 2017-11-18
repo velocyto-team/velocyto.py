@@ -222,9 +222,16 @@ This function and objects are not meant for interactive usage.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="velocyto.counter.ExInCounter.peek">
+<code class="descname">peek</code><span class="sig-paren">(</span><em>samfile: str</em>, <em>lines: int = 10</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.peek"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.peek" title="Permalink to this definition">¶</a></dt>
+<dd><p>Peeks into the samfile to determine if it is a cellranger or dropseq file</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="velocyto.counter.ExInCounter.iter_unique_alignments">
 <code class="descname">iter_unique_alignments</code><span class="sig-paren">(</span><em>samfile: str</em>, <em>yield_line: bool = False</em><span class="sig-paren">)</span> &#x2192; typing.Iterable<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.iter_unique_alignments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.iter_unique_alignments" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Iterates over the bam/sam file</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="velocyto.counter.ExInCounter.read_repeats">
@@ -240,7 +247,7 @@ This function and objects are not meant for interactive usage.</p>
 
 <dl class="method">
 <dt id="velocyto.counter.ExInCounter.mark_up_introns">
-<code class="descname">mark_up_introns</code><span class="sig-paren">(</span><em>samfile: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.mark_up_introns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.mark_up_introns" title="Permalink to this definition">¶</a></dt>
+<code class="descname">mark_up_introns</code><span class="sig-paren">(</span><em>samfile: str</em>, <em>intron_validation: str</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.mark_up_introns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.mark_up_introns" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mark up introns that have reads across junctions to exons ?and count last exon reads?</p>
 </dd></dl>
 
@@ -548,9 +555,11 @@ This function and objects are not meant for interactive usage.</p>
 
 <dl class="method">
 <dt id="velocyto.genes.Gene.validate_intron_ivls">
-<code class="descname">validate_intron_ivls</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/genes.html#Gene.validate_intron_ivls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.genes.Gene.validate_intron_ivls" title="Permalink to this definition">¶</a></dt>
+<code class="descname">validate_intron_ivls</code><span class="sig-paren">(</span><em>rule: str = 'strict'</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/genes.html#Gene.validate_intron_ivls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.genes.Gene.validate_intron_ivls" title="Permalink to this definition">¶</a></dt>
 <dd><p>Annotate the introns that can safely be used for intron molecule counting =&gt;
 either flanking exon is sure an exon and has &gt;= 1 read spanning junction</p>
+<p>Now supports two different heursitics</p>
+<p>“strict” and “permissive”</p>
 </dd></dl>
 
 <dl class="method">

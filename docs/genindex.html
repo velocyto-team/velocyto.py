@@ -304,6 +304,15 @@
         <li><a href="fullapi/cliapi.html#cmdoption-velocyto-multi10x-w">velocyto-multi10x command line option</a>
 </li>
       </ul></li>
+      <li>
+    -z, --introns &lt;introns&gt;
+
+      <ul>
+        <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run-z">velocyto-run command line option</a>
+</li>
+        <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run10x-z">velocyto-run10x command line option</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -685,6 +694,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fullapi/api_cli_internals.html#velocyto.genes.Gene.lastexon_end_pos">lastexon_end_pos (velocyto.genes.Gene attribute)</a>
 </li>
+      <li><a href="fullapi/api_analysis.html#velocyto.analysis.load_velocyto_hdf5">load_velocyto_hdf5() (in module velocyto.analysis)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -735,6 +746,8 @@
 </li>
       </ul></li>
       <li><a href="fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.parse_cigar_tuple">parse_cigar_tuple() (velocyto.counter.ExInCounter static method)</a>
+</li>
+      <li><a href="fullapi/api_cli_internals.html#velocyto.counter.ExInCounter.peek">peek() (velocyto.counter.ExInCounter method)</a>
 </li>
       <li><a href="fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.perform_PCA">perform_PCA() (velocyto.analysis.VelocytoLoom method)</a>
 </li>
@@ -863,10 +876,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fullapi/api_neighbors.html#velocyto.neighbors.take_top">take_top() (in module velocyto.neighbors)</a>
 </li>
-      <li><a href="fullapi/api_cli_internals.html#velocyto.transcript.Transcript">Transcript (class in velocyto.transcript)</a>
+      <li><a href="fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.to_hdf5">to_hdf5() (velocyto.analysis.VelocytoLoom method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fullapi/api_cli_internals.html#velocyto.transcript.Transcript">Transcript (class in velocyto.transcript)</a>
+</li>
       <li><a href="fullapi/api_cli_internals.html#velocyto.transcript.Transcript.trid">trid (velocyto.transcript.Transcript attribute)</a>
 </li>
       <li><a href="fullapi/api_cli_internals.html#velocyto.transcript.Transcript.trname">trname (velocyto.transcript.Transcript attribute)</a>
@@ -950,6 +965,8 @@
 </li>
         <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run-s">-s, --metadatatable &lt;metadatatable&gt;</a>
 </li>
+        <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run-z">-z, --introns &lt;introns&gt;</a>
+</li>
         <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run-arg-bamfile">BAMFILE</a>
 </li>
         <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run-arg-ivlfile">IVLFILE</a>
@@ -966,6 +983,8 @@
         <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run10x-m">-m, --repmask &lt;repmask&gt;</a>
 </li>
         <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run10x-s">-s, --metadatatable &lt;metadatatable&gt;</a>
+</li>
+        <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run10x-z">-z, --introns &lt;introns&gt;</a>
 </li>
         <li><a href="fullapi/cliapi.html#cmdoption-velocyto-run10x-arg-ivlfile">IVLFILE</a>
 </li>
