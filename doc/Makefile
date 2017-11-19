@@ -6,7 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = python -msphinx
 SPHINXPROJ    = velocyto
 SOURCEDIR     = .
-BUILDDIR      = ../../velocyto.docs
+BUILDDIR      = ../built
 
 # Put it first so that "make" without argument is like "make help".
 help:

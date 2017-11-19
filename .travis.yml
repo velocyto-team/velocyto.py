@@ -14,15 +14,21 @@ before_install:
 install:
     - conda install --yes python="3.6" numpy scipy cython numba matplotlib scikit-learn h5py click
     - pip install loompy
+    - pip install ghp-import
     - git clone https://github.com/velocyto-team/velocyto.py.git
     - cd velocyto.py; pip install .;cd ..
-    - pip install velocyto
     - git clone https://github.com/sphinx-doc/sphinx.git
     - cd sphinx; pip install .;cd ..
-    - pip install --user travis-sphinx
-
+    
 script:
-    - travis-sphinx build --source=doc
+    - cd doc
+    - make html
+    - cd ..
+    - ghp-import -pfnr https://$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git built/html
 
-after_success:
-    - travis-sphinx deploy
+#deploy:
+#  provider: pages
+#  skip_cleanup: true
+#  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+#  on:
+#    branch: master
