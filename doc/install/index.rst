@@ -17,7 +17,7 @@ To make sure you have all the dependencies correctly installed, including librar
 
 ::
 
-    conda install numpy scipy cython numba matplotlib scikit-learn h5py click loompy
+    conda install numpy scipy cython numba matplotlib scikit-learn h5py click
 
 
 .. _pypi:
@@ -31,7 +31,7 @@ Just run:
 
     pip install velocyto
 
-`pysam` will be installed by ``pip`` as a dependency
+`pysam` and `loompy` will be installed by ``pip`` as a dependencies.
 
 .. tip::
     ``velocyto |version|`` is an alpha release and it is updated often. If you installed with pip make sure you run ``pip install -U --no-deps velocyto`` often.
