@@ -12,7 +12,8 @@ before_install:
     - sudo ln -s /run/shm /dev/shm
 
 install:
-    - conda install --yes python="3.6" numpy scipy cython numba matplotlib scikit-learn h5py click loompy
+    - conda install --yes python="3.6" numpy scipy cython numba matplotlib scikit-learn h5py click
+    - pip install loompy
     - git clone https://github.com/velocyto-team/velocyto.py.git
     - cd velocyto.py; pip install .;cd ..
     - pip install velocyto
