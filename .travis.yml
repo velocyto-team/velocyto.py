@@ -18,6 +18,7 @@ install:
     - pip install ghp-import
     # For documentation building we need:
     - pip install sphinx_click
+    - pip install sphinx_rtd_theme
     - git clone https://github.com/velocyto-team/velocyto.py.git
     - cd velocyto.py; pip install .;cd ..
     - git clone https://github.com/sphinx-doc/sphinx.git
