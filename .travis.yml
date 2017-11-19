@@ -17,7 +17,7 @@ install:
     - cd velocyto.py; pip install .;cd ..
     - pip install velocyto
     - git clone https://github.com/sphinx-doc/sphinx.git
-    - cd sphinx; pip install .; cd ..
+    - cd sphinx; pip install .;cd ..
     - pip install --user travis-sphinx
 
 script:
