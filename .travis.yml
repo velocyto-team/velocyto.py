@@ -14,7 +14,10 @@ before_install:
 install:
     - conda install --yes python="3.6" numpy scipy cython numba matplotlib scikit-learn h5py click
     - pip install loompy
+    # To upload on github pages
     - pip install ghp-import
+    # For documentation building we need:
+    - pip install sphinx_click
     - git clone https://github.com/velocyto-team/velocyto.py.git
     - cd velocyto.py; pip install .;cd ..
     - git clone https://github.com/sphinx-doc/sphinx.git
