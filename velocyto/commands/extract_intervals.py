@@ -12,6 +12,51 @@ import velocyto as vcy
 
 logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
+class IvlWriter:
+    def __init__(self, outfile: str, headerlines: List[Any]):
+        self.fd = open(outfile, 'w')
+        self.fd.write("".join(headerlines))
+        self.fd.write("# E: interval is exon in the models, I: interval is intron in the model\n")
+        self.fd.write("# last two fields show other transcripts that are exon and introns within the same interval\n")
+        self.fd.write("#TrName\tTrID\tGeneName\tGeneID\tChrom\tStrand\tIntervals\n")
+
+    def __del__(self):
+        if self.fd:
+            self.fd.close()
+
+    def close(self) -> None:
+        self.fd.close()
+
+    def write(self, tr: vcy.Transcript, ivls: List[Any]) -> None:
+        self.fd.write("%s\t%s\t%s\t%s\t%s\t%s" % \
+                      (tr.get_trname(), tr.get_trid(), tr.get_genename(), tr.get_geneid(), tr.get_chrom(), tr.get_strand()))
+        for ivl in ivls:
+            self.fd.write("\t%s-%s:%s:%s:%s" % (ivl[0], ivl[1], ivl[2], ",".join(ivl[3]), ",".join(ivl[4])))
+        self.fd.write("\n")
+
+class GtfWriter:
+    def __init__(self, outfile: str, headerlines: List[Any]):
+        self.fd = open(outfile, 'w')
+        self.fd.write("".join(headerlines))
+
+    def __del__(self):
+        if self.fd:
+            self.fd.close()
+
+    def close(self) -> None:
+        self.fd.close()
+
+    def write(self, tr: vcy.Transcript, ivls: List[Any]) -> None:
+        for ivl in ivls:
+            source_version = '.'
+            score = '.'
+            frame = '.'
+            other_exon = ' other_exon "%s";' % ",".join(ivl[3]) if len(ivl[3]) > 0 else ''
+            other_intron = ' other_intron "%s";' % ",".join(ivl[4]) if len(ivl[4]) > 0 else ''
+            self.fd.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\tgene_id "%s"; transcript_id "%s"; gene_name "%s"; transcript_name "%s";%s%s\n'% \
+                     (tr.get_chrom(), source_version, ivl[2], ivl[0], ivl[1], score, tr.get_strand(), frame, \
+                      tr.get_geneid(), tr.get_trid(), tr.get_genename(), tr.get_trname(), other_exon, other_intron))
+
 
 @click.command(short_help="Transform a genome annotation .gtf file into a intervals .txt file.")
 @click.option('--dogenes/--no-dogenes',
@@ -19,8 +64,12 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
               help="whether to process gene models",
               show_default=True)
 @click.option('--dotrs/--no-dotrs',
-              default=True,
+              default=False,
               help="whether to process transcript models",
+              show_default=True)
+@click.option('--gtfoutput/--ivloutput',
+              default=False,
+              help="whether to write intervals in gtf instead of velocyto custom format",
               show_default=True)
 @click.option("--outfileprefix", "-p",
               help="prefix to the output files",
@@ -33,7 +82,7 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
                                 dir_okay=False,
                                 readable=True,
                                 resolve_path=True))
-def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: str) -> None:
+def extract_intervals(dogenes: bool, dotrs: bool, gtfoutput: bool, outfileprefix: str, gtffile: str) -> None:
     """Transform a genome annotation .gtf file into a intervals .txt file required to run velocyto.
 
     GTF_FILE: input file
@@ -63,14 +112,14 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
         otrnames.sort()
         return othergene, otrnames
 
-    headerlines: List[Any] = []
+    headerlines: List[Any] = [ f"# Generated from {infile}\n" ]
 
     # Precompile regex for speed
     regex_trid = re.compile('transcript_id "([^"]+)"')
     regex_trname = re.compile('transcript_name "([^"]+)"')
     regex_geneid = re.compile('gene_id "([^"]+)"')
     regex_genename = re.compile('gene_name "([^"]+)"')
-    # regex_exonno = re.compile('exon_number "(([^"]+)|([^"]+))"')
+    # regex_exonno = re.compile('exon_number "([^"]+)"')
 
     # Loop trough the .gtf file and get transcript models and assemble gene models by fusing exons
     # NOTE: the parsing could be done using pysam tabix
@@ -82,6 +131,8 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
         
         fields = line.rstrip().split('\t')
         chrom, feature_class, feature_type, start, end, junk, strand, junk, tags = fields
+        if 'PATCH' in chrom: # We don't handle patched chromosome sections
+            continue
         # Deal with possible incongruences between .gtf and bam file chromosome naming
         if "chr" in chrom[:4]:
             chrom = chrom[3:].split(".")[0]
@@ -95,12 +146,19 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
             # exonno = regex_exonno.search(tags).group(1)
             start = int(start)
             end = int(end)
+            if start >= end:
+                logging.warn("An exon of tr:%s has start (%s) >= end (%s) - skipped." % (trid, start, end))
+                continue
             chromstrand = chrom + strand
             # If encountering this transcript for the first time, create the object and add it to containers
             if trname not in trs:
                 tr_tmp = vcy.Transcript(trname, trid, genename, geneid, chrom, strand)  # type: vcy.Transcript
                 trs[trname] = tr_tmp
                 trs_by_chromstrand[chromstrand].append(tr_tmp)
+            elif chrom != trs[trname].get_chrom():
+                logging.warn("An exon of tr:%s on a different chromosome than previous exons: %s instead of %s - skipped." % \
+                             (trname, chrom, trs[trname].get_chrom()))
+                continue
             # Add the exon to the transcript
             trs[trname].add_exon(start, end)
             # If encountering the gene of this transcript for the first time, create the object and add it to containers
@@ -129,14 +187,11 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
         features.append(('gene', genes))
     if dotrs:
         features.append(('tr', trs))
+    outputs_names = ""
     for name, modeldict in features:
-        outfile = f"{outfileprefix}_{name}_ivls.txt"
-        fd = open(outfile, 'w')
-        fd.write(f"# Generated from {infile}\n")
-        fd.write("".join(headerlines))
-        fd.write("# E: interval is exon in the models, I: interval is intron in the model\n")
-        fd.write("# last two fields show other transcripts that are exon and introns within the same interval\n")
-        fd.write("#TrName\tTrID\tGeneName\tGeneID\tChrom\tStrand\tIntervals\n")
+        outfile = f"{outfileprefix}_{name}_ivls"
+        outfile += ".gtf" if gtfoutput else ".txt"
+        writer = GtfWriter(outfile, headerlines) if gtfoutput else IvlWriter(outfile, headerlines)
         models = list(modeldict.values())  # type: List[vcy.Transcript]
         models.sort()
 
@@ -148,10 +203,9 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
 
             # Retrieve transcripts within the same bin
             othertrs = set()
-            for trbin in range(trstart // binsize, 1 + trend // binsize):
-                othertrs.update(binnedtrs_by_chromstrand[chromstrand][trbin])
-            if dolog and tr.get_trname() == "Lama4-003":
-                logging.debug(tr)
+            if chromstrand in binnedtrs_by_chromstrand: # Avoid errors due to same trname on a patch- or test- as real chromosome
+                for trbin in range(trstart // binsize, 1 + trend // binsize):
+                    othertrs.update(binnedtrs_by_chromstrand[chromstrand][trbin])
 
             # Not used right now
             # Extend the 5' or 3' end respecting the presence of other transcripts
@@ -185,8 +239,6 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
             # Loop through the intervals (intron and exons) and mark every base with its interval type
             for ivl in tr.sorted_ivls():
                 ivlstart, ivlend, ivltype = ivl  # type: Tuple[int, int, int]
-                if dolog and trname == "Lama4-003":  # NOTE: I might want to get rid of this dolog checks completelly
-                    logging.debug("Marking", ivlstart, ivlend, ivltype)
                 for i in range(ivlstart - trstart, min(trlen, ivlend - trstart)):
                     profile[i][0] = ivltype
 
@@ -196,8 +248,6 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
                     continue
                 # if there is some possible overlap between the two transcripts
                 if otr.spans_over((trstart, trend)):
-                    if dolog and trname == "Lama4-003":
-                        logging.debug("Overloading %s" % otr.get_trname())
                     
                     # Visit in order all the intervals and mark the overlappings
                     for oivl in otr.sorted_ivls():
@@ -207,8 +257,6 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
                         if oend < trstart:
                             continue  # this interval is upstream the tr: not interesting
                         pidx = 1 if otype == vcy.EXON else 2
-                        if dolog and trname == "Lama4-003":
-                            logging.debug("              ivl:", otr.get_trname(), ostart, oend, pidx)
                         # Add the other transcript to the profile
                         for i in range(max(0, ostart - trstart), min(trlen, oend - trstart)):
                             profile[i][pidx].add(otr)
@@ -236,18 +284,11 @@ def extract_intervals(dogenes: bool, dotrs: bool, outfileprefix: str, gtffile: s
             if currp[0] is not None:  # do it a last time for the last iteration
                 outivls.append([currivlstart, pos + trstart, ivltype_str, otherexons, otherintrons])
         
-            # Write output file
-            fd.write("%s\t%s\t%s\t%s\t%s\t%s" % (trname, trid, trgenename, trgeneid, tr.get_chrom(), tr.get_strand()))
-            for ivl in outivls:
-                fd.write("\t%s-%s:%s:%s:%s" % (ivl[0], ivl[1], ivl[2], ",".join(ivl[3]), ",".join(ivl[4])))
-            fd.write("\n")
-
+            writer.write(tr, outivls)
             if (n_tr + 1) % 2500 == 0:
-                logging.debug(f"{n_tr+1} {name}s already processed")
+                logging.debug(f"{n_tr+1} {name}s processed")
 
         fd.close()
-
-    outputs_names = ""
-    for name, modeldict in features:
-        outputs_names += f"{outfileprefix}_{name}_ivls.txt"
+        outputs_names += outfile
     logging.debug(f"Done without errors. Find the outputs at {outputs_names}")
+
