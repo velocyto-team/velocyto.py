@@ -49,7 +49,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               help="Output folder, does not need to exist",
               default=None,
               type=click.Path(exists=False))
-@click.option("--sampleid", "-d",
+@click.option("--sampleid", "-e",
               help="The sample name that will be used to retrieve informations from metadatatable",
               default=None,
               type=click.Path(exists=False))
