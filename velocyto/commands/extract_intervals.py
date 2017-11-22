@@ -20,10 +20,6 @@ class IvlWriter:
         self.fd.write("# last two fields show other transcripts that are exon and introns within the same interval\n")
         self.fd.write("#TrName\tTrID\tGeneName\tGeneID\tChrom\tStrand\tIntervals\n")
 
-    def __del__(self):
-        if self.fd:
-            self.fd.close()
-
     def close(self) -> None:
         self.fd.close()
 
@@ -38,10 +34,6 @@ class GtfWriter:
     def __init__(self, outfile: str, headerlines: List[Any]):
         self.fd = open(outfile, 'w')
         self.fd.write("".join(headerlines))
-
-    def __del__(self):
-        if self.fd:
-            self.fd.close()
 
     def close(self) -> None:
         self.fd.close()
@@ -147,7 +139,7 @@ def extract_intervals(dogenes: bool, dotrs: bool, gtfoutput: bool, outfileprefix
             start = int(start)
             end = int(end)
             if start >= end:
-                logging.warn("An exon of tr:%s has start (%s) >= end (%s) - skipped." % (trid, start, end))
+                logging.warn("An exon of tr:%s has start (%s) >= end (%s) - skipped." % (trname, start, end))
                 continue
             chromstrand = chrom + strand
             # If encountering this transcript for the first time, create the object and add it to containers
@@ -156,7 +148,7 @@ def extract_intervals(dogenes: bool, dotrs: bool, gtfoutput: bool, outfileprefix
                 trs[trname] = tr_tmp
                 trs_by_chromstrand[chromstrand].append(tr_tmp)
             elif chrom != trs[trname].get_chrom():
-                logging.warn("An exon of tr:%s on a different chromosome than previous exons: %s instead of %s - skipped." % \
+                logging.warn("An exon of tr:%s is on a different chromosome than previous exons: %s instead of %s - skipped." % \
                              (trname, chrom, trs[trname].get_chrom()))
                 continue
             # Add the exon to the transcript
@@ -288,7 +280,7 @@ def extract_intervals(dogenes: bool, dotrs: bool, gtfoutput: bool, outfileprefix
             if (n_tr + 1) % 2500 == 0:
                 logging.debug(f"{n_tr+1} {name}s processed")
 
-        fd.close()
+        writer.close()
         outputs_names += outfile
     logging.debug(f"Done without errors. Find the outputs at {outputs_names}")
 
