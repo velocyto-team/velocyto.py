@@ -28,7 +28,7 @@ class Molitem:
                 # if there is at least one evidence of sure intron mapping count as a unspliced molecule
                 if ivl.is_sure_valid_intron:
                     self.gene.unspliced_mol_counts[my_bcidx] += 1
-                    break
+                    return
                 num_sure_exon_ivls += ivl.is_sure_exon
                 num_maybe_exon_ivls += ivl.is_maybe_exon
                 # NOTE here we could keep track of ivl.is_sure_intron for the purpose of excluding them in the following condition
