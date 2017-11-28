@@ -49,6 +49,10 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
 @click.option("--introns", "-z",
               help="introns validation heuristic mode. if `strict` if will require exon-intron spanning evidence; if `permissive` it does not check for spanning",
               default="strict")
+@click.option("--allbarcodes/--filteredbarcodes", "-b/-f",
+              help="retain all cell barcodes. This flag permits all 10x cell barcodes to be analysed for the .loom file, instead of only those called as cells by CellRanger",
+              default=False,
+              is_flag=True)
 @click.option("--debug", "-d",
               help="debug mode. It will generate .sam files of individual reads (not molecules) that are identified as exons, introns, ambiguous and chimeras",
               default=False,
@@ -67,8 +71,13 @@ def run10x(samplefolder: str, ivlfile: str,
     if "Pipestance completed successfully!" not in open(os.path.join(samplefolder, "_log")).read():
         raise IOError("The outputs are not ready")
     bamfile = os.path.join(samplefolder, "outs", "possorted_genome_bam.bam")
-    bcfile = glob.glob(os.path.join(samplefolder,
-                       os.path.normcase("outs/filtered_gene_bc_matrices/*/barcodes.tsv")))[0]
+    # Select correct barcode file
+    if allbarcodes:
+      bcfile = glob.glob(os.path.join(samplefolder,
+                         os.path.normcase("outs/raw_gene_bc_matrices/*/barcodes.tsv")))[0]
+    else:
+      bcfile = glob.glob(os.path.join(samplefolder,
+                         os.path.normcase("outs/filtered_gene_bc_matrices/*/barcodes.tsv")))[0]
     outputfolder = os.path.join(samplefolder, "velocyto")
     sampleid = os.path.basename(samplefolder.rstrip("/").rstrip("\\"))
     assert not os.path.exists(os.path.join(outputfolder, f"{sampleid}.loom")), "The output already exist. Aborted!"
