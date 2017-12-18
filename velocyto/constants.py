@@ -3,6 +3,9 @@ MATCH_OVER5END = 2
 MATCH_OVER3END = 4
 
 MIN_FLANK = 5
+PATCH_INDELS = 3
+SPLIC_INACUR = 6
+MIN_POLYT = 8
 MAX_USHORT = 2**16 - 1
 
 LOOM_NUMERIC_DTYPE = "uint16"
@@ -11,6 +14,8 @@ EXTENSION5_LEN = 0  # basepairs to extend 5' ends of models
 EXTENSION3_LEN = 0  # basepairs to extend 3' ends of models
 
 BINSIZE_BP = 100000  # binsize to look up for other transcripts used during interval determination
+LONGEST_INTRON_ALLOWED = 1000000
+BAM_COMPRESSION = 7
 
 EXON = 1
 ALT_EXON = 2  # From another transcript of same gene

@@ -4,56 +4,59 @@ import gzip
 import logging
 from typing import *
 from collections import defaultdict
+from itertools import chain
+from collections import OrderedDict
 import velocyto as vcy
 import pysam
 import numpy as np
-
-tagpat = re.compile("NH:i:1.+CB:Z:([ACGT]+).+UB:Z:([ACGT]+)")
+import os
+import sys
 
 
 class ExInCounter:
     """ Main class to do the counting of introns and exons """
-    def __init__(self, valid_bcs2idx: Dict[str, int]=None) -> None:
+    def __init__(self, logic: vcy.Logic, valid_bcset: Set[str]=None) -> None:
         """ valid_bcs2idx is a dict mapping valid cell barcodes to unique arbitrary numeric indexes used in the output arrays """
-        if valid_bcs2idx is None:
-            self.valid_bcs2idx: Dict[str, int] = {}
+        self.logic = logic()
+        # NOTE: maybe there shoulb be a self.logic.validate() step at the end of init
+        if valid_bcset is None:
+            self.valid_bcset: Set[str] = set()
             self.filter_mode = False
             self.counter = 0
         else:
-            self.valid_bcs2idx = valid_bcs2idx
+            self.valid_bcset = valid_bcset
             self.filter_mode = True
+        self.annotations_by_chrm_strand: Dict[str, Dict[str, vcy.TranscriptModel]] = {}
         self.mask_ivls_by_chromstrand = defaultdict(list)  # type: Dict[str, List]
+        self.geneid2ix: Dict[str, int] = {}
+        self.genes: Dict[str, vcy.GeneInfo] = {}
         # NOTE: by using a default dict and not logging access to keys that do not exist, we might miss bugs!!!
-        self.genes = []  # type: List
-        self.ivls_by_chromstrand = defaultdict(list)  # type: Dict[str, List]
+        self.test_flag = None
 
     @property
     def bclen(self) -> int:
         try:
-            return len(next(iter(self.valid_bcs2idx.keys())))
+            return len(next(iter(self.valid_bcset)))
         except StopIteration:
             return None
-
-    def process(self, ivlfile: str, samfile: str) -> None:
-        """ Performs all steps in the right order """
-        self.read_genes(ivlfile)
-        self.mark_up_introns(samfile)
-        self.count(samfile)
-
+    
     @staticmethod
     def parse_cigar_tuple(cigartuples: List[Tuple], pos: int) -> Tuple[List[Tuple[int, int]], bool, int, int]:
         segments = []
-        spliced = False
+        hole_to_remove = []
+        ref_skip = False
         clip5 = clip3 = 0
         p = pos
         for operation_id, length in cigartuples:
             if operation_id == 0:  # vcy.CIGAR[operation_id] == "BAM_CMATCH"
-                segments.append((p, p + length))
+                segments.append((p, p + length - 1))
                 p += length
             elif operation_id == 3:  # A splice || vcy.CIGAR[operation_id] == 'BAM_CREF_SKIP'
-                spliced = True
+                ref_skip = True
                 p += length
             elif operation_id == 2:  # A deletion || cy.CIGAR[operation_id] == 'BAM_CDEL'
+                if length <= vcy.PATCH_INDELS:
+                    hole_to_remove.append(len(segments) - 1)
                 p += length
             elif operation_id == 4:  # bases at 5' or 3' are NOT part of the alignment || vcy.CIGAR[operation_id] == 'BAM_CSOFT_CLIP'
                 if p == pos:
@@ -62,13 +65,20 @@ class ExInCounter:
                     clip3 = length  # Must be at end of alignment vcy.CIGAR[operation_id] in ["BAM_CINS", "BAM_CHARD_CLIP"]
                 p += length
             elif operation_id == 1:  # An insertion BAM_CINS
-                pass  # maybe there should be a limit lenght accepted?
+                if length <= vcy.PATCH_INDELS:
+                    hole_to_remove.append(len(segments) - 1)
+                # else do nothing
+                # NOTE: maybe we should make so that the reads get discarded
             elif operation_id == 5:  # BAM_CHARD_CLIP
                 logging.warn("Hard clip was encountered! All mapping are assumed soft clipped")
 
-        return segments, spliced, clip5, clip3
+        # Merge segments separated by small insertions and deletions
+        for a, b in enumerate(hole_to_remove):
+            segments[b - a] = (segments.pop(b - a)[0], segments[b - a][1])
 
-    def peek(self, samfile: str, lines: int=10) -> None:
+        return segments, ref_skip, clip5, clip3
+
+    def peek(self, samfile: str, lines: int=30) -> None:
         """Peeks into the samfile to determine if it is a cellranger or dropseq file
         """
         logging.debug(f"Peeking into {samfile}")
@@ -84,7 +94,7 @@ class ExInCounter:
             elif read.has_tag("XC") and read.has_tag("XM"):
                 dropseq += 1
             else:
-                logging.warn(f"Not found cell and umi barcode")
+                logging.warn(f"Not found cell and umi barcode in entry {i} of the bam file")
                 failed += 1
             if cellranger > lines:
                 self.cellbarcode_str = "CB"
@@ -100,26 +110,44 @@ class ExInCounter:
                 pass
         fin.close()
 
-    def iter_unique_alignments(self, samfile: str, yield_line: bool=False) -> Iterable:
-        """Iterates over the bam/sam file
+    def iter_alignments(self, samfile: str, unique: bool=True, yield_line: bool=False) -> Iterable:
+        """Iterates over the bam/sam file and yield Read objects
+
+        Arguments
+        ---------
+        samfile: str
+            path to the sam file
+        unique: bool
+            yield only unique allignments
+        yield_line: bool
+            whether to yield the raw sam line
+
+        Returns
+        -------
+        yields vcy.Read for each valid line of the bam file
+        or a Tuple (vcy.Read, sam_line) if ``yield_line==True``
         """
-        self.peek(samfile, lines=10)
+        # No peeking here, this will happen a layer above, and only once  on the not sorted file! before it was self.peek(samfile, lines=10)
         logging.debug(f"Reading {samfile}")
         fin = pysam.AlignmentFile(samfile)  # type: pysam.AlignmentFile
         for i, read in enumerate(fin):
+            if i % 10000000 == 0:
+                logging.debug(f"Read first {i // 1000000} million reads")
             if read.is_unmapped:
                 continue
+            # If unique parameter is set to True, skip not unique allignments
+            if unique and read.get_tag("NH") != 1:
+                continue
             try:
-                bc = read.get_tag(self.cellbarcode_str).rstrip("-1")  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dorpseq
+                bc = read.get_tag(self.cellbarcode_str).split("-")[0]  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
                 umi = read.get_tag(self.umibarcode_str)
             except KeyError:
                 continue  # NOTE: Here errors could go unnoticed
-            if bc not in self.valid_bcs2idx:
+            if bc not in self.valid_bcset:
                 if self.filter_mode:
                     continue
                 else:
-                    self.valid_bcs2idx[bc] = self.counter
-                    self.counter += 1
+                    self.valid_bcset.add(bc)
             strand = '-' if read.is_reverse else '+'
             chrom = fin.get_reference_name(read.rname)  # this is return a string otherwise read.rname for the integer
             if chrom.startswith('chr'):
@@ -131,202 +159,470 @@ class ExInCounter:
                     chrom = chrom[3:]
                     if chrom == "M":
                         chrom = "MT"
-            pos = read.pos
-            segments, spliced, clip5, clip3 = self.parse_cigar_tuple(read.cigartuples, pos)
+            pos = read.reference_start + 1  # reads in pysam are always 0-based, but 1-based is more convenient to wor with in bioinformatics
+            segments, ref_skipped, clip5, clip3 = self.parse_cigar_tuple(read.cigartuples, pos)
             if segments == []:
                 logging.debug("No segments in read:%s" % read.qname)
-            if i % 10000000 == 0:
-                logging.debug(f"Read first {i // 1000000} million mapped reads")
+
+            read_object = vcy.Read(bc, umi, chrom, strand, pos, segments, clip5, clip3, ref_skipped)
             if yield_line:
-                yield vcy.Read(bc, umi, chrom, strand, pos, read.cigarstring, segments, clip5, clip3, spliced), read.tostring(fin)
+                if read_object.span > 3000000:  # Longest locus existing
+                    logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
+                else:
+                    yield read_object, read.tostring(fin)
             else:
-                yield vcy.Read(bc, umi, chrom, strand, pos, read.cigarstring, segments, clip5, clip3, spliced)
+                if read_object.span > 3000000:  # Longest locus existing
+                    logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
+                else:
+                    yield read_object
         fin.close()
 
-    def read_repeats(self, gtf_file: str) -> int:
-        """ Read masked repeats """
+    def read_repeats(self, gtf_file: str, tolerance: int=5) -> Dict[str, List[vcy.Feature]]:
+        """Read repeats and merge close ones into highly repetitive areas
+        
+        Arguments
+        ---------
+        gtf_file: str
+            file to read
+        tolerance: int, default=5
+            if two repeats intervals to be masked are found closer than tolerance bases from each other they are fused in one bigger masked interval.
+            Notice that in the downstream analysis only reads that are fall inside mask intervals are discarded
+
+        Returns
+        -------
+        mask_ivls_by_chromstrand: Dict[str, List[vcy.Feature]]
+            A dictionary key: chromosome+strand value: list of features (repeat intervals)
+            (The reference is returned but an internal attribure self.self.masked_by_chrm_strand is kept)
+
+        Notes
+        -----
+        .gtf file should be sorted by ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``
+        
+        """
+        # Example code to sort the gtf file
+        # sorted_filename = gtffile.split(".")[0] + "_sorted.gtf"
+        # logging.debug(f"Sorting by `sort -k1,1 -k7,7 -k4,4n {gtffile} > {sorted_filename}`")
+        # with open(sorted_filename, "w") as f:
+        #     p1 = subprocess.run(["sort", "-k1,1", "-k7,7", "-k4,4n", gtffile],
+        #                         stdout=f)
+            
+        # Parse arguments
+        logging.debug(f'Reading {gtf_file}, the file is assumed sorted (if is not interupt the process and sort it by running: ``sort -k1,1 -k7,7 -k4,4n``)')
         fin = open(gtf_file)
-        for line in fin:
-            fields = line.rstrip().split('\t')
-            chrom, _, _, start, end, _, strand, _, _ = fields
-            # Properly format the chromosome to match how it is parsed in the bam file
-            if "_" in chrom:
-                chrom = chrom.split("_")[1]
+
+        # Read up skipping headers up to the first valid entry
+        repeat_ivls_list: List[vcy.Feature] = []
+        headerlines = []
+        line = fin.readline()
+        while line:
+            if line.startswith("#"):
+                headerlines.append(line)
+                line = fin.readline()
             else:
-                chrom = chrom[3:]
-                if chrom == "M":
-                    chrom = "MT"
-            ivlstart = int(start)
-            ivlend = int(end)
-            chromstrand = chrom + strand
-            ivl = vcy.Interval(ivlstart, ivlend, None, 0, "mm10_rmsk", None)
-            self.mask_ivls_by_chromstrand[chromstrand].append(ivl)
+                break
+        fields = line.rstrip().split('\t')
+        chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = fields
+        # Removing chr from the chromosome name to uniform different formats of gtf files, taht might or might not have the prefix "chr"
+        if chrom[:3].lower() == "chr":
+            chrom = chrom[3:]
+        start = int(start_str)
+        end = int(end_str)
+        chromstrand: str = chrom + strand
 
-        # Make sure they are sorted (they should be becouse of the way the files where genrated)
-        n = 0
-        for chromstrand, ivls in self.mask_ivls_by_chromstrand.items():
-            ivls.sort()  # relies on the __lt__ method of vcy.Interval
-            n += len(ivls)
-        return n
+        # Set this tu the current entry
+        curr_chrom: str = chrom
+        curr_feature_class: str = feature_class
+        curr_feature_type: str = feature_type
+        curr_start: int = start
+        curr_end: int = end
+        curr_n: int = 1
+        curr_strand: str = strand
+        curr_tags: str = tags
+        curr_chromstrand: str = chromstrand
 
-    def read_genes(self, ivlfile: str) -> int:
-        """ Read genes and intervals """
-        nbcs = len(self.valid_bcs2idx)
-        for line in open(ivlfile):
+        for line in fin:
             if line.startswith('#'):
+                headerlines.append(line)
                 continue
+            
             fields = line.rstrip().split('\t')
-            trname, trid, genename, geneid, chrom, strand = fields[:6]
-            if chrom.startswith('chr'):
+            chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = fields
+            # Removing chr from the chromosome name to uniform different formats of gtf files, taht might or might not have the prefix "chr"
+            if chrom[:3].lower() == "chr":
                 chrom = chrom[3:]
+            start = int(start_str)
+            end = int(end_str)
             chromstrand = chrom + strand
-            ivls = []  # type: List
-            gene = vcy.Gene(genename, geneid, chrom, strand, nbcs)
-            self.genes.append(gene)
-            genestart, geneend = 2**30, 0
-            for i in range(6, len(fields)):
-                field = fields[i]
-                span, ivltype, other_exons, other_introns = field.split(':')
-                ivlstart, ivlend = span.split('-')
-                ivlstart, ivlend = int(ivlstart), int(ivlend)
-                genestart = min(genestart, ivlstart)
-                geneend = max(geneend, ivlend)
-                is_last_3exon_flag = (i == len(fields) - 1 and strand == "+") or (i == 6 and strand == "-")
-                ivl = vcy.Interval(ivlstart, ivlend, gene, len(ivls), ivltype, is_last_3exon_flag)
-                self.ivls_by_chromstrand[chromstrand].append(ivl)
-                ivls.append(ivl)
-            gene.set_range(genestart, geneend)
-            gene.set_ivls(ivls)
-        n = 0
-        for chromstrand, ivls in self.ivls_by_chromstrand.items():
-            ivls.sort()  # relies on the __lt__ method of vcy.Interval
-            n += len(ivls)
-        return n
+            
+            # On chromosome or strand change: save and clean after yourself
+            if chromstrand != curr_chromstrand:
+                self.mask_ivls_by_chromstrand[curr_chromstrand] = repeat_ivls_list
+                repeat_ivls_list = []
+                curr_chrom = chrom
+                curr_strand = strand
+                curr_chromstrand = curr_chrom + curr_strand
+                
+            # If there is no overlap/contiguity within a certain tolerance with the next
+            if start > curr_end + tolerance:
+                # Close and store the previus interval
+                repeat_ivls_list.append(vcy.Feature(start=curr_start, end=curr_end, kind=ord("r"), exin_no=curr_n))
+                # NOTE exin_no is being used to store curr_n, and kind could be used to store tag for some extra memory cost
+                
+                # Remember the newly parsed interval
+                curr_start = start
+                curr_end = end
+                curr_n = 1  # number of original repeat regions included
 
-    def mark_up_introns(self, samfile: str, intron_validation: str) -> None:
-        """ Mark up introns that have reads across junctions to exons ?and count last exon reads? """
+                # this is extra information that right now is not stored in vcy.Feature (not to waste memory) since is not used
+                curr_feature_class = feature_class
+                curr_feature_type = feature_type
+                curr_tags = tags
+            else:
+                # Extend the masked interval!
+                curr_end = end
+                curr_n += 1
+                # this is extra information that right now is not saved (not to waste memory) since is not used
+                gap = start - curr_end
+                curr_tags = f"{curr_tags} gap {gap}; {tags}" if gap > 0 else curr_tags + tags
+        fin.close()
+
+        n = 0
+        for chromstrand, feature_list in self.mask_ivls_by_chromstrand.items():
+            feature_list.sort()  # relies on the __lt__ method of vcy.Feature
+            n += len(feature_list)
+
+        logging.debug(f'Processed masked annotation .gtf and generated {n} intervals to mask!')
+
+        return self.mask_ivls_by_chromstrand
+
+    def assign_indexes_to_genes(self, features: Dict[str, vcy.TranscriptModel]) -> None:
+        """Assign to each newly encoutered genes an unique indexes corresponding to the output matrix column ix
+        """
+        logging.debug("Assigning indexes to genes")
+        for name, trmodel in features.items():
+            if trmodel.geneid in self.geneid2ix:
+                if self.genes[trmodel.geneid].start > trmodel.start:
+                    self.genes[trmodel.geneid].start = trmodel.start
+                if self.genes[trmodel.geneid].end < trmodel.end:
+                    self.genes[trmodel.geneid].end = trmodel.end
+            else:
+                self.geneid2ix[trmodel.geneid] = len(self.geneid2ix)
+                self.genes[trmodel.geneid] = vcy.GeneInfo(trmodel.genename, trmodel.geneid, trmodel.chromstrand, trmodel.start, trmodel.end)
+
+    def read_transcriptmodels(self, gtf_file: str) -> Dict[str, Dict[str, vcy.TranscriptModel]]:
+        """Reads transcript models from a sorted .gtf file
+
+        Arguments
+        ---------
+        gtf_file: str
+            Path to the sorted gtf file
+
+        Returns
+        -------
+        annotations_by_chrm_strand: Dict[str, List[vcy.TrancriptModel]]
+            A dictionary key: chromosome+strand value: list of trascript models
+            (The reference is returned but an internal attribure self.annotations_by_chrm_strand is kept)
+
+        Notes
+        -----
+        To sort the gtf files do ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``
+
+        There will exist an object vcy.Features for the same exon appearing in a different vcy.TranscriptModel. (his is desired)
+        """
+
+        # Define the regexes for the parsing
+        regex_trid = re.compile('transcript_id "([^"]+)"')
+        regex_trname = re.compile('transcript_name "([^"]+)"')
+        regex_geneid = re.compile('gene_id "([^"]+)"')
+        regex_genename = re.compile('gene_name "([^"]+)"')
+        regex_exonno = re.compile('exon_number "([^"]+)"')
+
+        # Initialize containers
+        headerlines: List[str] = []
+        curr_chromstrand = None
+        features: Dict[str, vcy.TranscriptModel] = OrderedDict()
+        # Loop throug gtf file (assumes it is ordered)
+        for nth_line, line in enumerate(open(gtf_file)):
+            # Deal with headers
+            if line.startswith('#'):
+                headerlines.append(line)
+                continue
+                
+            fields = line.rstrip().split('\t')
+            chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = fields
+
+            # Deal with possible incongruences between .gtf and bam file chromosome naming
+            # We keep the name of the chromosome removing the chr from the name and removing part after the . if present
+            if "chr" in chrom[:4]:
+                chrom = chrom[3:]  # NOTE before it was chrom[3:].split(".")[0]
+            else:
+                pass  # NOTE before it was chrom.split(".")[0]
+
+            # A new chromosome/strand encountered
+            if chrom + strand != curr_chromstrand:
+                if curr_chromstrand is not None:  # Every time with exception with first and the last chromosome
+                    if not chrom + strand not in self.annotations_by_chrm_strand:
+                        # NOTE this is not enough as a check but it will detect with few checks if file is not sorted at all
+                        raise IOError(f"gtf file is not sorted correctly! Run the following command:\nsort -k1,1 -k7,7 -k4,4n -o [GTF_OUTFILE] [GTF_INFILE]")
+                    else:
+                        logging.debug(f"Done with {curr_chromstrand} [line {nth_line-1}]")
+                    self.assign_indexes_to_genes(features)
+                    self.annotations_by_chrm_strand[curr_chromstrand] = features
+                    logging.debug(f"Seen {len(self.geneid2ix)} genes until now")
+                features = OrderedDict()
+                logging.debug(f"Parsing Chromosome {chrom} strand {strand} [line {nth_line}]")
+                curr_chromstrand = chrom + strand
+                
+            if feature_type in ("exon"):
+                trid = regex_trid.search(tags).group(1)
+                trname = regex_trname.search(tags).group(1)
+                geneid = regex_geneid.search(tags).group(1)
+                genename = regex_genename.search(tags).group(1)
+                exonno = regex_exonno.search(tags).group(1)
+                start = int(start_str)
+                end = int(end_str)
+                chromstrand = chrom + strand
+                
+                try:
+                    features[trid].append_exon(vcy.Feature(start=start, end=end, kind=ord("e"), exin_no=exonno))
+                except KeyError:
+                    features[trid] = vcy.TranscriptModel(trid=trid, trname=trname, geneid=geneid, genename=genename, chromstrand=chromstrand)
+                    features[trid].append_exon(vcy.Feature(start=start, end=end, kind=ord("e"), exin_no=exonno))
+
+        # Do it for the last chromosome
+        self.assign_indexes_to_genes(features)
+        self.annotations_by_chrm_strand[curr_chromstrand] = features
+        logging.debug(f"Done with {curr_chromstrand} [line {nth_line-1}]")
+    
+        logging.debug(f"Fixing corner cases of transcript models containg intron longer than {vcy.LONGEST_INTRON_ALLOWED//1000}Kbp")
+        # Fix corner cases of extremelly long introns ~1Mbp that would be masking genes that are found internally
+        for tmodels_orddict in self.annotations_by_chrm_strand.values():
+            for tm in tmodels_orddict.values():
+                tm.chop_if_long_intron()  # Change it in place
+
+        # Respect the sorting it had before
+        # NOTE: not sure it is needed downstream anymore also not sure it guarantees exactly the same order
+        for chromstrand in self.annotations_by_chrm_strand.keys():
+            tmp = OrderedDict((i.trid, i) for i in sorted(self.annotations_by_chrm_strand[chromstrand].values()))
+            self.annotations_by_chrm_strand[chromstrand] = tmp
+
+        return self.annotations_by_chrm_strand
+
+    def mark_up_introns(self, samfile: str, multimap: bool) -> None:
+        """ Mark up introns that have reads across exon-intron junctions
+        
+        Arguments
+        ---------
+        samfile: str
+            path to the bam or sam file to markup
+        logic: vcy.Logic
+            The logic object to use, changes in different techniques / levels of strictness
+            NOTE: Right now it is not used
+
+        Returns
+        -------
+        Nothing it just add to validation to the vcy.Features
+
+        Note
+        ----
+        Situations not considered:
+        # If an the exon is so short that is possible to get both exonA-exonB junction and exonB-intronB boundary in the same read
+        """
+
+        # VERBOSE: dump_list = []
         # Read the file
         currchrom = ""
-        for r in self.iter_unique_alignments(samfile):
+        for r in self.iter_alignments(samfile, unique=not multimap):
             # Don't consider spliced reads (exonic) in this step
-            if r.is_spliced():
+            # NOTE Can the exon be so short that we get splicing and exon-intron boundary
+            if r.is_spliced:
                 continue
 
             # When the chromosome mapping of the read changes, change interval index.
             if r.chrom != currchrom:
                 logging.debug(f"Marking up chromosome {r.chrom}")
                 currchrom = r.chrom
-                if currchrom + '+' not in self.ivls_by_chromstrand:
-                    logging.warn(f"The .bam file refers to a chromosome '{currchrom}' not present in the annotation (.gtf) file")
-                iif = vcy.IntervalsIndex(self.ivls_by_chromstrand[currchrom + '+'])
-                iir = vcy.IntervalsIndex(self.ivls_by_chromstrand[currchrom + '-'])
+                if currchrom + '+' not in self.annotations_by_chrm_strand:
+                    logging.warn(f"The .bam file refers to a chromosome '{currchrom}+' not present in the annotation (.gtf) file")
+                    sorted_features_f: List[vcy.Feature] = []
+                else:
+                    sorted_features_f = sorted(chain.from_iterable(self.annotations_by_chrm_strand[currchrom + '+'].values()))
+                if currchrom + '-' not in self.annotations_by_chrm_strand:
+                    logging.warn(f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file")
+                    sorted_features_r: List[vcy.Feature] = []
+                else:
+                    sorted_features_r = sorted(chain.from_iterable(self.annotations_by_chrm_strand[currchrom + '-'].values()))
+                iif = vcy.FeatureIndex(sorted_features_f)
+                iir = vcy.FeatureIndex(sorted_features_r)
             
             # Consider the correct strand
             ii = iif if r.strand == '+' else iir
 
-            # Look for overlap between the intervals and the read
-            matchgenes, matchivls = ii.find_overlapping_ivls(r)
-            if len(matchgenes) != 1:  # No match, multiple-matches, chimera, or intron read accidentally spanning another genes' exon zipped between the first genes' exons
-                continue
+            # VERBOSE: # Look for overlap between the intervals and the read
+            # VERBOSE: dump_list += ii.mark_overlapping_ivls(r)
+            ii.mark_overlapping_ivls(r)
 
-            matchgene = matchgenes.pop()
-            matchgene.add_read_stats(r)  # NOTE: this might be removed if the stats output won't be used... but not sure
-            
-            for matchivl, matchtype in matchivls.items():
-                if matchtype == vcy.MATCH_INSIDE:
-                    matchivl.add_read_inside()
-                if matchtype & vcy.MATCH_OVER5END:  # NOTE: should this be elif? or it makes sense to allow both?
-                    matchivl.add_read_spanning5end()
-                if matchtype & vcy.MATCH_OVER3END:  # Added recently
-                    matchivl.add_read_spanning3end()
+        # VERBOSE: import pickle
+        # VERBOSE: pickle.dump(dump_list, open("dump_mark_overlapping_ivls.pickle", "wb"))
 
-        # Validate the intron intervals on the basis of occurrences of Exon/Intron spanning reads
-        for gene in self.genes:
-            gene.validate_intron_ivls(rule=intron_validation)  # NOTE: this condition might be stricter than we want
+    def count(self, samfile: str, multimap: bool, cell_batch_size: int=100, molecules_report: bool=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
+        """ Do the counting of molecules
+        
+        Arguments
+        ---------
+        samfile: str
+            path to the bam or sam file to markup
+        cell_batch_size: int, default = 50
+            it defines whether to require or not exon-intron spanning read to consider an intron valid.
+        molecules_report: bool, default=False
+            whether to output a file that reports the intervals hit for each molecule counted
+        
+        Returns
+        -------
+        list_spliced_arrays, list_unspliced_arrays, list_ambiguous_arrays, cell_bcs_order
 
-        # NOTE: did we properly deal with the reads added to the genes so that self.count() does not get confused?
+        Note
+        ----
+        The memory footprint could be reduced allocating scipy sparse arrays
+        
+        """
 
-    def count(self, samfile: str, sam_output: Tuple[Any, Any, Any, Any, Any]=None) -> None:
-        """ Do the counting of molecules"""
-        molitems = {}  # type: Dict[str, vcy.Molitem]  # keys are the cell_barcode + UMI, values are Molitem objects
-        currchrom = ""
+        # Initialize variables and containers
+        self.cell_batch: Set[str] = set()
+        self.reads_to_count: List[vcy.Read] = []
+        # self.cells_since_last_count = 0
+        # Analysis is cell wise so the Feature Index swapping is happening often and it is worth to preload everything in memory
+        self.feature_indexes: DefaultDict[str, vcy.FeatureIndex] = defaultdict(vcy.FeatureIndex)
+        for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
+            self.feature_indexes[chromstrand_key] = vcy.FeatureIndex(sorted(chain.from_iterable(annotions_ordered_dict.values())))
 
-        if sam_output is not None:
-            f_sure_introns, f_sure_exon, f_maybe_exon, f_others, f_chimeras = sam_output
+        self.mask_indexes: DefaultDict[str, vcy.FeatureIndex] = defaultdict(vcy.FeatureIndex)
+        for chromstrand_key, annotions_list in self.mask_ivls_by_chromstrand.items():
+            self.mask_indexes[chromstrand_key] = vcy.FeatureIndex(annotions_list)  # This suould be sorted
 
+        # Before counting, report how many features where validated
+        logging.debug(f"Summarizing the results of intron validation.")
+        n_is_intron = 0
+        n_is_intron_valid = 0
+        unique_valid = set()
+        for chromstrand_key, feature_index in self.feature_indexes.items():
+            for ivl in feature_index.ivls:
+                if ivl.kind == ord("i"):
+                    n_is_intron += 1
+                if ivl.is_validated:
+                    n_is_intron_valid += 1
+                    unique_valid.add((ivl.start, ivl.end))
+        logging.debug(f"Validated {n_is_intron_valid} introns (of which unique intervals {len(unique_valid)}) out of {n_is_intron} total possible introns (considering each possible transcript models).")
+
+        cell_bcs_order: List[str] = []
+        list_spliced_arrays: List[np.ndarray] = []
+        list_unspliced_arrays: List[np.ndarray] = []
+        list_ambiguous_arrays: List[np.ndarray] = []
+        nth = 0
         # Loop through the aligment of the samfile
-        for r in self.iter_unique_alignments(samfile, yield_line=sam_output is not None):
-            if sam_output is not None:
-                r, line = r
+        for r in self.iter_alignments(samfile, unique=not multimap):
+            if len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch:
+                # Perfrom the molecule counting
+                nth += 1
+                logging.debug(f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads")
+                spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch(molecules_report and (nth % 10 == 0))
+                cell_bcs_order += list_bcs
+                list_spliced_arrays.append(spliced)
+                list_unspliced_arrays.append(unspliced)
+                list_ambiguous_arrays.append(ambiguous)
+                self.cell_batch = set()
+                # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
+                self.reads_to_count = []
+                for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
+                    self.feature_indexes[chromstrand_key].reset()
+                for chromstrand_key, annotions_list in self.mask_ivls_by_chromstrand.items():
+                    self.mask_indexes[chromstrand_key].reset()
 
-            # When the chromosome mapping of the read changes, change interval index.
-            if r.chrom != currchrom:
-                currchrom = r.chrom
-                logging.debug("Counting on chr %s" % currchrom)
-                iif = vcy.IntervalsIndex(self.ivls_by_chromstrand[currchrom + '+'])
-                iir = vcy.IntervalsIndex(self.ivls_by_chromstrand[currchrom + '-'])
-                iimaskf = vcy.IntervalsIndex(self.mask_ivls_by_chromstrand[currchrom + '+'])
-                iimaskr = vcy.IntervalsIndex(self.mask_ivls_by_chromstrand[currchrom + '-'])
-                if not (currchrom + '+') in self.mask_ivls_by_chromstrand or not (currchrom + '-') in self.mask_ivls_by_chromstrand:
-                    logging.debug(f"{currchrom} is not repeat masked.")
+            self.cell_batch.add(r.bc)
+            self.reads_to_count.append(r)
+        logging.debug(f"Counting molecule for last batch of {len(self.cell_batch)}")
+        spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch()
+        cell_bcs_order += list_bcs
+        list_spliced_arrays.append(spliced)
+        list_unspliced_arrays.append(unspliced)
+        list_ambiguous_arrays.append(ambiguous)
+        self.cell_batch = set()
+        self.reads_to_count = []
+        logging.debug(f"Counting done!")
+        return list_spliced_arrays, list_unspliced_arrays, list_ambiguous_arrays, cell_bcs_order
 
+    def count_cell_batch(self, molecules_report: bool=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
+        """It performs molecule counting for the current batch of cells
+
+        Returns
+        -------
+        spliced: np.ndarray
+        unspliced: np.ndarray
+        ambiguous: np.ndarray
+        idx2bc: List[str]
+            list of barcodes
+        """
+        molitems: DefaultDict[str, vcy.Molitem] = defaultdict(vcy.Molitem)
+        # Sort similarly to what the sort linux command would do. (implemented using Read.__lt__)
+        self.reads_to_count.sort()
+        # NOTE: I could start by sorting the reads by chromosome, strand, position but for now let's see if it is fast without doing do
+
+        repeats_reads_count = 0
+        for r in self.reads_to_count:
             # Consider the correct strand
-            ii = iif if r.strand == '+' else iir
-            iim = iimaskf if r.strand == '+' else iimaskr
+            ii = self.feature_indexes[r.chrom + r.strand]
+            iim = self.mask_indexes[r.chrom + r.strand]
 
             # Check if read is fully inside a repeat, in that case skip it
             if iim.has_ivls_enclosing(r):
+                repeats_reads_count += 1  # VERBOSE
                 continue
 
             # Look for overlap between the intervals and the read
-            matchgenes, matchivls = ii.find_overlapping_ivls(r)
-            # logging.debug("matchgenes : %s" % matchgenes)
-            if len(matchgenes) != 1:  # No match, multiple-matches, chimera, or intron read accidentally spanning another genes' exon zipped between the first genes' exons
-                if sam_output is not None:
-                    logging.debug("Chimera inside read or no matching gene")
-                    f_chimeras.write(line)
-                continue
-            
-            # Count molecules by dealing with barcodes
-            bcumi = r.bc + r.umi
-            matchgene = matchgenes.pop()  # NOTE: how does it compare to matchgenes[0]? Is there some gc issue?
-
-            try:
-                # Check if the read's gene is the same for the same molecule (bc+umi)
-                molitem = molitems[bcumi]
-                if molitem.gene != matchgene:
-                    # In that case ignore it
-                    if sam_output is not None:
-                        logging.debug("Chimera between different reads of same molecule")
-                        f_chimeras.write(line)
-                    continue
-            except KeyError:
-                # The bc/umi combination was seen for the first time, create a Molecule Item
-                molitem = vcy.Molitem(matchgene)
-                molitems[bcumi] = molitem
-
-            # Add info about which interval was hit and whether it gives evidence of splicing
-            molitem.mark_hit_ivls(matchivls.keys(), r.is_spliced())
-            
-            if sam_output:
-                # Resolve what the read is for the output sam files
-                # NOTE: It would be nice to be able to output different sam files by molecule type other than read type
-                cum_is_maybe_exon = []
-                cum_is_sure_exon = []
-                cum_is_sure_intron = []
-                for k, v in matchivls.items():
-                    cum_is_maybe_exon.append(k.is_maybe_exon)
-                    cum_is_sure_exon.append(k.is_sure_exon)
-                    cum_is_sure_intron.append(k.is_sure_intron)
-                if np.any(cum_is_sure_intron):
-                    f_sure_introns.write(line)
-                elif np.any(cum_is_sure_exon):
-                    f_sure_exon.write(line)
-                elif np.any(cum_is_maybe_exon):
-                    f_maybe_exon.write(line)
+            mappings_record = ii.find_overlapping_ivls(r)
+            if len(mappings_record):
+                # logging.debug("IN: Non empty mapping record")
+                bcumi = r.bc + r.umi
+                molitems[bcumi].add_mappings_record(mappings_record)
+                # if len(molitems[bcumi].mappings_record):
+                #     logging.debug("OUT: Non empty")
+                # else:
+                #     logging.debug("OUT: Empty")
+        logging.debug(f"{repeats_reads_count} reads not considered because fully enclosed in repeat masked regions")  # VERBOSE
+        # initialize np.ndarray
+        shape = (len(self.geneid2ix), len(self.cell_batch))
+        spliced = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        unspliced = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        ambiguous = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
 
         # After the whole file has been read, do the actual counting
         for bcumi, molitem in molitems.items():
             bc = bcumi[:self.bclen]  # extract the bc part from the bc+umi
-            bcidx = self.valid_bcs2idx[bc]
-            molitem.count(bcidx)
+            bcidx = bc2idx[bc]
+            self.logic.count(molitem, bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
+            # NOTE I need to generalize this to any set of layers
+            # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
+
+        if molecules_report:
+            import pickle
+            first_cell_batch = next(iter(molitems.keys()))[:self.bclen]
+            if not os.path.exists("pickle_dump"):
+                os.makedirs("pickle_dump")
+            pickle.dump(molitems, open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"))
+            pickle.dump(self.reads_to_count, open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"))
+
+        idx2bc = {v: k for k, v in bc2idx.items()}
+        
+        return spliced, unspliced, ambiguous, [idx2bc[i] for i in range(len(idx2bc))]
+
+    def pcount(self, samfile: str, cell_batch_size: int=50, molecules_report: bool=False, n_processes: int=4) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
+        """ Do the counting of molecules in parallel using multiprocessing
+        """
+
+        raise NotImplementedError("Implement this using multiprocessiong")
+
+    def pcount_cell_batch(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
+        """It performs molecule counting for the current batch of cells
+        """
+        raise NotImplementedError("This will be a used by .pcount")

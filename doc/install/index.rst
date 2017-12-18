@@ -17,7 +17,7 @@ To make sure you have all the dependencies correctly installed, including librar
 
 ::
 
-    conda install numpy scipy cython numba matplotlib scikit-learn h5py click loompy
+    conda install numpy scipy cython numba matplotlib scikit-learn h5py click
 
 
 .. _pypi:
@@ -31,10 +31,10 @@ Just run:
 
     pip install velocyto
 
-`pysam` will be installed by ``pip`` as a dependency
+`pysam` and `loompy` will be installed by ``pip`` as a dependencies.
 
 .. tip::
-    ``velocyto 0.9.x`` is an alpha release and it is updated often. If you installed with pip make sure you run ``pip install -U --no-deps velocyto`` often.
+    `velocyto` |version| is an alpha release and it is updated often. If you installed with pip make sure you run ``pip install -U --no-deps velocyto`` often.
 
 You can test whether the installation was successful by running ``velocyto --help``.
 
@@ -55,7 +55,7 @@ Make sure all the requirements are satisfied, and that `git` is installed on you
     pip install -e .  # installs in development mode, making symlinks to the current directory
 
 .. tip::
-    ``velocyto 0.9.x`` is an alpha release, we recommend pulling in the latest bufixes and feature improvements often. Adding the ``-e`` flag installs the software in `development` mode, after which you can simply use ``git pull`` to update the library.
+    `velocyto` |version| is an alpha release, we recommend pulling in the latest bufixes and feature improvements often. Adding the ``-e`` flag installs the software in `development` mode, after which you can simply use ``git pull`` to update the library.
 
 You can test whether the installation was successful by running ``velocyto --help``.
 

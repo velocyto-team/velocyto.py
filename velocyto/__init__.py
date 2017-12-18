@@ -1,10 +1,14 @@
 from .constants import *
+from .gene_info import GeneInfo
 from .read import Read
-from .genes import Gene
-from .intervals import Interval, IntervalsIndex
+from .feature import Feature
+from .transcript_model import TranscriptModel
+from .segment_match import SegmentMatch
+from .indexes import FeatureIndex, TransciptsIndex
 from .molitem import Molitem
+from .logic import *
 from .counter import ExInCounter
-from .transcript import Transcript
+from .neg_ctrl_counter import FlippingCounter, PolyTCounter
 from .metadata import MetadataCollection, Metadata
 from .neighbors import BalancedKNN, convolve_by_sparse_weights
 from .estimation import fit_slope, _fit1_slope, clusters_stats

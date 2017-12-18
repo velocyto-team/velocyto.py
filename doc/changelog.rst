@@ -1,0 +1,36 @@
+.. _changelog:
+
+=========
+Changelog
+=========
+
+* :release:`0.12.0 <2017-12-17>`
+* :feature:`-` Add possibility to export pickle of every read evicence support each molecule counting
+* :bug:`-` Incorrect 0-based indexing for splicing junction corrected (was not causing problems because buffered by MIN_FLANK) 
+* :bug:`-` Many small bug fixes
+* :feature:`-` Big parts of the documentation rewritten to match the changes in API
+* :feature:`-` Make the CLI simpler removing the extract interval step. 
+  Now the source .gtf files can be provided directly, they should be provided sorted using :code:`sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]`
+* :feature:`-` Changelog added to the doc
+* :support:`-` Update the documentation for the new  :ref:`CLI <cli>`
+* :feature:`-` Support different Logic levels
+* :feature:`-` Pipeline now consider all the possible transcript models that could be supported by a set of reads individually and then decides on the spliced/unspliced/ambigous count.
+* :release:`0.11.0`
+* :bug:`-` fix a bug with ambiguous molecules counting and version bump
+* :release:`0.10.3`
+* :bug:`-` The debug and sampleid option had the same short flag `-d`
+* :release:`0.10.2`
+* :release:`0.10.1`
+* :feature:`-` further ~5x speedup of cython functions making them 100% C and using malloc instead of memory views
+* :release:`0.10.0`
+* :feature:`-` Add support for DropSeq pipelines where the barcode flags in the bam file are `XC` and `XM` instead of `CB` and `UB`
+* :bug:`-` Using sphinx 1.7 sorts the autodoc API correctly
+* :release:`0.9.13`
+* :release:`0.9.12`
+* :release:`0.9.11`
+* :feature:`-` Improve the docs
+* :release:`0.9.10`
+* :release:`0.9.9`
+* :release:`0.9.8`
+* :release:`0.9.7`
+* :release:`0.9.6`

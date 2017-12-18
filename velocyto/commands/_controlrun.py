@@ -25,20 +25,12 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def _run(*, bamfile: str, gtffile: str,
-         bcfile: str, outputfolder: str,
-         sampleid: str, metadatatable: str,
-         repmask: str, logic: str, molrep: bool,
-         multimap: bool, test: bool, samtools_threads: int, samtools_memory: int,
-         additional_ca: dict={}) -> None:
-    """Runs the velocity analysis outputing a loom file
-
-    BAMFILE bam file with sorted reads
-
-    GTFFILE annotation file
-
-    NOTE: it is keyword only argument function
-    """
+def _controlrun(*, bamfile: str, gtffile: str,
+                bcfile: str, outputfolder: str,
+                sampleid: str, metadatatable: str,
+                repmask: str, logic: str, molrep: bool,
+                multimap: bool, test: bool, samtools_threads: int, samtools_memory: int, controltype: str,
+                additional_ca: dict={}) -> None:
     
     ########################
     #    Resolve Inputs    #
@@ -104,7 +96,12 @@ def _run(*, bamfile: str, gtffile: str,
     ########################
 
     # Initialize Exon-Intron Counter with the logic and valid barcodes (need to do it now to peek)
-    exincounter = vcy.ExInCounter(logic_obj, valid_bcset)
+    if controltype == "flip":
+        exincounter = vcy.FlippingCounter(logic_obj, valid_bcset)
+    elif controltype == "polyt":
+        exincounter = vcy.PolyTCounter(logic_obj, valid_bcset)
+    else:
+        raise NotImplementedError(f"controltype {controltype} is not implemented")
 
     # Heuristic to chose the memory/cpu effort
     mb_available = int(subprocess.check_output('grep MemAvailable /proc/meminfo'.split()).split()[1]) / 1000

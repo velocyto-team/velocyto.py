@@ -14,7 +14,7 @@ from collections import defaultdict
 import logging
 from typing import *
 import velocyto as vcy
-from ._run import _run
+from ._controlrun import _controlrun
 
 logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
@@ -23,7 +23,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-@click.command(short_help="Runs the velocity analysis outputing a loom file")
+@click.command(short_help="Runs specific negative control tests for the velocity analysis")
 @click.argument("bamfile",
                 type=click.Path(exists=True,
                                 file_okay=True,
@@ -88,19 +88,22 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 @click.option("--samtools-memory",
               help="The number of MB used for every thread by samtools to sort the bam file",
               default=2048)
-def run(bamfile: str, gtffile: str,
-        bcfile: str, outputfolder: str,
-        sampleid: str, metadatatable: str,
-        repmask: str, logic: str, molrep: bool,
-        multimap: bool, test: bool, samtools_threads: int, samtools_memory: int,
-        additional_ca: dict={}) -> None:
-    """Runs the velocity analysis outputing a loom file
+@click.option("--controltype",
+              help="The negative control that you want to run. flip or polyt",
+              default="flip")
+def controlrun(bamfile: str, gtffile: str,
+               bcfile: str, outputfolder: str,
+               sampleid: str, metadatatable: str,
+               repmask: str, logic: str, molrep: bool,
+               multimap: bool, test: bool, samtools_threads: int, samtools_memory: int, controltype: str,
+               additional_ca: dict={}) -> None:
+    """Runs a negative control of the velocity analysis
 
     BAMFILE bam file with sorted reads
 
     GTFFILE genome annotation file
     """
-    return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
+    _controlrun(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=repmask,
                 logic=logic, molrep=molrep, multimap=multimap, test=test, samtools_threads=samtools_threads,
-                samtools_memory=samtools_memory, additional_ca=additional_ca)
+                samtools_memory=samtools_memory, controltype=controltype, additional_ca=additional_ca)

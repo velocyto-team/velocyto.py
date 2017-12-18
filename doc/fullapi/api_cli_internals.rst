@@ -23,7 +23,7 @@ velocyto\.molitem module
 velocyto\.transcript module
 ---------------------------
 
-.. automodule:: velocyto.transcript
+.. automodule:: velocyto.transcript_model
     :members:
     :undoc-members:
     :show-inheritance:
@@ -31,7 +31,7 @@ velocyto\.transcript module
 velocyto\.genes module
 ----------------------
 
-.. automodule:: velocyto.genes
+.. automodule:: velocyto.indexes
     :members:
     :undoc-members:
     :show-inheritance:
@@ -39,7 +39,7 @@ velocyto\.genes module
 velocyto\.intervals module
 --------------------------
 
-.. automodule:: velocyto.intervals
+.. automodule:: velocyto.feature
     :members:
     :undoc-members:
     :show-inheritance:
