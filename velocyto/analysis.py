@@ -162,6 +162,8 @@ class VelocytoLoom:
         """
         self.S, self.U, self.A = (X[:, bool_array] for X in (self.S, self.U, self.A))
         self.ca = {k: v[bool_array] for k, v in self.ca.items()}
+        self.initial_cell_size = self.S.sum(0)
+        self.initial_Ucell_size = self.U.sum(0)
         try:
             self.cluster_labels = self.cluster_labels[bool_array]  # type: np.ndarray
         except AttributeError:
