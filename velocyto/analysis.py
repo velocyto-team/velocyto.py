@@ -162,8 +162,6 @@ class VelocytoLoom:
         """
         self.S, self.U, self.A = (X[:, bool_array] for X in (self.S, self.U, self.A))
         self.ca = {k: v[bool_array] for k, v in self.ca.items()}
-        self.initial_cell_size = self.S.sum(0)
-        self.initial_Ucell_size = self.U.sum(0)
         try:
             self.cluster_labels = self.cluster_labels[bool_array]  # type: np.ndarray
         except AttributeError:
@@ -1575,7 +1573,9 @@ class VelocytoLoom:
         if min_cells_express is None:
             min_cells_express = max(10, min(50, self.S.shape[1] * 1.5e-3))
         if N is None:
-            N = max(1000, min(int((self.S.shape[1] / 1000)**(1 / 3) / 0.0008), 5000))
+            N = min(self.S.shape[0], max(1000, min(int((self.S.shape[1] /
+                                                        1000) ** (1 / 3) /
+                                                       0.0008), 5000)))
         if min_avg_U is None:
             min_avg_U = 0.01
         if min_avg_S is None:
