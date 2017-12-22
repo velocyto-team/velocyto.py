@@ -5,9 +5,6 @@ from typing import Any
 from collections import OrderedDict
 from .run import run
 from .run10x import run10x
-from .multi10x import multi10x
-from .cellsort import cellsort
-from .controlrun import controlrun
 
 
 class NaturalOrderGroup(click.Group):
@@ -37,6 +34,3 @@ def cli() -> None:
 
 cli.add_command(run)
 cli.add_command(run10x)
-cli.add_command(multi10x)
-cli.add_command(cellsort)
-cli.add_command(controlrun)

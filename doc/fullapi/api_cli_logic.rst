@@ -10,7 +10,9 @@ The logic module offers the possibility to user to easily change the logic used 
 This might be desired to adapt velocyto to different technology or to introduce new rules and heuristics to make the counting more accurate or sensitive.
 
 velocyto\.logic module
-------------------------
+----------------------
+
+.. _logicapi:
 
 .. automodule:: velocyto.logic
     :members:

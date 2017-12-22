@@ -48,7 +48,9 @@ To get started with ``velocyto`` you can follow :ref:`our guide <tutorial>`.
 Install from source
 -------------------
 
-If you plan to inspect and make changes to the source code, or you have requested some bug-fix temporarily available only on the development branch, then you might want to install directly from source.
+If you plan to explore and make changes to the source code, or you have requested some bug-fix that is temporarily available only on the github ``dev`` branch, then you need to install ``velocyto`` directly from source.
+
+
 First of all, make sure all the dependencies are installed, and that `git` is installed on your system. 
 Then, run the following commands to complete the installation:
 
@@ -58,10 +60,10 @@ Then, run the following commands to complete the installation:
     cd velocyto.py
     pip install -e .  # installs in development mode, making symlinks to the current directory
 
+You can test whether the installation was successful by running ``velocyto --help``.
+
 .. tip::
     `velocyto` |version| is an alpha release, we recommend pulling in the latest bufixes and feature improvements often. Note that adding the ``-e`` flag to the pip command installs the software in `development` mode, when a package is installed this way changes to the source immediatelly reflects to changes in the installed library. This means that you can simply use ``git pull`` to update the library.
-
-You can test whether the installation was successful by running ``velocyto --help``.
 
 To get started with ``velocyto`` you can follow :ref:`our guide <tutorial>`. 
 
