@@ -38,8 +38,8 @@ The Diffusion module
 .. toctree::
     api_diffusion
 
-The Estimation module
-~~~~~~~~~~~~~~~~~~~~~
+The Serialization module
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
     api_serialization
@@ -49,4 +49,10 @@ Internals
 
 .. toctree::
     api_cli_internals
+
+Customizable Internals
+----------------------
+
+.. toctree::
+    api_cli_logic
 

@@ -5,10 +5,10 @@ Changelog
 =========
 
 * :release:`0.12.0 <2017-12-17>`
-* :feature:`-` Add possibility to export pickle of every read evicence support each molecule counting
+* :feature:`-` Add possibility to export pickle containing information of every molecule
 * :bug:`-` Incorrect 0-based indexing for splicing junction corrected (was not causing problems because buffered by MIN_FLANK) 
 * :bug:`-` Many small bug fixes
-* :feature:`-` Big parts of the documentation rewritten to match the changes in API
+* :feature:`-` Large parts of the documentation rewritten to match the changes in API
 * :feature:`-` Make the CLI simpler removing the extract interval step. 
   Now the source .gtf files can be provided directly, they should be provided sorted using :code:`sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]`
 * :feature:`-` Changelog added to the doc
