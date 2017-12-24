@@ -40,16 +40,15 @@ Contents
 
 .. toctree::
 
-   citing/index
-   
+   changelog
+
 .. toctree::
 
    license/index
 
 .. toctree::
 
-   changelog
-
+   citing/index
 
 Indices and tables
 ==================

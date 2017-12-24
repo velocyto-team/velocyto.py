@@ -3,7 +3,7 @@
 Analysis Pipeline
 =================
 
-The following tutorial gives an introduction to the basic analysis functions provided in the velocyto library.
+The following tutorial gives an introduction to the basic analysis functions of the `velocyto` library.
 
 .. _velocytoloom:
 
@@ -17,8 +17,8 @@ Let's start with loading the content of the `.loom` file  into an interactive se
    import velocyto as vcy
    vlm = vcy.VelocytoLoom("YourData.loom")
 
-Different steps of analysis can be carried on by simply calling the methods of the `VelocytoLoom` that we have just created.
-New variables, normalized version of the data matrixes and other parameters will be saved and available as attributes of "VelocytoLoom" the object (while the method call does not return anything).
+Different steps of analysis can be carried on by simply calling the methods of this `VelocytoLoom` object.
+New variables, normalized version of the data matrixes and other parameters will be stored as attributes of the "VelocytoLoom" object (method calls will not return any value).
 For example normalization and log transformation can be performed by calling the `normalize` method:
 
 .. code-block:: python
@@ -26,7 +26,9 @@ For example normalization and log transformation can be performed by calling the
     vlm.normalize("S", size=True, log=True)
     vlm.S_norm  # contains log normalized
 
-Furthermore "VelocytoLoom" object supports some ready-made plotting functions.
+The :ref:`docstring <_analysisapi>` of every function specifies which attributes will be generated or modified at each method call.
+
+"VelocytoLoom" object supports some ready-made plotting functions.
 For example, one of the first checks is spliced/unspliced fractions of the dataset can be done by calling:
 
 .. code-block:: python
@@ -54,11 +56,14 @@ Notice that the size on disk of the serialized file can change depending on the 
     We suggest calling these functions in the order shown in this tutorial or in the :ref:`example notebooks <notebooks>`. 
 
 
-Default Shortcuts
------------------
-In velocyto a set of methods with the prefix ``default_*`` are implemented as a quick shortcut to get started.
-The methods use some heuristics to set the thresholds to reasonable values (e.g. considering the size of the dataset).
-However, those methods are far from perfect and in some dataset they could even lead to runtime errors. We recommend to inspect the :ref:`source <analysisapi>` of these functions and adapt the parameters to the specific dataset.
+Note on Default Shortcuts
+~~~~~~~~~~~~~~~~~~~~~~~~~
+In `velocyto`, the methods starting with the prefix ``default_*`` are implemented as a quick-and-dirty shortcut to get the new user started.
+
+These methods are aggregators that call several `velocyto` functions using some simple heuristics to set the thresholds and parameters to reasonable values.
+However, those methods are far from perfect and in some datasets they could even lead to runtime errors.
+
+We meant those as reference to the new user and we recommend to inspect the `source <http://velocyto.org/velocyto.py/_modules/velocyto/analysis.html#VelocytoLoom.default_filter_and_norm>`_ of these functions and adapt the parameters to the specific dataset.
 
 
 Preliminary Filtering
@@ -67,7 +72,7 @@ At this point we can perform feature selection and normalization of the data.
 
 In order to obtain better results the preliminary filtering is usually adapted for each dataset.
 
-We implemented the method `default_filter_and_norm` .
+For the purpose of this tutorial we will be using the shortcut :ref:`default_filter_and_norm <analysisapi>` .
 
 
 .. code-block:: python

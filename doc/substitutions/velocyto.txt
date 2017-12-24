@@ -6,9 +6,6 @@
 		  --help  Show this message and exit.
 		
 		Commands:
-		  run         Runs the velocity analysis outputing a loom file
-		  run10x      Runs the velocity analysis for a Chromium Sample
-		  multi10x    Runs the velocity analysis on multiple a Chromium samples in parallel
-		  cellsort    Sorts one or more bam files in cell-barcode order.
-		  controlrun  Runs specific negative control tests for the velocity analysis
+		  run     Runs the velocity analysis outputing a loom file
+		  run10x  Runs the velocity analysis for a Chromium Sample
 		

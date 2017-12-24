@@ -12,7 +12,7 @@ Requirements
 
 To run velocyto you will need python >=3.6.0 (we have no plans to support python<=3.5).
 We recommend using `anaconda <https://www.continuum.io/downloads>`_ and the ``conda`` command to install dependencies (of course you can use ``pip`` but be aware its dependency-managing might be less robust).
-Feel free to use ``pip`` if libraries not available on the conda channels you are using. 
+Feel free to use ``pip`` if some libraries are not available on the conda channels you are using. 
 
 Run the following command to make sure you have all the dependencies correctly installed:
 
@@ -20,7 +20,7 @@ Run the following command to make sure you have all the dependencies correctly i
 
     conda install numpy scipy cython numba matplotlib scikit-learn h5py click
 
-Note: ``pysam`` is also a requirement but, in this case, the PyPI wheel (the version installed by ``pip install pysam``) is to be preferred over the conda package (we have experienced problems with the version packaged by conda-forge).
+Note: ``pysam`` is also a requirement but currently it is preferable to install it through PyPI wheel (i.e. by ``pip install pysam``) as we have experienced problems with the version packaged by conda-forge.
 
 .. _pypi:
 
@@ -58,12 +58,12 @@ Then, run the following commands to complete the installation:
 
     git clone https://github.com/velocyto-team/velocyto.py.git
     cd velocyto.py
-    pip install -e .  # installs in development mode, making symlinks to the current directory
+    pip install -e .  # note the trailing dot
 
 You can test whether the installation was successful by running ``velocyto --help``.
 
 .. tip::
-    `velocyto` |version| is an alpha release, we recommend pulling in the latest bufixes and feature improvements often. Note that adding the ``-e`` flag to the pip command installs the software in `development` mode, when a package is installed this way changes to the source immediatelly reflects to changes in the installed library. This means that you can simply use ``git pull`` to update the library.
+    `velocyto` |version| is an alpha release, we recommend pulling in the latest bufixes and feature improvements often. Note that adding the ``-e`` flag to the pip command installs the software in `development` mode, when a package is installed this way each change to the source immediatelly reflects to changes in the installed library. This means that you can simply use ``git pull`` to update your installation.
 
 To get started with ``velocyto`` you can follow :ref:`our guide <tutorial>`. 
 

@@ -38,7 +38,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                                 resolve_path=True))
 @click.option("--bcfile", "-b",
               help="""Valid barcodes file, to filter the bam. If --bcfile is not specified all the cell barcodes will be incuded.
-              Cell barcodes should be specified in the bcfile as the `CB` tag of each read""",
+              Cell barcodes should be specified in the bcfile as the `CB` tag for each read""",
               default=None,
               show_default=True,
               type=click.Path(resolve_path=True,
@@ -46,7 +46,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                               dir_okay=False,
                               readable=True))
 @click.option("--outputfolder", "-o",
-              help="Output folder, does not need to exist",
+              help="Output folder, if it does not exist it will be created.",
               default=None,
               type=click.Path(exists=False))
 @click.option("--sampleid", "-e",
@@ -61,7 +61,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                               dir_okay=False,
                               readable=True))
 @click.option("--repmask", "-m",
-              help=".gtf file containing intervals sorted by chromosome, strand, position. This can be achieved by ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``",
+              help=".gtf file containing intervals sorted by chromosome, strand, position (i.e. ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``)",
               default=None,
               type=click.Path(resolve_path=True,
                               file_okay=True,
@@ -74,12 +74,8 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               help="Use reads that did not map uniquely (default: False)",
               default=False,
               is_flag=True)
-@click.option("--test", "-t",
-              help="Test mode. Use only if you are a developer, it will save some intermediate files.",
-              default=False,
-              is_flag=True)
 @click.option("--molrep", "-x",
-              help="Outputs a file containing the interval mapping of the molecules. (it will run slower)",
+              help="Outputs pickle files with containing a sample of the read mappings supporting molecule counting. (Useful for development or debugging only)",
               default=False,
               is_flag=True)
 @click.option("--samtools-threads", "-@",
@@ -102,5 +98,5 @@ def run(bamfile: str, gtffile: str,
     """
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=repmask,
-                logic=logic, molrep=molrep, multimap=multimap, test=test, samtools_threads=samtools_threads,
+                logic=logic, molrep=molrep, multimap=multimap, test=False, samtools_threads=samtools_threads,
                 samtools_memory=samtools_memory, additional_ca=additional_ca)
