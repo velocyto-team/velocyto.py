@@ -1,0 +1,25 @@
+::
+
+	Usage: velocyto run [OPTIONS] BAMFILE GTFFILE
+		
+		  Runs the velocity analysis outputing a loom file
+		
+		  BAMFILE bam file with sorted reads
+		
+		  GTFFILE genome annotation file
+		
+		Options:
+		  -b, --bcfile PATH               Valid barcodes file, to filter the bam. If --bcfile is not specified all the cell barcodes will be incuded.
+		                                  Cell barcodes should be specified in the bcfile as the `CB` tag of each read
+		  -o, --outputfolder PATH         Output folder, does not need to exist
+		  -e, --sampleid PATH             The sample name that will be used to retrieve informations from metadatatable
+		  -s, --metadatatable PATH        Table containing metadata of the various samples (csv fortmated, [row:samples, col:entry])
+		  -m, --repmask PATH              .gtf file containing intervals sorted by chromosome, strand, position. This can be achieved by ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``
+		  -l, --logic TEXT                The logic to use for the filtering (default: Default)
+		  -M, --multimap                  Use reads that did not map uniquely (default: False)
+		  -t, --test                      Test mode. Use only if you are a developer, it will save some intermediate files.
+		  -x, --molrep                    Outputs a file containing the interval mapping of the molecules. (it will run slower)
+		  -@, --samtools-threads INTEGER  The number of threads to use to sort the bam by cellID file using samtools
+		  --samtools-memory INTEGER       The number of MB used for every thread by samtools to sort the bam file
+		  --help                          Show this message and exit.
+		

@@ -29,8 +29,8 @@ sys.path.insert(0, os.path.abspath('_ext'))
 processes = []
 command_list = [("velocyto", "velocyto --help"),
                 ("run", "velocyto run --help"),
-                ("run10x", "velocyto run10x --help"),
-                ("multi10x", "velocyto multi10x --help")]
+                ("run10x", "velocyto run10x --help")]
+                # ("multi10x", "velocyto multi10x --help")
 
 for filename, command in command_list:
     processes.append((filename, subprocess.Popen(command.split(), stdout=subprocess.PIPE)))

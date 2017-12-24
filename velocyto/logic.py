@@ -23,7 +23,7 @@ class Logic(metaclass=abc.ABCMeta):
         Arguments
         ---------
         molitem: vcy.Molitem
-            The :ref:`vcy.Molitem` object to be considered by the logic
+            The :py:class:`vcy.Molitem` object to be considered by the logic
         cell_bcidx: int
             The cell index in the memory buffers below
         spliced: np.ndarray,

@@ -3,22 +3,22 @@
 Analysis Pipeline
 =================
 
-Tutorial of the basic analysis functions.
+The following tutorial gives an introduction to the basic analysis functions provided in the velocyto library.
 
 .. _velocytoloom:
 
 Velocyto Loom
 -------------
 
-Let's start with loading the content of the `.loom` file output into an interactive session of python.
+Let's start with loading the content of the `.loom` file  into an interactive session of python.
 
 .. code-block:: python
 
    import velocyto as vcy
    vlm = vcy.VelocytoLoom("YourData.loom")
 
-Different steps of analysis can be carried on by simply calling the methods of the `VelocytoLoom`.
-New variables, normalization and parameter will be saved and available as attributes of "VelocytoLoom" the object, while the call does not return anything.
+Different steps of analysis can be carried on by simply calling the methods of the `VelocytoLoom` that we have just created.
+New variables, normalized version of the data matrixes and other parameters will be saved and available as attributes of "VelocytoLoom" the object (while the method call does not return anything).
 For example normalization and log transformation can be performed by calling the `normalize` method:
 
 .. code-block:: python
@@ -33,7 +33,6 @@ For example, one of the first checks is spliced/unspliced fractions of the datas
 
     vlm.plot_fractions()
 
-The unspliced fraction should be ~10% of all the molecules.
 
 You can save the results of your analysis in a serialized object at any time by running:
 
@@ -47,22 +46,37 @@ In another session you can reload the vlm object by running:
 
     load_velocyto_hdf5("my_velocyto_analysis.hdf5")
 
-This is similar to what the ``pickle`` module in python standard library is doing but here only the attribute of the ``VelocytoLoom`` object are seved and stored as a hdf5 file.
+This is similar to what the ``pickle`` module in python standard library is doing but here only the attributes of the ``VelocytoLoom`` object are saved and stored as a hdf5 file.
 Notice that the size on disk of the serialized file can change depending on the step of the analysis the object is saved (e.g. pre/post filtering or before/after calculating distance matrixes).
+
+.. note::
+    VelocytoLoom object methods operate on the object attributes performing filtering, normalization adn other calcualtion. Therefore the order in which they are run is important to get a meaningful output from ``velocyto``.
+    We suggest calling these functions in the order shown in this tutorial or in the :ref:`example notebooks <notebooks>`. 
+
+
+Default Shortcuts
+-----------------
+In velocyto a set of methods with the prefix ``default_*`` are implemented as a quick shortcut to get started.
+The methods use some heuristics to set the thresholds to reasonable values (e.g. considering the size of the dataset).
+However, those methods are far from perfect and in some dataset they could even lead to runtime errors. We recommend to inspect the :ref:`source <analysisapi>` of these functions and adapt the parameters to the specific dataset.
 
 
 Preliminary Filtering
 ---------------------
 At this point we can perform feature selection and normalization of the data.
+
 In order to obtain better results the preliminary filtering is usually adapted for each dataset.
-However, we implemented the method `default_filter_and_norm` as a quick shortcut to get started. 
-The method uses some heuristics to set the thresholds to reasonable values considering the size of the dataset.
+
+We implemented the method `default_filter_and_norm` .
+
 
 .. code-block:: python
 
     vlm.default_filter_and_norm()
 
 Notice that the method supports limited options in comparison to the full API. For a finer tuning of filtering parameters inspect the source code of the method in the `API page <http://velocyto.org/velocyto.py/_modules/velocyto/analysis.html#VelocytoLoom.default_filter_and_norm>`_
+normalization and filtering function can be called at any step of the analysis
+Furthermore, it is important to notice that the function starting 
 
 Preparation for gamma fit
 -------------------------
