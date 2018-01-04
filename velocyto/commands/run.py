@@ -88,7 +88,7 @@ def run(bamfile: str, gtffile: str,
         bcfile: str, outputfolder: str,
         sampleid: str, metadatatable: str,
         repmask: str, logic: str, molrep: bool,
-        multimap: bool, test: bool, samtools_threads: int, samtools_memory: int,
+        multimap: bool, samtools_threads: int, samtools_memory: int,
         additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
 

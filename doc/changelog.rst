@@ -3,7 +3,8 @@
 =========
 Changelog
 =========
-
+* :release:`0.12.1 <2017-12-17>`
+* :bug:`32` Attempted to fix a reported bug running velocyto CLI
 * :release:`0.12.0 <2017-12-17>`
 * :feature:`-` Add possibility to export pickle containing information of every molecule
 * :feature:`-` Remove the subcommand ``multi10x``
