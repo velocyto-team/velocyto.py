@@ -3,6 +3,8 @@
 =========
 Changelog
 =========
+* :release:`0.12.2 <2018-01-12>`
+* :bug:`37` Initial cell size array gets updated properly when filtering cells
 * :release:`0.12.1 <2018-01-04>`
 * :bug:`35` Attempted to fix a reported bug running velocyto CLI
 * :release:`0.12.0 <2017-12-17>`

@@ -161,6 +161,8 @@ class VelocytoLoom:
         Nothing but it removes some cells from S and U.
         """
         self.S, self.U, self.A = (X[:, bool_array] for X in (self.S, self.U, self.A))
+        self.initial_cell_size = self.initial_cell_size[bool_array]
+        self.initial_Ucell_size = self.initial_Ucell_size[bool_array]
         self.ca = {k: v[bool_array] for k, v in self.ca.items()}
         try:
             self.cluster_labels = self.cluster_labels[bool_array]  # type: np.ndarray
@@ -1872,6 +1874,8 @@ class VelocytoLoom:
             self.S = ds.layer["spliced"][:]
             self.U = ds.layer["unspliced"][:]
             self.A = ds.layer["ambiguous"][:]
+            self.initial_cell_size = self.S.sum(0)
+            self.initial_Ucell_size = self.U.sum(0)
             self.ca = ds.col_attrs
             self.ra = ds.row_attrs
             ds.close()
@@ -1880,6 +1884,8 @@ class VelocytoLoom:
             self.raw_S = ds.layer["spliced"][:]
             self.raw_U = ds.layer["unspliced"][:]
             self.raw_A = ds.layer["ambiguous"][:]
+            self.raw_initial_cell_size = self.raw_S.sum(0)
+            self.raw_initial_Ucell_size = self.raw_U.sum(0)
             self.raw_ca = ds.col_attrs
             self.raw_ra = ds.row_attrs
             ds.close()
