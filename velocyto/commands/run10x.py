@@ -61,7 +61,7 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
               default=2048)
 def run10x(samplefolder: str, gtffile: str,
            metadatatable: str, repmask: str, logic: str, samtools_threads: int, samtools_memory: int,
-           multimap: bool, molrep: bool) -> None:
+           multimap: bool) -> None:
     """Runs the velocity analysis for a Chromium 10X Sample
 
     10XSAMPLEFOLDER specifies the cellranger sample folder
