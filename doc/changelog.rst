@@ -3,6 +3,7 @@
 =========
 Changelog
 =========
+* :feature:`-` Improve documentation: missing information about sorting genome annotation .gtf file
 * :release:`0.12.4 <2018-01-18>`
 * :bug:`40` Error in hdf5 serialization when using cluster label as object array is now fixed
 * :release:`0.12.3 <2018-01-17>`

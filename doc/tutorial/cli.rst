@@ -19,10 +19,16 @@ Alternatively you can visit the online :ref:`api description page <cliapi>` that
 Preparation
 -----------
 
-Download genome annotation file
+Download and sort genome annotation file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download a genome annotation (.gtf file) for example from `GENCODE <http://www.gencodegenes.org/>`_ or `Ensembl <http://www.ensembl.org/info/data/ftp/index.html>`_. If you use the  ``cellranger`` pipeline, you should download the gtf that comes prepackaged with it `here <https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/advanced/references>`_.
+Then run the following command (sort by strand, chromosome, position) to prepare the file to the next step:
+
+::
+
+    sort -k1,1 -k7,7 -k4,4n -o mm10_sorted.gtf mm10.gtf
+
 
 
 
@@ -50,7 +56,7 @@ A typical use of ``run`` is:
 
 ::
 
-    velocyto run -b barcodes.tsv -o output_path -m repeat_msk_srt.gtf possorted_genome_bam.bam cellranger-mm10-1.2.0_genes.gtf
+    velocyto run -b barcodes.tsv -o output_path -m repeat_msk_srt.gtf possorted_genome_bam.bam mm10_sorted.gtf
 
 
 The general signature for the ``run`` subcommand is:
@@ -105,7 +111,7 @@ For example if we want to run the pipeline on the folder ``mypath/sample01``. We
 
 ::
 
-    velocyto run10x -m repeat_msk_srt.gtf mypath/sample01 cellranger-mm10-1.2.0_genes.gtf
+    velocyto run10x -m repeat_msk_srt.gtf mypath/sample01 mm10_sorted.gtf
 
 The full signature of the command is:
 

@@ -363,7 +363,7 @@ class ExInCounter:
                 if curr_chromstrand is not None:  # Every time with exception with first and the last chromosome
                     if not chrom + strand not in self.annotations_by_chrm_strand:
                         # NOTE this is not enough as a check but it will detect with few checks if file is not sorted at all
-                        raise IOError(f"gtf file is not sorted correctly! Run the following command:\nsort -k1,1 -k7,7 -k4,4n -o [GTF_OUTFILE] [GTF_INFILE]")
+                        raise IOError(f"Genome annotation gtf file is not sorted correctly! Run the following command:\nsort -k1,1 -k7,7 -k4,4n -o [GTF_OUTFILE] [GTF_INFILE]")
                     else:
                         logging.debug(f"Done with {curr_chromstrand} [line {nth_line-1}]")
                     self.assign_indexes_to_genes(features)
