@@ -188,6 +188,8 @@ class VelocytoLoom:
 
         """
         self.cluster_labels = np.array(cluster_labels)
+        if self.cluster_labels.dtype == "O":  # Fixes a bug when importing from pandas
+            self.cluster_labels = self.cluster_labels.astype(np.string_)
         if cluster_colors_dict:
             self.colorandum = np.array([cluster_colors_dict[i] for i in cluster_labels])
             self.cluster_colors_dict = cluster_colors_dict
