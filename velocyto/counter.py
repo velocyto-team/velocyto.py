@@ -193,10 +193,6 @@ class ExInCounter:
         mask_ivls_by_chromstrand: Dict[str, List[vcy.Feature]]
             A dictionary key: chromosome+strand value: list of features (repeat intervals)
             (The reference is returned but an internal attribure self.self.masked_by_chrm_strand is kept)
-
-        Notes
-        -----
-        .gtf file should be sorted by ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``
         
         """
         # Example code to sort the gtf file
@@ -322,10 +318,6 @@ class ExInCounter:
         annotations_by_chrm_strand: Dict[str, List[vcy.TrancriptModel]]
             A dictionary key: chromosome+strand value: list of trascript models
             (The reference is returned but an internal attribure self.annotations_by_chrm_strand is kept)
-
-        Notes
-        -----
-        To sort the gtf files do ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``
 
         There will exist an object vcy.Features for the same exon appearing in a different vcy.TranscriptModel. (his is desired)
         """

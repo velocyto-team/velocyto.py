@@ -40,7 +40,7 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
                               dir_okay=False,
                               readable=True))
 @click.option("--repmask", "-m",
-              help=".gtf file containing intervals sorted by chromosome, strand, position (i.e. ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``)",
+              help=".gtf file containing intervals to mask",
               default=None,
               type=click.Path(resolve_path=True,
                               file_okay=True,
