@@ -3,7 +3,10 @@
 =========
 Changelog
 =========
-* :feature:`-` Improve documentation: missing information about sorting genome annotation .gtf file
+* :release:`0.13.0 <2018-01-19>`
+* :bug:`-` Sometimes velocyto missed to detect and warn the user that the `.gtf` genome annotation file was not sorted, this could have caused undetected errors in the analysis. If you run velocyto without sorting the .gtf, we suggest rerunning.
+* :feature:`-` CLI does not require presorting the gtf files. To reduce possibility of incorrect usage, now .gtf file sorting sorting is performed in memory (and not saved).
+* :feature:`-` Improve documentation: remove information about sorting .gtf files. This procedure is not needed anymore.
 * :release:`0.12.4 <2018-01-18>`
 * :bug:`40` Error in hdf5 serialization when using cluster label as object array is now fixed
 * :release:`0.12.3 <2018-01-17>`
