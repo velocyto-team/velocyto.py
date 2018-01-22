@@ -33,7 +33,7 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
                                 readable=True,
                                 resolve_path=True))
 @click.option("--metadatatable", "-s",
-              help="Table containing metadata of the various samples (csv fortmated, [row:samples, col:entry])",
+              help="Table containing metadata of the various samples (csv fortmated rows are samples and cols are entries)",
               default=None,
               type=click.Path(resolve_path=True,
                               file_okay=True,

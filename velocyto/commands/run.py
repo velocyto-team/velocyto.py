@@ -54,7 +54,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               default=None,
               type=click.Path(exists=False))
 @click.option("--metadatatable", "-s",
-              help="Table containing metadata of the various samples (csv fortmated, [row:samples, col:entry])",
+              help="Table containing metadata of the various samples (csv formatted, rows are samples and cols are entries)",
               default=None,
               type=click.Path(resolve_path=True,
                               file_okay=True,

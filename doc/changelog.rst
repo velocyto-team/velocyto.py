@@ -3,6 +3,8 @@
 =========
 Changelog
 =========
+* :release:`0.13.1 <2018-01-22>`
+* :feature:`-` Sample metadata file can be specified with different csv formats (the format will be determined automatically)
 * :release:`0.13.0 <2018-01-19>`
 * :bug:`-` Sometimes velocyto missed to detect and warn the user that the `.gtf` genome annotation file was not sorted, this could have caused undetected errors in the analysis. If you run velocyto without sorting the .gtf, we suggest rerunning.
 * :feature:`-` CLI does not require presorting the gtf files. To reduce possibility of incorrect usage, now .gtf file sorting sorting is performed in memory (and not saved).
