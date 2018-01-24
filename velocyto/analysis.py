@@ -74,8 +74,8 @@ class VelocytoLoom:
         self.S = ds.layer["spliced"][:]
         self.U = ds.layer["unspliced"][:]
         self.A = ds.layer["ambiguous"][:]
-        self.ca = ds.col_attrs
-        self.ra = ds.row_attrs
+        self.ca = dict(ds.col_attrs.items())
+        self.ra = dict(ds.row_attrs.items())
         ds.close()
 
         self.initial_cell_size = self.S.sum(0)
@@ -1878,8 +1878,8 @@ class VelocytoLoom:
             self.A = ds.layer["ambiguous"][:]
             self.initial_cell_size = self.S.sum(0)
             self.initial_Ucell_size = self.U.sum(0)
-            self.ca = ds.col_attrs
-            self.ra = ds.row_attrs
+            self.ca = dict(ds.col_attrs.items())
+            self.ra = dict(ds.row_attrs.items())
             ds.close()
         else:
             ds = loompy.connect(self.loom_filepath)
@@ -1888,8 +1888,8 @@ class VelocytoLoom:
             self.raw_A = ds.layer["ambiguous"][:]
             self.raw_initial_cell_size = self.raw_S.sum(0)
             self.raw_initial_Ucell_size = self.raw_U.sum(0)
-            self.raw_ca = ds.col_attrs
-            self.raw_ra = ds.row_attrs
+            self.raw_ca = dict(ds.col_attrs.items())
+            self.raw_ra = dict(ds.row_attrs.items())
             ds.close()
 
 

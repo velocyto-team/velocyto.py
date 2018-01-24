@@ -218,10 +218,20 @@ def _run(*, bamfile: str, gtffile: str,
     
     total = spliced + unspliced + ambiguous
     logging.debug("Writing loom file")
-    ds = loompy.create(filename=outfile, matrix=total, row_attrs=ra, col_attrs=ca, dtype="float32")
-    ds.set_layer(name="spliced", matrix=spliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
-    ds.set_layer(name="unspliced", matrix=unspliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
-    ds.set_layer(name="ambiguous", matrix=ambiguous, dtype=vcy.LOOM_NUMERIC_DTYPE)
-    ds.attrs["velocyto.__version__"] = vcy.__version__
-    ds.close()
+    try:
+        ds = loompy.create(filename=outfile, matrix=total, row_attrs=ra, col_attrs=ca, dtype="float32")
+        ds.set_layer(name="spliced", matrix=spliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        ds.set_layer(name="unspliced", matrix=unspliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        ds.set_layer(name="ambiguous", matrix=ambiguous, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        ds.attrs["velocyto.__version__"] = vcy.__version__
+        ds.close()
+    except TypeError:
+        # If user is using loompy2
+        ds = loompy.create(filename=outfile, layers={"": total.astype("float32", order="C", copy=False),
+                                                     "spliced": spliced.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False),
+                                                     "unspliced": unspliced.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False),
+                                                     "ambiguous": ambiguous.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False)},
+                           row_attrs=ra, col_attrs=ca)
+        ds.attrs["velocyto.__version__"] = vcy.__version__
+        ds.close()
     logging.debug("Terminated Succesfully!")

@@ -3,6 +3,9 @@
 =========
 Changelog
 =========
+* :release:`0.13.2 <2018-01-25>`
+* :bug:`-` Catch error due to the API change of `.create` in loompy2 
+* :bug:`-` Fix an incompatibility with loompy2 related to column and row attributes changing from dict to an object
 * :release:`0.13.1 <2018-01-22>`
 * :feature:`-` Sample metadata file can be specified with different csv formats (the format will be determined automatically)
 * :release:`0.13.0 <2018-01-19>`
