@@ -752,7 +752,7 @@ class VelocytoLoom:
                    c=self.colorandum)
         ax.view_init(elev=elev, azim=azim)
 
-    def perform_PCA_imputed(self, n_components: int=None) -> None:
+    def _imputed(self, n_components: int=None) -> None:
         """Simply performs PCA of `Sx_norm` and save the result as  `pcax`"""
         self.pcax = PCA(n_components=n_components)
         self.pcsx = self.pcax.fit_transform(self.Sx_norm.T)

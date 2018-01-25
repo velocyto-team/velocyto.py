@@ -231,7 +231,5 @@ def _run(*, bamfile: str, gtffile: str,
                                                      "spliced": spliced.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False),
                                                      "unspliced": unspliced.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False),
                                                      "ambiguous": ambiguous.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False)},
-                           row_attrs=ra, col_attrs=ca)
-        ds.attrs["velocyto.__version__"] = vcy.__version__
-        ds.close()
+                           row_attrs=ra, col_attrs=ca, file_attrs={"velocyto.__version__":vcy.__version__})
     logging.debug("Terminated Succesfully!")
