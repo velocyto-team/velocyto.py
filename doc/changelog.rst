@@ -3,6 +3,8 @@
 =========
 Changelog
 =========
+* :release:`0.13.4 <2018-01-25>`
+* :bug:`-` A change in slicing related to an API change of `__getattr__` in loompy2 
 * :release:`0.13.3 <2018-01-25>`
 * :bug:`-` Catch another error due to the API change of `.create` in loompy2 
 * :release:`0.13.2 <2018-01-25>`

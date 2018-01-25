@@ -71,9 +71,9 @@ class VelocytoLoom:
     def __init__(self, loom_filepath: str) -> None:
         self.loom_filepath = loom_filepath
         ds = loompy.connect(self.loom_filepath)
-        self.S = ds.layer["spliced"][:]
-        self.U = ds.layer["unspliced"][:]
-        self.A = ds.layer["ambiguous"][:]
+        self.S = ds.layer["spliced"][:, :]
+        self.U = ds.layer["unspliced"][:, :]
+        self.A = ds.layer["ambiguous"][:, :]
         self.ca = dict(ds.col_attrs.items())
         self.ra = dict(ds.row_attrs.items())
         ds.close()
@@ -1873,9 +1873,9 @@ class VelocytoLoom:
         """
         if substitute:
             ds = loompy.connect(self.loom_filepath)
-            self.S = ds.layer["spliced"][:]
-            self.U = ds.layer["unspliced"][:]
-            self.A = ds.layer["ambiguous"][:]
+            self.S = ds.layer["spliced"][:, :]
+            self.U = ds.layer["unspliced"][:, :]
+            self.A = ds.layer["ambiguous"][:, :]
             self.initial_cell_size = self.S.sum(0)
             self.initial_Ucell_size = self.U.sum(0)
             self.ca = dict(ds.col_attrs.items())
@@ -1883,9 +1883,9 @@ class VelocytoLoom:
             ds.close()
         else:
             ds = loompy.connect(self.loom_filepath)
-            self.raw_S = ds.layer["spliced"][:]
-            self.raw_U = ds.layer["unspliced"][:]
-            self.raw_A = ds.layer["ambiguous"][:]
+            self.raw_S = ds.layer["spliced"][:, :]
+            self.raw_U = ds.layer["unspliced"][:, :]
+            self.raw_A = ds.layer["ambiguous"][:, :]
             self.raw_initial_cell_size = self.raw_S.sum(0)
             self.raw_initial_Ucell_size = self.raw_U.sum(0)
             self.raw_ca = dict(ds.col_attrs.items())
