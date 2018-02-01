@@ -18,7 +18,7 @@ Run the following command to make sure you have all the dependencies correctly i
 
 ::
 
-    conda install numpy scipy cython numba matplotlib scikit-learn h5py click
+    pip install numpy scipy cython numba matplotlib scikit-learn h5py click
 
 Note: ``pysam`` is also a requirement but currently it is preferable to install it through PyPI wheel (i.e. by ``pip install pysam``) as we have experienced problems with the version packaged by conda-forge.
 
