@@ -154,10 +154,10 @@ def _run(*, bamfile: str, gtffile: str,
             logging.debug("exincounter_dump.pickle was not found")
             logging.debug("Dumping exincounter_dump.pickle BEFORE markup")
             pickle.dump(exincounter, open("exincounter_dump.pickle", "wb"))
-            exincounter.mark_up_introns(samfile=bamfile, multimap=multimap)
+            exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
             
     else:
-        exincounter.mark_up_introns(samfile=bamfile, multimap=multimap)
+        exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
 
     # Wait for child process to terminate
     if check_end_process:
