@@ -409,12 +409,12 @@ class ExInCounter:
 
         return self.annotations_by_chrm_strand
 
-    def mark_up_introns(self, samfile: str, multimap: bool) -> None:
+    def mark_up_introns(self, bamfile: str, multimap: bool) -> None:
         """ Mark up introns that have reads across exon-intron junctions
         
         Arguments
         ---------
-        samfile: str
+        bamfile: str
             path to the bam or sam file to markup
         logic: vcy.Logic
             The logic object to use, changes in different techniques / levels of strictness
@@ -433,7 +433,8 @@ class ExInCounter:
         # VERBOSE: dump_list = []
         # Read the file
         currchrom = ""
-        for r in self.iter_alignments(samfile, unique=not multimap):
+        set_chromosomes_seen: Set[str] = set()
+        for r in self.iter_alignments(bamfile, unique=not multimap):
             # Don't consider spliced reads (exonic) in this step
             # NOTE Can the exon be so short that we get splicing and exon-intron boundary
             if r.is_spliced:
@@ -441,6 +442,9 @@ class ExInCounter:
 
             # When the chromosome mapping of the read changes, change interval index.
             if r.chrom != currchrom:
+                if r.chrom in set_chromosomes_seen:
+                    raise IOError(f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)")
+                set_chromosomes_seen.add(r.chrom)
                 logging.debug(f"Marking up chromosome {r.chrom}")
                 currchrom = r.chrom
                 if currchrom + '+' not in self.annotations_by_chrm_strand:

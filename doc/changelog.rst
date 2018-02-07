@@ -3,6 +3,8 @@
 =========
 Changelog
 =========
+* :release:`0.13.5 <2018-02-07>`
+* :bug:`-` Fix a bug that caused extremely slow runtimes when the input bam was not position sorted. Now `velocyto` will raise an error and ask the user to sort the file using samtools.
 * :support:`-` Improve the changelog structure
 * :release:`0.13.4 <2018-01-25>`
 * :bug:`-` A change in slicing related to an API change of `__getattr__` in loompy2 

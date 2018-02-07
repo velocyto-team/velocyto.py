@@ -51,10 +51,13 @@ The general signature for the ``run`` subcommand is:
 .. include:: ../substitutions/run.txt
 
 .. note::
+    The input bam file needs to be sorted by position, this can be achieved running `samtools sort mybam.bam -o sorted_bam.bam`. In cellranger generated bamfiles are already sorted this way. 
+
+.. note::
     Execution time is ~3h for a typical sample but might vary significantly by sequencing depth and cpu power. 
     
 .. warning::
-   Running velocyto without specifying a filtered barcode set (:code:`-b/--bcfile` option) is not recommended, do it at your own risk. In thsi way, the counter will use all the cell barcodes it encounters. It might result in long runtimes, large memory alloactions and big output matrix.
+   Running velocyto without specifying a filtered barcode set (:code:`-b/--bcfile` option) is not recommended, do it at your own risk. In this way, the counter will use all the cell barcodes it encounters. It might result in long runtimes, large memory allocations and big output matrix.
 
 
 Notes on ``velocyto run``
