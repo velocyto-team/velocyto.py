@@ -203,7 +203,7 @@ class ExInCounter:
         #                         stdout=f)
             
         # Parse arguments
-        logging.debug(f'Reading {gtf_file}, the file is assumed sorted (if is not interupt the process and sort it by running: ``sort -k1,1 -k7,7 -k4,4n``)')
+        logging.debug(f'Reading {gtf_file}, the file is the file will be sorted in memory')
         
         # Read up skipping headers up to the first valid entry
         repeat_ivls_list: List[vcy.Feature] = []
@@ -545,7 +545,7 @@ class ExInCounter:
 
             self.cell_batch.add(r.bc)
             self.reads_to_count.append(r)
-        logging.debug(f"Counting molecule for last batch of {len(self.cell_batch)}")
+        logging.debug(f"Counting molecule for last batch of {len(self.cell_batch)}, total reads {len(self.reads_to_count)}")
         spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch()
         cell_bcs_order += list_bcs
         list_spliced_arrays.append(spliced)
