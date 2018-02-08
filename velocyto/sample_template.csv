@@ -1,0 +1,6 @@
+Serial_Number;Date;ChipID;SampleID;Info
+1;09/06/16;10X01;10X01_1;brain
+2;09/06/16;10X01;10X01_2;liver
+3;10/06/16;10X02;10X02_1;kidney
+4;10/06/16;10X02;10X02_2;cortex
+5;07/08/16;10X03;10X03_1;striatum

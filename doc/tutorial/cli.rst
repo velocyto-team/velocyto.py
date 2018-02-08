@@ -24,20 +24,13 @@ Download genome annotation file
 
 Download a genome annotation (.gtf file) for example from `GENCODE <http://www.gencodegenes.org/>`_ or `Ensembl <http://www.ensembl.org/info/data/ftp/index.html>`_. If you use the  ``cellranger`` pipeline, you should download the gtf that comes prepackaged with it `here <https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/advanced/references>`_.
 
-
-
-Download and sort expressed repeats annotation
+Download expressed repeats annotation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. note::
    This step is optional.
 
 You might want to mask expressed repetitive elements, since those count could constitute a confounding factor in the downstream analysis.
-Download an appropriate expressed repeat annotation (for example `from UCSC genome browser <https://genome.ucsc.edu/cgi-bin/hgTables?hgsid=611454127_NtvlaW6xBSIRYJEBI0iRDEWisITa&clade=mammal&org=Mouse&db=mm10&hgta_group=allTracks&hgta_track=rmsk&hgta_table=0&hgta_regionType=genome&position=chr12%3A56694976-56714605&hgta_outputType=primaryTable&hgta_outputType=gff&hgta_outFileName=mm10_rmsk.gtf>`_ and **make sure to select GTF**  as output format).
-Then run the following command (sort by strand, chromosome, position) to prepare the file to the next step:
-
-::
-
-    sort -k1,1 -k7,7 -k4,4n -o repeat_msk_srt.gtf repeat_msk.gtf
+To do so you would need to download an appropriate expressed repeat annotation (for example `from UCSC genome browser <https://genome.ucsc.edu/cgi-bin/hgTables?hgsid=611454127_NtvlaW6xBSIRYJEBI0iRDEWisITa&clade=mammal&org=Mouse&db=mm10&hgta_group=allTracks&hgta_track=rmsk&hgta_table=0&hgta_regionType=genome&position=chr12%3A56694976-56714605&hgta_outputType=primaryTable&hgta_outputType=gff&hgta_outFileName=mm10_rmsk.gtf>`_ and **make sure to select GTF**  as output format).
 
 
 Running ``velocyto``
@@ -50,7 +43,7 @@ A typical use of ``run`` is:
 
 ::
 
-    velocyto run -b barcodes.tsv -o output_path -m repeat_msk_srt.gtf possorted_genome_bam.bam cellranger-mm10-1.2.0_genes.gtf
+    velocyto run -b filtered_barcodes.tsv -o output_path -m repeat_msk_srt.gtf possorted_genome_bam.bam mm10_annotation.gtf
 
 
 The general signature for the ``run`` subcommand is:
@@ -58,10 +51,13 @@ The general signature for the ``run`` subcommand is:
 .. include:: ../substitutions/run.txt
 
 .. note::
+    The input bam file needs to be sorted by position, this can be achieved running `samtools sort mybam.bam -o sorted_bam.bam`. In cellranger generated bamfiles are already sorted this way. 
+
+.. note::
     Execution time is ~3h for a typical sample but might vary significantly by sequencing depth and cpu power. 
     
 .. warning::
-   Running velocyto without specifying a filtered barcode set (:code:`-b/--bcfile` option) is not recommended, do it at your own risk. In thsi way, the counter will use all the cell barcodes it encounters. It might result in long runtimes, large memory alloactions and big output matrix.
+   Running velocyto without specifying a filtered barcode set (:code:`-b/--bcfile` option) is not recommended, do it at your own risk. In this way, the counter will use all the cell barcodes it encounters. It might result in long runtimes, large memory allocations and big output matrix.
 
 
 Notes on ``velocyto run``
@@ -105,7 +101,7 @@ For example if we want to run the pipeline on the folder ``mypath/sample01``. We
 
 ::
 
-    velocyto run10x -m repeat_msk_srt.gtf mypath/sample01 cellranger-mm10-1.2.0_genes.gtf
+    velocyto run10x -m repeat_msk_srt.gtf mypath/sample01 mm10_annotation.gtf
 
 The full signature of the command is:
 

@@ -71,11 +71,11 @@ class VelocytoLoom:
     def __init__(self, loom_filepath: str) -> None:
         self.loom_filepath = loom_filepath
         ds = loompy.connect(self.loom_filepath)
-        self.S = ds.layer["spliced"][:]
-        self.U = ds.layer["unspliced"][:]
-        self.A = ds.layer["ambiguous"][:]
-        self.ca = ds.col_attrs
-        self.ra = ds.row_attrs
+        self.S = ds.layer["spliced"][:, :]
+        self.U = ds.layer["unspliced"][:, :]
+        self.A = ds.layer["ambiguous"][:, :]
+        self.ca = dict(ds.col_attrs.items())
+        self.ra = dict(ds.row_attrs.items())
         ds.close()
 
         self.initial_cell_size = self.S.sum(0)
@@ -161,6 +161,8 @@ class VelocytoLoom:
         Nothing but it removes some cells from S and U.
         """
         self.S, self.U, self.A = (X[:, bool_array] for X in (self.S, self.U, self.A))
+        self.initial_cell_size = self.initial_cell_size[bool_array]
+        self.initial_Ucell_size = self.initial_Ucell_size[bool_array]
         self.ca = {k: v[bool_array] for k, v in self.ca.items()}
         try:
             self.cluster_labels = self.cluster_labels[bool_array]  # type: np.ndarray
@@ -186,6 +188,8 @@ class VelocytoLoom:
 
         """
         self.cluster_labels = np.array(cluster_labels)
+        if self.cluster_labels.dtype == "O":  # Fixes a bug when importing from pandas
+            self.cluster_labels = self.cluster_labels.astype(np.string_)
         if cluster_colors_dict:
             self.colorandum = np.array([cluster_colors_dict[i] for i in cluster_labels])
             self.cluster_colors_dict = cluster_colors_dict
@@ -748,7 +752,7 @@ class VelocytoLoom:
                    c=self.colorandum)
         ax.view_init(elev=elev, azim=azim)
 
-    def perform_PCA_imputed(self, n_components: int=None) -> None:
+    def _imputed(self, n_components: int=None) -> None:
         """Simply performs PCA of `Sx_norm` and save the result as  `pcax`"""
         self.pcax = PCA(n_components=n_components)
         self.pcsx = self.pcax.fit_transform(self.Sx_norm.T)
@@ -1869,19 +1873,23 @@ class VelocytoLoom:
         """
         if substitute:
             ds = loompy.connect(self.loom_filepath)
-            self.S = ds.layer["spliced"][:]
-            self.U = ds.layer["unspliced"][:]
-            self.A = ds.layer["ambiguous"][:]
-            self.ca = ds.col_attrs
-            self.ra = ds.row_attrs
+            self.S = ds.layer["spliced"][:, :]
+            self.U = ds.layer["unspliced"][:, :]
+            self.A = ds.layer["ambiguous"][:, :]
+            self.initial_cell_size = self.S.sum(0)
+            self.initial_Ucell_size = self.U.sum(0)
+            self.ca = dict(ds.col_attrs.items())
+            self.ra = dict(ds.row_attrs.items())
             ds.close()
         else:
             ds = loompy.connect(self.loom_filepath)
-            self.raw_S = ds.layer["spliced"][:]
-            self.raw_U = ds.layer["unspliced"][:]
-            self.raw_A = ds.layer["ambiguous"][:]
-            self.raw_ca = ds.col_attrs
-            self.raw_ra = ds.row_attrs
+            self.raw_S = ds.layer["spliced"][:, :]
+            self.raw_U = ds.layer["unspliced"][:, :]
+            self.raw_A = ds.layer["ambiguous"][:, :]
+            self.raw_initial_cell_size = self.raw_S.sum(0)
+            self.raw_initial_Ucell_size = self.raw_U.sum(0)
+            self.raw_ca = dict(ds.col_attrs.items())
+            self.raw_ra = dict(ds.row_attrs.items())
             ds.close()
 
 

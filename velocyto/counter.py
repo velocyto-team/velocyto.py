@@ -193,10 +193,6 @@ class ExInCounter:
         mask_ivls_by_chromstrand: Dict[str, List[vcy.Feature]]
             A dictionary key: chromosome+strand value: list of features (repeat intervals)
             (The reference is returned but an internal attribure self.self.masked_by_chrm_strand is kept)
-
-        Notes
-        -----
-        .gtf file should be sorted by ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``
         
         """
         # Example code to sort the gtf file
@@ -208,18 +204,22 @@ class ExInCounter:
             
         # Parse arguments
         logging.debug(f'Reading {gtf_file}, the file is assumed sorted (if is not interupt the process and sort it by running: ``sort -k1,1 -k7,7 -k4,4n``)')
-        fin = open(gtf_file)
-
+        
         # Read up skipping headers up to the first valid entry
         repeat_ivls_list: List[vcy.Feature] = []
-        headerlines = []
-        line = fin.readline()
-        while line:
-            if line.startswith("#"):
-                headerlines.append(line)
-                line = fin.readline()
-            else:
-                break
+
+        # fin = open(gtf_file)
+        gtf_lines = [line for line in open(gtf_file) if not line.startswith('#')]
+
+        def sorting_key(entry: str) -> Tuple[str, bool, int, str]:
+            """This sorting strategy is equivalent to sort -k1,1 -k7,7 -k4,4n"""
+            x = entry.split("\t")
+            return (x[0], x[6] == "+", int(x[3]), entry)  # The last element of the touple corresponds to the `last resort comparison`
+        
+        gtf_lines = sorted(gtf_lines, key=sorting_key)
+        ###
+
+        line = gtf_lines.pop(0)
         fields = line.rstrip().split('\t')
         chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = fields
         # Removing chr from the chromosome name to uniform different formats of gtf files, taht might or might not have the prefix "chr"
@@ -240,10 +240,7 @@ class ExInCounter:
         curr_tags: str = tags
         curr_chromstrand: str = chromstrand
 
-        for line in fin:
-            if line.startswith('#'):
-                headerlines.append(line)
-                continue
+        for line in gtf_lines:
             
             fields = line.rstrip().split('\t')
             chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = fields
@@ -284,7 +281,6 @@ class ExInCounter:
                 # this is extra information that right now is not saved (not to waste memory) since is not used
                 gap = start - curr_end
                 curr_tags = f"{curr_tags} gap {gap}; {tags}" if gap > 0 else curr_tags + tags
-        fin.close()
 
         n = 0
         for chromstrand, feature_list in self.mask_ivls_by_chromstrand.items():
@@ -323,10 +319,6 @@ class ExInCounter:
             A dictionary key: chromosome+strand value: list of trascript models
             (The reference is returned but an internal attribure self.annotations_by_chrm_strand is kept)
 
-        Notes
-        -----
-        To sort the gtf files do ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``
-
         There will exist an object vcy.Features for the same exon appearing in a different vcy.TranscriptModel. (his is desired)
         """
 
@@ -338,15 +330,24 @@ class ExInCounter:
         regex_exonno = re.compile('exon_number "([^"]+)"')
 
         # Initialize containers
-        headerlines: List[str] = []
+        # headerlines: List[str] = []
         curr_chromstrand = None
         features: Dict[str, vcy.TranscriptModel] = OrderedDict()
+
+        gtf_lines = [line for line in open(gtf_file) if not line.startswith('#')]
+
+        def sorting_key(entry: str) -> Tuple[str, bool, int, str]:
+            """This sorting strategy is equivalent to sort -k1,1 -k7,7 -k4,4n"""
+            x = entry.split("\t")
+            return (x[0], x[6] == "+", int(x[3]), entry)  # The last element of the touple corresponds to the `last resort comparison`
+        
+        gtf_lines = sorted(gtf_lines, key=sorting_key)
         # Loop throug gtf file (assumes it is ordered)
-        for nth_line, line in enumerate(open(gtf_file)):
+        for nth_line, line in enumerate(gtf_lines):
             # Deal with headers
-            if line.startswith('#'):
-                headerlines.append(line)
-                continue
+            # if line.startswith('#'):
+            #     headerlines.append(line)
+            #     continue
                 
             fields = line.rstrip().split('\t')
             chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = fields
@@ -363,7 +364,7 @@ class ExInCounter:
                 if curr_chromstrand is not None:  # Every time with exception with first and the last chromosome
                     if not chrom + strand not in self.annotations_by_chrm_strand:
                         # NOTE this is not enough as a check but it will detect with few checks if file is not sorted at all
-                        raise IOError(f"gtf file is not sorted correctly! Run the following command:\nsort -k1,1 -k7,7 -k4,4n -o [GTF_OUTFILE] [GTF_INFILE]")
+                        raise IOError(f"Genome annotation gtf file is not sorted correctly! Run the following command:\nsort -k1,1 -k7,7 -k4,4n -o [GTF_OUTFILE] [GTF_INFILE]")
                     else:
                         logging.debug(f"Done with {curr_chromstrand} [line {nth_line-1}]")
                     self.assign_indexes_to_genes(features)
@@ -408,12 +409,12 @@ class ExInCounter:
 
         return self.annotations_by_chrm_strand
 
-    def mark_up_introns(self, samfile: str, multimap: bool) -> None:
+    def mark_up_introns(self, bamfile: str, multimap: bool) -> None:
         """ Mark up introns that have reads across exon-intron junctions
         
         Arguments
         ---------
-        samfile: str
+        bamfile: str
             path to the bam or sam file to markup
         logic: vcy.Logic
             The logic object to use, changes in different techniques / levels of strictness
@@ -432,7 +433,8 @@ class ExInCounter:
         # VERBOSE: dump_list = []
         # Read the file
         currchrom = ""
-        for r in self.iter_alignments(samfile, unique=not multimap):
+        set_chromosomes_seen: Set[str] = set()
+        for r in self.iter_alignments(bamfile, unique=not multimap):
             # Don't consider spliced reads (exonic) in this step
             # NOTE Can the exon be so short that we get splicing and exon-intron boundary
             if r.is_spliced:
@@ -440,6 +442,9 @@ class ExInCounter:
 
             # When the chromosome mapping of the read changes, change interval index.
             if r.chrom != currchrom:
+                if r.chrom in set_chromosomes_seen:
+                    raise IOError(f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)")
+                set_chromosomes_seen.add(r.chrom)
                 logging.debug(f"Marking up chromosome {r.chrom}")
                 currchrom = r.chrom
                 if currchrom + '+' not in self.annotations_by_chrm_strand:

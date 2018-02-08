@@ -3,7 +3,30 @@
 =========
 Changelog
 =========
-
+* :release:`0.13.5 <2018-02-07>`
+* :bug:`-` Fix a bug that caused extremely slow runtimes when the input bam was not position sorted. Now `velocyto` will raise an error and ask the user to sort the file using samtools.
+* :support:`-` Improve the changelog structure
+* :release:`0.13.4 <2018-01-25>`
+* :bug:`-` A change in slicing related to an API change of `__getattr__` in loompy2 
+* :release:`0.13.3 <2018-01-25>`
+* :bug:`-` Catch another error due to the API change of `.create` in loompy2 
+* :release:`0.13.2 <2018-01-25>`
+* :bug:`-` Catch error due to the API change of `.create` in loompy2 
+* :bug:`-` Fix an incompatibility with loompy2 related to column and row attributes changing from dict to an object
+* :release:`0.13.1 <2018-01-22>`
+* :feature:`-` Sample metadata file can be specified with different csv formats (the format will be determined automatically)
+* :release:`0.13.0 <2018-01-19>`
+* :bug:`-` Sometimes velocyto missed to detect and warn the user that the `.gtf` genome annotation file was not sorted, this could have caused undetected errors in the analysis. If you run velocyto without sorting the .gtf, we suggest rerunning.
+* :feature:`-` CLI does not require presorting the gtf files. To reduce possibility of incorrect usage, now .gtf file sorting sorting is performed in memory (and not saved).
+* :feature:`-` Improve documentation: remove information about sorting .gtf files. This procedure is not needed anymore.
+* :release:`0.12.4 <2018-01-18>`
+* :bug:`40` Error in hdf5 serialization when using cluster label as object array is now fixed
+* :release:`0.12.3 <2018-01-17>`
+* :bug:`38` Error in running run10x is now fixed
+* :release:`0.12.2 <2018-01-12>`
+* :bug:`37` Initial cell size array gets updated properly when filtering cells
+* :release:`0.12.1 <2018-01-04>`
+* :bug:`35` Attempted to fix a reported bug running velocyto CLI
 * :release:`0.12.0 <2017-12-17>`
 * :feature:`-` Add possibility to export pickle containing information of every molecule
 * :feature:`-` Remove the subcommand ``multi10x``

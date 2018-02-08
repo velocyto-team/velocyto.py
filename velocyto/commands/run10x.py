@@ -33,14 +33,14 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
                                 readable=True,
                                 resolve_path=True))
 @click.option("--metadatatable", "-s",
-              help="Table containing metadata of the various samples (csv fortmated, [row:samples, col:entry])",
+              help="Table containing metadata of the various samples (csv fortmated rows are samples and cols are entries)",
               default=None,
               type=click.Path(resolve_path=True,
                               file_okay=True,
                               dir_okay=False,
                               readable=True))
 @click.option("--repmask", "-m",
-              help=".gtf file containing intervals sorted by chromosome, strand, position (i.e. ``sort -k1,1 -k7,7 -k4,4n -o [OUTFILE] [INFILE]``)",
+              help=".gtf file containing intervals to mask",
               default=None,
               type=click.Path(resolve_path=True,
                               file_okay=True,
@@ -61,7 +61,7 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
               default=2048)
 def run10x(samplefolder: str, gtffile: str,
            metadatatable: str, repmask: str, logic: str, samtools_threads: int, samtools_memory: int,
-           multimap: bool, molrep: bool) -> None:
+           multimap: bool) -> None:
     """Runs the velocity analysis for a Chromium 10X Sample
 
     10XSAMPLEFOLDER specifies the cellranger sample folder

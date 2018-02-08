@@ -61,7 +61,7 @@ extensions = ['sphinx.ext.autodoc',
               'releases']
 
 releases_github_path = "velocyto-team/velocyto.py"  # NOTE Change to "velocyto-team/velocyto.py" upon public release
-# releases_unstable_prehistory = True # If changelog includes “simple” pre-1.0 releases derived from a single branch
+releases_unstable_prehistory = True  # If changelog includes “simple” pre-1.0 releases derived from a single branch
 napoleon_use_ivar = True
 
 # Add any paths that contain templates here, relative to this directory.

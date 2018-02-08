@@ -154,10 +154,10 @@ def _run(*, bamfile: str, gtffile: str,
             logging.debug("exincounter_dump.pickle was not found")
             logging.debug("Dumping exincounter_dump.pickle BEFORE markup")
             pickle.dump(exincounter, open("exincounter_dump.pickle", "wb"))
-            exincounter.mark_up_introns(samfile=bamfile, multimap=multimap)
+            exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
             
     else:
-        exincounter.mark_up_introns(samfile=bamfile, multimap=multimap)
+        exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
 
     # Wait for child process to terminate
     if check_end_process:
@@ -218,10 +218,18 @@ def _run(*, bamfile: str, gtffile: str,
     
     total = spliced + unspliced + ambiguous
     logging.debug("Writing loom file")
-    ds = loompy.create(filename=outfile, matrix=total, row_attrs=ra, col_attrs=ca, dtype="float32")
-    ds.set_layer(name="spliced", matrix=spliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
-    ds.set_layer(name="unspliced", matrix=unspliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
-    ds.set_layer(name="ambiguous", matrix=ambiguous, dtype=vcy.LOOM_NUMERIC_DTYPE)
-    ds.attrs["velocyto.__version__"] = vcy.__version__
-    ds.close()
+    try:
+        ds = loompy.create(filename=outfile, matrix=total, row_attrs=ra, col_attrs=ca, dtype="float32")
+        ds.set_layer(name="spliced", matrix=spliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        ds.set_layer(name="unspliced", matrix=unspliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        ds.set_layer(name="ambiguous", matrix=ambiguous, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        ds.attrs["velocyto.__version__"] = vcy.__version__
+        ds.close()
+    except TypeError:
+        # If user is using loompy2
+        ds = loompy.create(filename=outfile, layers={"": total.astype("float32", order="C", copy=False),
+                                                     "spliced": spliced.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False),
+                                                     "unspliced": unspliced.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False),
+                                                     "ambiguous": ambiguous.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False)},
+                           row_attrs=ra, col_attrs=ca, file_attrs={"velocyto.__version__":vcy.__version__})
     logging.debug("Terminated Succesfully!")
