@@ -226,7 +226,7 @@ class ExInCounter:
         #                         stdout=f)
             
         # Parse arguments
-        logging.debug(f'Reading {gtf_file}, the file is the file will be sorted in memory')
+        logging.debug(f'Reading {gtf_file}, the file will be sorted in memory')
         
         # Read up skipping headers up to the first valid entry
         repeat_ivls_list: List[vcy.Feature] = []
