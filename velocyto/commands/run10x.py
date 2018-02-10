@@ -96,5 +96,5 @@ def run10x(samplefolder: str, gtffile: str,
 
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=repmask,
-                logic=logic, molrep=False, multimap=multimap, test=False, samtools_threads=samtools_threads,
+                logic=logic, umi_extension="no", molrep=False, multimap=multimap, test=False, samtools_threads=samtools_threads,
                 samtools_memory=samtools_memory, additional_ca=additional_ca)

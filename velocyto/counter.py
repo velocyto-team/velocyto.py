@@ -15,7 +15,7 @@ import sys
 
 class ExInCounter:
     """ Main class to do the counting of introns and exons """
-    def __init__(self, logic: vcy.Logic, valid_bcset: Set[str]=None) -> None:
+    def __init__(self, logic: vcy.Logic, valid_bcset: Set[str]=None, umi_extension: str="no") -> None:
         """ valid_bcs2idx is a dict mapping valid cell barcodes to unique arbitrary numeric indexes used in the output arrays """
         self.logic = logic()
         # NOTE: maybe there shoulb be a self.logic.validate() step at the end of init
@@ -30,6 +30,15 @@ class ExInCounter:
         self.mask_ivls_by_chromstrand = defaultdict(list)  # type: Dict[str, List]
         self.geneid2ix: Dict[str, int] = {}
         self.genes: Dict[str, vcy.GeneInfo] = {}
+        if umi_extension.lower() == "no":
+            self.umi_extract = self._no_extension
+        elif umi_extension.lower() == "gene" or umi_extension.lower() == "gx":
+            self.umi_extract = self._extension_Gene
+        elif umi_extension[-2:] == "bp":
+            self.umi_bp = int(umi_extension[:-2])
+            self.umi_extract = self._extension_Nbp
+        else:
+            raise ValueError(f"umi_extension {umi_extension} is not allowed. Use `no`, `Gene` or `[N]bp`")
         # NOTE: by using a default dict and not logging access to keys that do not exist, we might miss bugs!!!
         self.test_flag = None
 
@@ -110,7 +119,19 @@ class ExInCounter:
                 pass
         fin.close()
 
-    def iter_alignments(self, samfile: str, unique: bool=True, yield_line: bool=False) -> Iterable:
+    def _no_extension(self, read: pysam.AlignedSegment) -> str:
+        return read.get_tag(self.umibarcode_str)
+
+    def _extension_Nbp(self, read: pysam.AlignedSegment) -> str:
+        return read.get_tag(self.umibarcode_str) + read.query_alignment_sequence[:self.umi_bp]
+
+    def _extension_Gene(self, read: pysam.AlignedSegment) -> str:
+        try:
+            return read.get_tag(self.umibarcode_str) + "_" + read.get_tag("GX")  # catch the error
+        except KeyError:
+            return read.get_tag(self.umibarcode_str) + "_withoutGX"
+
+    def iter_alignments(self, samfile: str, unique: bool=True, yield_line: bool=False, umi_extension_type: str="no") -> Iterable:
         """Iterates over the bam/sam file and yield Read objects
 
         Arguments
@@ -129,6 +150,7 @@ class ExInCounter:
         """
         # No peeking here, this will happen a layer above, and only once  on the not sorted file! before it was self.peek(samfile, lines=10)
         logging.debug(f"Reading {samfile}")
+
         fin = pysam.AlignmentFile(samfile)  # type: pysam.AlignmentFile
         for i, read in enumerate(fin):
             if i % 10000000 == 0:
@@ -140,7 +162,7 @@ class ExInCounter:
                 continue
             try:
                 bc = read.get_tag(self.cellbarcode_str).split("-")[0]  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
-                umi = read.get_tag(self.umibarcode_str)
+                umi = self.umi_extract(read)  # read.get_tag(self.umibarcode_str)
             except KeyError:
                 continue  # NOTE: Here errors could go unnoticed
             if bc not in self.valid_bcset:

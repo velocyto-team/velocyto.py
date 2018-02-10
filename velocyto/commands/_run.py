@@ -28,7 +28,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 def _run(*, bamfile: str, gtffile: str,
          bcfile: str, outputfolder: str,
          sampleid: str, metadatatable: str,
-         repmask: str, logic: str, molrep: bool,
+         repmask: str, logic: str, umi_extension: str, molrep: bool,
          multimap: bool, test: bool, samtools_threads: int, samtools_memory: int,
          additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
@@ -104,7 +104,7 @@ def _run(*, bamfile: str, gtffile: str,
     ########################
 
     # Initialize Exon-Intron Counter with the logic and valid barcodes (need to do it now to peek)
-    exincounter = vcy.ExInCounter(logic_obj, valid_bcset)
+    exincounter = vcy.ExInCounter(logic=logic_obj, valid_bcset=valid_bcset, umi_extension=umi_extension)
 
     # Heuristic to chose the memory/cpu effort
     mb_available = int(subprocess.check_output('grep MemAvailable /proc/meminfo'.split()).split()[1]) / 1000

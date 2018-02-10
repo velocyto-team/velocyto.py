@@ -70,12 +70,17 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 @click.option("--logic", "-l",
               help="The logic to use for the filtering (default: Default)",
               default="Default")
-@click.option("--multimap", "-M",
-              help="Use reads that did not map uniquely (default: False)",
-              default=False,
-              is_flag=True)
+@click.option("--umi-extension", "-u",
+              help="""In case UMI is too short to guarantee uniqueness without gene info set this parameter to `Gene` of `[N]bp`
+              If set to `Gene` then the `GX` tag will be appended to the `UB` tag (ideal for InDrops+dropEst)
+              If set to `[N]bp` the first N bases of the sequence will be used to extend `UB` (ideal for STRT). (Default: `no`)""",
+              default="no")
 @click.option("--molrep", "-x",
               help="Outputs pickle files with containing a sample of the read mappings supporting molecule counting. (Useful for development or debugging only)",
+              default=False,
+              is_flag=True)
+@click.option("--multimap", "-M",
+              help="Use reads that did not map uniquely (default: False)",
               default=False,
               is_flag=True)
 @click.option("--samtools-threads", "-@",
@@ -87,7 +92,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 def run(bamfile: str, gtffile: str,
         bcfile: str, outputfolder: str,
         sampleid: str, metadatatable: str,
-        repmask: str, logic: str, molrep: bool,
+        repmask: str, logic: str, umi_extension: str, molrep: bool,
         multimap: bool, samtools_threads: int, samtools_memory: int,
         additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
@@ -98,5 +103,5 @@ def run(bamfile: str, gtffile: str,
     """
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=repmask,
-                logic=logic, molrep=molrep, multimap=multimap, test=False, samtools_threads=samtools_threads,
+                logic=logic, umi_extension=umi_extension, molrep=molrep, multimap=multimap, test=False, samtools_threads=samtools_threads,
                 samtools_memory=samtools_memory, additional_ca=additional_ca)
