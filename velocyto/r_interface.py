@@ -1,7 +1,6 @@
 from typing import *
 import logging
 import numpy as np
-import patsy
 
 try:
     from rpy2.robjects.packages import importr
