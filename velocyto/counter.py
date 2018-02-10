@@ -42,12 +42,13 @@ class ExInCounter:
         # NOTE: by using a default dict and not logging access to keys that do not exist, we might miss bugs!!!
         self.test_flag = None
 
-    @property
-    def bclen(self) -> int:
-        try:
-            return len(next(iter(self.valid_bcset)))
-        except StopIteration:
-            return None
+    # NOTE: not supported anymore because now we support variable length barcodes
+    # @property
+    # def bclen(self) -> int:
+    #     try:
+    #         return len(next(iter(self.valid_bcset)))
+    #     except StopIteration:
+    #         return None
     
     @staticmethod
     def parse_cigar_tuple(cigartuples: List[Tuple], pos: int) -> Tuple[List[Tuple[int, int]], bool, int, int]:
@@ -131,7 +132,7 @@ class ExInCounter:
         except KeyError:
             return read.get_tag(self.umibarcode_str) + "_withoutGX"
 
-    def iter_alignments(self, samfile: str, unique: bool=True, yield_line: bool=False, umi_extension_type: str="no") -> Iterable:
+    def iter_alignments(self, samfile: str, unique: bool=True, yield_line: bool=False) -> Iterable:
         """Iterates over the bam/sam file and yield Read objects
 
         Arguments
@@ -139,7 +140,7 @@ class ExInCounter:
         samfile: str
             path to the sam file
         unique: bool
-            yield only unique allignments
+            yield only unique alignments
         yield_line: bool
             whether to yield the raw sam line
 
@@ -157,7 +158,7 @@ class ExInCounter:
                 logging.debug(f"Read first {i // 1000000} million reads")
             if read.is_unmapped:
                 continue
-            # If unique parameter is set to True, skip not unique allignments
+            # If unique parameter is set to True, skip not unique alignments
             if unique and read.get_tag("NH") != 1:
                 continue
             try:
@@ -609,7 +610,7 @@ class ExInCounter:
             mappings_record = ii.find_overlapping_ivls(r)
             if len(mappings_record):
                 # logging.debug("IN: Non empty mapping record")
-                bcumi = r.bc + r.umi
+                bcumi = f"{r.bc}${r.umi}"
                 molitems[bcumi].add_mappings_record(mappings_record)
                 # if len(molitems[bcumi].mappings_record):
                 #     logging.debug("OUT: Non empty")
@@ -625,7 +626,7 @@ class ExInCounter:
 
         # After the whole file has been read, do the actual counting
         for bcumi, molitem in molitems.items():
-            bc = bcumi[:self.bclen]  # extract the bc part from the bc+umi
+            bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
             bcidx = bc2idx[bc]
             self.logic.count(molitem, bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
             # NOTE I need to generalize this to any set of layers
@@ -633,7 +634,7 @@ class ExInCounter:
 
         if molecules_report:
             import pickle
-            first_cell_batch = next(iter(molitems.keys()))[:self.bclen]
+            first_cell_batch = next(iter(molitems.keys())).split("$")[0]
             if not os.path.exists("pickle_dump"):
                 os.makedirs("pickle_dump")
             pickle.dump(molitems, open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"))
