@@ -26,7 +26,7 @@ class NaturalOrderGroup(click.Group):
         """
         return self.commands.keys()
 
-
+@click.version_option(version=velocyto._version.__version__)
 @click.group(cls=NaturalOrderGroup, commands=OrderedDict(), context_settings=dict(max_content_width=300, terminal_width=300))
 def cli() -> None:
     # NOTE: here is a good place to add a comand to control verbosity/logging-level
@@ -35,4 +35,3 @@ def cli() -> None:
 
 cli.add_command(run)
 cli.add_command(run10x)
-click.version_option(version=velocyto._version.__version__)
