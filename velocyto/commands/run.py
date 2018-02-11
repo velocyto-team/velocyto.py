@@ -72,8 +72,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               default="Default")
 @click.option("--umi-extension", "-u",
               help="""In case UMI is too short to guarantee uniqueness (without information from the ampping) set this parameter to `chr`, `Gene` ro `[N]bp`
-              If set to `chr` the mapping position (binned to 10Gb intervals) will be appended to `UB` (ideal for InDrops+dropEst)
-              If set to `Gene` then the `GX` tag will be appended to the `UB` tag.
+              If set to `chr` the mapping position (binned to 10Gb intervals) will be appended to `UB` (ideal for InDrops+dropEst). If set to `Gene` then the `GX` tag will be appended to the `UB` tag.
               If set to `[N]bp` the first N bases of the sequence will be used to extend `UB` (ideal for STRT). (Default: `no`)""",
               default="no")
 @click.option("--molrep", "-x",
