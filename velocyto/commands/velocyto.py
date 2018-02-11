@@ -5,6 +5,7 @@ from typing import Any
 from collections import OrderedDict
 from .run import run
 from .run10x import run10x
+import velocyto._version
 
 
 class NaturalOrderGroup(click.Group):
@@ -34,3 +35,4 @@ def cli() -> None:
 
 cli.add_command(run)
 cli.add_command(run10x)
+click.version_option(version=velocyto._version.__version__)
