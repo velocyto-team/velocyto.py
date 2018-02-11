@@ -32,6 +32,8 @@ class ExInCounter:
         self.genes: Dict[str, vcy.GeneInfo] = {}
         if umi_extension.lower() == "no":
             self.umi_extract = self._no_extension
+        elif umi_extension.lower() == "chr":
+            self.umi_extract = self._extension_chr
         elif umi_extension.lower() == "gene" or umi_extension.lower() == "gx":
             self.umi_extract = self._extension_Gene
         elif umi_extension[-2:] == "bp":
@@ -131,6 +133,10 @@ class ExInCounter:
             return read.get_tag(self.umibarcode_str) + "_" + read.get_tag("GX")  # catch the error
         except KeyError:
             return read.get_tag(self.umibarcode_str) + "_withoutGX"
+
+    def _extension_chr(self, read: pysam.AlignedSegment) -> str:
+        return read.get_tag(self.umibarcode_str) + f"_{read.rname}:{read.reference_start // 10000000}"  # catch the error
+        
 
     def iter_alignments(self, samfile: str, unique: bool=True, yield_line: bool=False) -> Iterable:
         """Iterates over the bam/sam file and yield Read objects
