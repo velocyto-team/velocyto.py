@@ -26,7 +26,8 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 def _run(*, bamfile: Tuple[str], gtffile: str,
          bcfile: str, outputfolder: str,
          sampleid: str, metadatatable: str,
-         repmask: str, onefilepercell: bool, logic: str, umi_extension: str, molrep: bool,
+         repmask: str, onefilepercell: bool, logic: str,
+         without_umi: str, umi_extension: str, molrep: bool,
          multimap: bool, test: bool, samtools_threads: int, samtools_memory: int, verbosity: int,
          additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
@@ -119,7 +120,9 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     ########################
 
     # Initialize Exon-Intron Counter with the logic and valid barcodes (need to do it now to peek)
-    exincounter = vcy.ExInCounter(logic=logic_obj, valid_bcset=valid_bcset, umi_extension=umi_extension)
+    if without_umi:
+        umi_extension = "without_umi"
+    exincounter = vcy.ExInCounter(logic=logic_obj, valid_bcset=valid_bcset, umi_extension=umi_extension, onefilepercell=onefilepercell)
 
     # Heuristic to chose the memory/cpu effort
     try:
@@ -132,13 +135,17 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     compression = vcy.BAM_COMPRESSION
 
     # I need to peek into the bam file to know wich cell barcode flag should be used
-    if multi:
+    if multi and onefilepercell:
         logging.debug("The multi input option ")
-        tagname = None
+        tagname = "NOTAG"
     else:
         exincounter.peek(bamfile[0])
         tagname = exincounter.cellbarcode_str
-    bamfile_cellsorted = [f"{os.path.join(os.path.dirname(bmf), 'cellsorted_' + os.path.basename(bmf))}" for bmf in bamfile]
+    
+    if multi and onefilepercell:
+        bamfile_cellsorted = list(bamfile)
+    else:
+        bamfile_cellsorted = [f"{os.path.join(os.path.dirname(bmf), 'cellsorted_' + os.path.basename(bmf))}" for bmf in bamfile]
 
     sorting_process: Dict[int, Any] = {}
     for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):

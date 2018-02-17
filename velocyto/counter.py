@@ -2,6 +2,8 @@ import re
 import sys
 import gzip
 import logging
+import random
+import string
 from typing import *
 from collections import defaultdict
 from itertools import chain
@@ -15,8 +17,7 @@ import sys
 
 class ExInCounter:
     """ Main class to do the counting of introns and exons """
-    def __init__(self, logic: vcy.Logic, valid_bcset: Set[str]=None, umi_extension: str="no") -> None:
-        """ valid_bcs2idx is a dict mapping valid cell barcodes to unique arbitrary numeric indexes used in the output arrays """
+    def __init__(self, logic: vcy.Logic, valid_bcset: Set[str]=None, umi_extension: str="no", onefilepercell: bool=False) -> None:
         self.logic = logic()
         # NOTE: maybe there shoulb be a self.logic.validate() step at the end of init
         if valid_bcset is None:
@@ -39,11 +40,18 @@ class ExInCounter:
         elif umi_extension[-2:] == "bp":
             self.umi_bp = int(umi_extension[:-2])
             self.umi_extract = self._extension_Nbp
+        elif umi_extension.lower() == "without_umi":
+            self.umi_extract = self._placeolder_umi
         else:
             raise ValueError(f"umi_extension {umi_extension} is not allowed. Use `no`, `Gene` or `[N]bp`")
+        if onefilepercell:
+            self.cell_barcode_get = self._bam_id_barcode
+        else:
+            self.cell_barcode_get = self._normal_cell_barcode_get
         # NOTE: by using a default dict and not logging access to keys that do not exist, we might miss bugs!!!
         self.test_flag = None
-
+        self.cellbarcode_str = "NULL_BC"  # This value should never be used this is just to initialize it and detect if there are bugs downstream
+        self.umibarcode_str = "NULL_UB"  # This value should never be used this is just to initialize it and detect if there are bugs downstream
     # NOTE: not supported anymore because now we support variable length barcodes
     # @property
     # def bclen(self) -> int:
@@ -90,11 +98,11 @@ class ExInCounter:
 
         return segments, ref_skip, clip5, clip3
 
-    def peek(self, samfile: str, lines: int=30) -> None:
+    def peek(self, bamfile: str, lines: int=30) -> None:
         """Peeks into the samfile to determine if it is a cellranger or dropseq file
         """
-        logging.debug(f"Peeking into {samfile}")
-        fin = pysam.AlignmentFile(samfile)  # type: pysam.AlignmentFile
+        logging.debug(f"Peeking into {bamfile}")
+        fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
         cellranger: int = 0
         dropseq: int = 0
         failed: int = 0
@@ -134,8 +142,17 @@ class ExInCounter:
         except KeyError:
             return read.get_tag(self.umibarcode_str) + "_withoutGX"
 
+    def _placeolder_umi(self, read: pysam.AlignedSegment) -> str:
+        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(vcy.PLACEHOLDER_UMI_LEN))
+
     def _extension_chr(self, read: pysam.AlignedSegment) -> str:
         return read.get_tag(self.umibarcode_str) + f"_{read.rname}:{read.reference_start // 10000000}"  # catch the error
+
+    def _normal_cell_barcode_get(self, read: pysam.AlignedSegment) -> str:
+        return read.get_tag(self.cellbarcode_str).split("-")[0]
+
+    def _bam_id_barcode(self, read: pysam.AlignedSegment) -> str:
+        return f"{self._current_bamfile}"
         
     def iter_alignments(self, bamfiles: Tuple[str], unique: bool=True, yield_line: bool=False) -> Iterable:
         """Iterates over the bam/sam file and yield Read objects
@@ -157,7 +174,9 @@ class ExInCounter:
         """
         # No peeking here, this will happen a layer above, and only once  on the not sorted file! before it was self.peek(samfile, lines=10)
         
+        counter_skipped_no_barcode = 0
         for bamfile in bamfiles:
+            self._current_bamfile = bamfile
             logging.debug(f"Reading {bamfile}")
 
             fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
@@ -170,9 +189,14 @@ class ExInCounter:
                 if unique and read.get_tag("NH") != 1:
                     continue
                 try:
-                    bc = read.get_tag(self.cellbarcode_str).split("-")[0]  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
+                    bc = self.cell_barcode_get(read)  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
                     umi = self.umi_extract(read)  # read.get_tag(self.umibarcode_str)
                 except KeyError:
+                    if read.has_tag(self.cellbarcode_str):
+                        raise KeyError("Some errors in parsing the cell barcode has occurred")
+                    if read.has_tag(self.umibarcode_str):
+                        raise KeyError("Some errors in parsing the molecular barcode has occurred")
+                    counter_skipped_no_barcode += 1
                     continue  # NOTE: Here errors could go unnoticed
                 if bc not in self.valid_bcset:
                     if self.filter_mode:
@@ -207,10 +231,12 @@ class ExInCounter:
                     else:
                         yield read_object
             fin.close()
+            # NOTE Yielding None counts as a flag that the file read has been changed
             if yield_line:
                 yield None, None
             else:
                 yield None
+        logging.debug(f"{counter_skipped_no_barcode} reads were skipped because no apropiate cell or umi barcode was found")
 
     def read_repeats(self, gtf_file: str, tolerance: int=5) -> Dict[str, List[vcy.Feature]]:
         """Read repeats and merge close ones into highly repetitive areas
@@ -327,7 +353,7 @@ class ExInCounter:
         return self.mask_ivls_by_chromstrand
 
     def assign_indexes_to_genes(self, features: Dict[str, vcy.TranscriptModel]) -> None:
-        """Assign to each newly encoutered genes an unique indexes corresponding to the output matrix column ix
+        """Assign to each newly encoutered gene an unique index corresponding to the output matrix column ix
         """
         logging.debug("Assigning indexes to genes")
         for name, trmodel in features.items():
@@ -414,7 +440,11 @@ class ExInCounter:
                 trname = regex_trname.search(tags).group(1)
                 geneid = regex_geneid.search(tags).group(1)
                 genename = regex_genename.search(tags).group(1)
-                exonno = regex_exonno.search(tags).group(1)
+                try:
+                    exonno = regex_exonno.search(tags).group(1)
+                except AttributeError:
+                    # NOTE: Don't try to release this constraint, velocyto relies on it for safe calculations! Rather make a utility script that does putative annotation separatelly.
+                    raise IOError("The genome annotation .gtf file provided does not contain exon_number. `exon_number` is described as a mandatory field by GENCODE gtf file specification and we rely on it for easier processing")
                 start = int(start_str)
                 end = int(end_str)
                 chromstrand = chrom + strand

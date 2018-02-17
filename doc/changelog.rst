@@ -3,10 +3,11 @@
 =========
 Changelog
 =========
-* :support:`-` support different verbosity levels with the -v flag
-* :support:`-` --multimap option was removed because it could have yield incorrect results depending on the output format chosen for the alligner
-* :support:`-` Support barcodes of different length
-* :support:`-` Improved compatibility with InDrops and STRT through the ``--umi-extentions``. It allows the same pipeline to be applied to methods with short molecular barcode that cannot be used call a unique molecule without the gene mapping information.
+* :feature:`-` ``--without-umi`` option allows analyzing UMI-less data such as SmartSeq2
+* :feature:`-` support different verbosity levels with the ``-v`` flag
+* :support:`-` ``--multimap`` option was removed because it could have yield incorrect results depending on the output format chosen for the aligner
+* :feature:`-` Support barcodes of different length
+* :feature:`-` Improved compatibility with InDrops and STRT through the ``--umi-extentions``. It allows the same pipeline to be applied to methods with short molecular barcode that cannot be used call a unique molecule without the gene mapping information.
 * :release:`0.13.5 <2018-02-07>`
 * :bug:`-` Fix a bug that caused extremely slow runtimes when the input bam was not position sorted. Now `velocyto` will raise an error and ask the user to sort the file using samtools.
 * :support:`-` Improve the changelog structure
@@ -43,7 +44,7 @@ Changelog
 * :feature:`-` Changelog added to the doc
 * :support:`-` Update the documentation for the new  :ref:`CLI <cli>`
 * :feature:`-` Support different Logic levels
-* :feature:`-` Pipeline now consider all the possible transcript models that could be supported by a set of reads individually and then decides on the spliced/unspliced/ambigous count.
+* :feature:`-` Pipeline now consider all the possible transcript models that could be supported by a set of reads individually and then decides on the spliced/unspliced/ambiguous count.
 * :release:`0.11.0 <2017-12-01>`
 * :bug:`- major` fix a bug with ambiguous molecules counting and version bump
 * :release:`0.10.3 <2017-11-23>`

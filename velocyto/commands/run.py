@@ -68,12 +68,16 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                               dir_okay=False,
                               readable=True))
 @click.option("--onefilepercell", "-c",
-              help="If True every bamfile passed is interpreted as an independent cell, otherwise files are interpreted as cell poosl to be analized together (default: off)",
+              help="If this flag is used every bamfile passed is interpreted as an independent cell, otherwise files are interpreted as cell poosl to be analized together (default: off)",
               default=False,
               is_flag=True)
 @click.option("--logic", "-l",
               help="The logic to use for the filtering (default: Default)",
               default="Default")
+@click.option("--without-umi", "-U",
+              help="If this flag is used the data is assumed UMI-less and reads are counted instead of molecules (default: off)",
+              default=False,
+              is_flag=True)
 @click.option("--umi-extension", "-u",
               help="""In case UMI is too short to guarantee uniqueness (without information from the ampping) set this parameter to `chr`, `Gene` ro `[N]bp`
               If set to `chr` the mapping position (binned to 10Gb intervals) will be appended to `UB` (ideal for InDrops+dropEst). If set to `Gene` then the `GX` tag will be appended to the `UB` tag.
@@ -89,11 +93,13 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 @click.option("--samtools-memory",
               help="The number of MB used for every thread by samtools to sort the bam file",
               default=2048)
-@click.option('--verbose', '-v', help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)", count=True, default=1)
+@click.option('--verbose', '-v',
+              help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)",
+              count=True, default=1)
 def run(bamfile: str, gtffile: str,
         bcfile: str, outputfolder: str,
         sampleid: str, metadatatable: str,
-        repmask: str, onefilepercell: bool, logic: str, umi_extension: str, molrep: bool,
+        repmask: str, onefilepercell: bool, logic: str, without_umi: str, umi_extension: str, molrep: bool,
         samtools_threads: int, samtools_memory: int, verbose: int,
         additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
@@ -104,5 +110,5 @@ def run(bamfile: str, gtffile: str,
     """
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=repmask, onefilepercell=onefilepercell,
-                logic=logic, umi_extension=umi_extension, molrep=molrep, multimap=False, test=False, samtools_threads=samtools_threads,
+                logic=logic, without_umi=without_umi, umi_extension=umi_extension, molrep=molrep, multimap=False, test=False, samtools_threads=samtools_threads,
                 samtools_memory=samtools_memory, verbose=verbose, additional_ca=additional_ca)
