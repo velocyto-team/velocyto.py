@@ -49,10 +49,6 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
 @click.option("--logic", "-l",
               help="The logic to use for the filtering (default: Default)",
               default="Default")
-@click.option("--multimap", "-M",
-              help="Use reads that did not map uniquely (default: False)",
-              default=False,
-              is_flag=True)
 @click.option("--samtools-threads", "-@",
               help="The number of threads to use to sort the bam by cellID file using samtools",
               default=16)
@@ -60,8 +56,7 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
               help="The number of MB used for every thread by samtools to sort the bam file",
               default=2048)
 def run10x(samplefolder: str, gtffile: str,
-           metadatatable: str, repmask: str, logic: str, samtools_threads: int, samtools_memory: int,
-           multimap: bool) -> None:
+           metadatatable: str, repmask: str, logic: str, samtools_threads: int, samtools_memory: int) -> None:
     """Runs the velocity analysis for a Chromium 10X Sample
 
     10XSAMPLEFOLDER specifies the cellranger sample folder
@@ -96,5 +91,5 @@ def run10x(samplefolder: str, gtffile: str,
 
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=repmask,
-                logic=logic, umi_extension="no", molrep=False, multimap=multimap, test=False, samtools_threads=samtools_threads,
+                logic=logic, umi_extension="no", molrep=False, multimap=False, test=False, samtools_threads=samtools_threads,
                 samtools_memory=samtools_memory, additional_ca=additional_ca)

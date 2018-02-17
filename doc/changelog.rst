@@ -3,6 +3,8 @@
 =========
 Changelog
 =========
+* :support:`-` support different verbosity levels with the -v flag
+* :support:`-` --multimap option was removed because it could have yield incorrect results depending on the output format chosen for the alligner
 * :support:`-` Support barcodes of different length
 * :support:`-` Improved compatibility with InDrops and STRT through the ``--umi-extentions``. It allows the same pipeline to be applied to methods with short molecular barcode that cannot be used call a unique molecule without the gene mapping information.
 * :release:`0.13.5 <2018-02-07>`

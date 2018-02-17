@@ -137,14 +137,13 @@ class ExInCounter:
     def _extension_chr(self, read: pysam.AlignedSegment) -> str:
         return read.get_tag(self.umibarcode_str) + f"_{read.rname}:{read.reference_start // 10000000}"  # catch the error
         
-
-    def iter_alignments(self, samfile: str, unique: bool=True, yield_line: bool=False) -> Iterable:
+    def iter_alignments(self, bamfiles: Tuple[str], unique: bool=True, yield_line: bool=False) -> Iterable:
         """Iterates over the bam/sam file and yield Read objects
 
         Arguments
         ---------
-        samfile: str
-            path to the sam file
+        bamfiles: Tuple[str]
+            path to the bam files
         unique: bool
             yield only unique alignments
         yield_line: bool
@@ -154,57 +153,64 @@ class ExInCounter:
         -------
         yields vcy.Read for each valid line of the bam file
         or a Tuple (vcy.Read, sam_line) if ``yield_line==True``
+        NOTE: At the file change it yields a `None`
         """
         # No peeking here, this will happen a layer above, and only once  on the not sorted file! before it was self.peek(samfile, lines=10)
-        logging.debug(f"Reading {samfile}")
+        
+        for bamfile in bamfiles:
+            logging.debug(f"Reading {bamfile}")
 
-        fin = pysam.AlignmentFile(samfile)  # type: pysam.AlignmentFile
-        for i, read in enumerate(fin):
-            if i % 10000000 == 0:
-                logging.debug(f"Read first {i // 1000000} million reads")
-            if read.is_unmapped:
-                continue
-            # If unique parameter is set to True, skip not unique alignments
-            if unique and read.get_tag("NH") != 1:
-                continue
-            try:
-                bc = read.get_tag(self.cellbarcode_str).split("-")[0]  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
-                umi = self.umi_extract(read)  # read.get_tag(self.umibarcode_str)
-            except KeyError:
-                continue  # NOTE: Here errors could go unnoticed
-            if bc not in self.valid_bcset:
-                if self.filter_mode:
+            fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
+            for i, read in enumerate(fin):
+                if i % 10000000 == 0:
+                    logging.debug(f"Read first {i // 1000000} million reads")
+                if read.is_unmapped:
                     continue
-                else:
-                    self.valid_bcset.add(bc)
-            strand = '-' if read.is_reverse else '+'
-            chrom = fin.get_reference_name(read.rname)  # this is return a string otherwise read.rname for the integer
-            if chrom.startswith('chr'):
-                # I have to deal with incongruences with the .gft (what is cellranger doing???)
-                # NOTE Why this happens?
-                if "_" in chrom:
-                    chrom = chrom.split("_")[1]
-                else:
-                    chrom = chrom[3:]
-                    if chrom == "M":
-                        chrom = "MT"
-            pos = read.reference_start + 1  # reads in pysam are always 0-based, but 1-based is more convenient to wor with in bioinformatics
-            segments, ref_skipped, clip5, clip3 = self.parse_cigar_tuple(read.cigartuples, pos)
-            if segments == []:
-                logging.debug("No segments in read:%s" % read.qname)
+                # If unique parameter is set to True, skip not unique alignments
+                if unique and read.get_tag("NH") != 1:
+                    continue
+                try:
+                    bc = read.get_tag(self.cellbarcode_str).split("-")[0]  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
+                    umi = self.umi_extract(read)  # read.get_tag(self.umibarcode_str)
+                except KeyError:
+                    continue  # NOTE: Here errors could go unnoticed
+                if bc not in self.valid_bcset:
+                    if self.filter_mode:
+                        continue
+                    else:
+                        self.valid_bcset.add(bc)
+                strand = '-' if read.is_reverse else '+'
+                chrom = fin.get_reference_name(read.rname)  # this is return a string otherwise read.rname for the integer
+                if chrom.startswith('chr'):
+                    # I have to deal with incongruences with the .gft (what is cellranger doing???)
+                    # NOTE Why this happens?
+                    if "_" in chrom:
+                        chrom = chrom.split("_")[1]
+                    else:
+                        chrom = chrom[3:]
+                        if chrom == "M":
+                            chrom = "MT"
+                pos = read.reference_start + 1  # reads in pysam are always 0-based, but 1-based is more convenient to wor with in bioinformatics
+                segments, ref_skipped, clip5, clip3 = self.parse_cigar_tuple(read.cigartuples, pos)
+                if segments == []:
+                    logging.debug("No segments in read:%s" % read.qname)
 
-            read_object = vcy.Read(bc, umi, chrom, strand, pos, segments, clip5, clip3, ref_skipped)
+                read_object = vcy.Read(bc, umi, chrom, strand, pos, segments, clip5, clip3, ref_skipped)
+                if yield_line:
+                    if read_object.span > 3000000:  # Longest locus existing
+                        logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
+                    else:
+                        yield read_object, read.tostring(fin)
+                else:
+                    if read_object.span > 3000000:  # Longest locus existing
+                        logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
+                    else:
+                        yield read_object
+            fin.close()
             if yield_line:
-                if read_object.span > 3000000:  # Longest locus existing
-                    logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
-                else:
-                    yield read_object, read.tostring(fin)
+                yield None, None
             else:
-                if read_object.span > 3000000:  # Longest locus existing
-                    logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
-                else:
-                    yield read_object
-        fin.close()
+                yield None
 
     def read_repeats(self, gtf_file: str, tolerance: int=5) -> Dict[str, List[vcy.Feature]]:
         """Read repeats and merge close ones into highly repetitive areas
@@ -438,13 +444,13 @@ class ExInCounter:
 
         return self.annotations_by_chrm_strand
 
-    def mark_up_introns(self, bamfile: str, multimap: bool) -> None:
+    def mark_up_introns(self, bamfile: Tuple[str], multimap: bool) -> None:
         """ Mark up introns that have reads across exon-intron junctions
         
         Arguments
         ---------
-        bamfile: str
-            path to the bam or sam file to markup
+        bamfile: Tuple[str]
+            path to the bam files to markup
         logic: vcy.Logic
             The logic object to use, changes in different techniques / levels of strictness
             NOTE: Right now it is not used
@@ -466,6 +472,10 @@ class ExInCounter:
         for r in self.iter_alignments(bamfile, unique=not multimap):
             # Don't consider spliced reads (exonic) in this step
             # NOTE Can the exon be so short that we get splicing and exon-intron boundary
+            if r is None:
+                # This happens only when there is a change of file
+                currchrom = ""
+                set_chromosomes_seen = set()
             if r.is_spliced:
                 continue
 
@@ -499,13 +509,13 @@ class ExInCounter:
         # VERBOSE: import pickle
         # VERBOSE: pickle.dump(dump_list, open("dump_mark_overlapping_ivls.pickle", "wb"))
 
-    def count(self, samfile: str, multimap: bool, cell_batch_size: int=100, molecules_report: bool=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
+    def count(self, bamfile: Tuple[str], multimap: bool, cell_batch_size: int=100, molecules_report: bool=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
         """ Do the counting of molecules
         
         Arguments
         ---------
-        samfile: str
-            path to the bam or sam file to markup
+        bamfile: str
+            path to the bam files to markup
         cell_batch_size: int, default = 50
             it defines whether to require or not exon-intron spanning read to consider an intron valid.
         molecules_report: bool, default=False
@@ -553,8 +563,8 @@ class ExInCounter:
         list_unspliced_arrays: List[np.ndarray] = []
         list_ambiguous_arrays: List[np.ndarray] = []
         nth = 0
-        # Loop through the aligment of the samfile
-        for r in self.iter_alignments(samfile, unique=not multimap):
+        # Loop through the aligment of the bamfile
+        for r in self.iter_alignments(bamfile, unique=not multimap):
             if len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch:
                 # Perfrom the molecule counting
                 nth += 1

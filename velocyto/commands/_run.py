@@ -18,18 +18,16 @@ import h5py
 from typing import *
 import velocyto as vcy
 
-logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
-
 
 def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits) -> str:
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def _run(*, bamfile: str, gtffile: str,
+def _run(*, bamfile: Tuple[str], gtffile: str,
          bcfile: str, outputfolder: str,
          sampleid: str, metadatatable: str,
-         repmask: str, logic: str, umi_extension: str, molrep: bool,
-         multimap: bool, test: bool, samtools_threads: int, samtools_memory: int,
+         repmask: str, onefilepercell: bool, logic: str, umi_extension: str, molrep: bool,
+         multimap: bool, test: bool, samtools_threads: int, samtools_memory: int, verbosity: int,
          additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
 
@@ -44,21 +42,38 @@ def _run(*, bamfile: str, gtffile: str,
     #    Resolve Inputs    #
     ########################
 
+    logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s',
+                        level=[logging.WARNING, logging.INFO, logging.DEBUG][verbosity])
+
+    if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile[-1][-4:] in [".bam", ".sam"]:
+        multi = True
+    elif isinstance(bamfile, tuple) and len(bamfile) == 1:
+        multi = False
+    else:
+        raise IOError(f"Something went wrong in the argument parsing. You passed as bamfile: {bamfile}")
+
+    if onefilepercell and multi:
+        if bcfile is None:
+            raise ValueError("Inputs incompatibility. --bcfile/-b option was used together with --onefilepercell/-c option.")
+        logging.warning("Each bam file will be interpreted as a DIFFERENT cell")
+    elif not onefilepercell and multi:
+        logging.warning("Several input files but --onefilepercell is False. Each bam file will be interpreted as containing a SET of cells!!!")
+
     if sampleid is None:
         assert metadatatable is None, "Cannot fetch sample metadata without valid sampleid"
-        sampleid = f'{os.path.basename(bamfile).split(".")[0]}_{id_generator(5)}'
-        logging.debug(f"No SAMPLEID specified, the sample will be called {sampleid}")
+        sampleid = f'{os.path.basename(bamfile[0]).split(".")[0]}_{id_generator(5)}'
+        logging.info(f"No SAMPLEID specified, the sample will be called {sampleid}")
 
     # Create an output folder inside the cell ranger output folder
     if outputfolder is None:
-        outputfolder = os.path.join(os.path.split(bamfile)[0], "velocyto")
-        logging.debug(f"No OUTPUTFOLDER specified, find output files inside {outputfolder}")
+        outputfolder = os.path.join(os.path.split(bamfile[0])[0], "velocyto")
+        logging.info(f"No OUTPUTFOLDER specified, find output files inside {outputfolder}")
     if not os.path.exists(outputfolder):
         os.mkdir(outputfolder)
 
     logic_obj = getattr(vcy, logic)
     if not issubclass(logic_obj, vcy.Logic):
-        raise ValueError(f"{logic} is not a valid logic. Chose one among {', '.join([k for k, v in vcy.logic.__dict__.items() if issubclass(v, vcy.Logic)])}")
+        raise ValueError(f"{logic} is not a valid logic. Choose one among {', '.join([k for k, v in vcy.logic.__dict__.items() if issubclass(v, vcy.Logic)])}")
     else:
         logging.debug(f"Using logic: {logic}")
 
@@ -74,7 +89,7 @@ def _run(*, bamfile: str, gtffile: str,
         else:
             gem_grp = "x"
         valid_bcset = set(bc.split('-')[0] for bc in valid_bcs_list)  # without -1
-        logging.debug(f"Read {len(valid_bcs_list)} cell barcodes from {bcfile}")
+        logging.info(f"Read {len(valid_bcs_list)} cell barcodes from {bcfile}")
         logging.debug(f"Example of barcode: {valid_bcs_list[0].split('-')[0]} and cell_id: {valid_cellid_list[0]}")
         
     # Get metadata from sample sheet
@@ -107,27 +122,37 @@ def _run(*, bamfile: str, gtffile: str,
     exincounter = vcy.ExInCounter(logic=logic_obj, valid_bcset=valid_bcset, umi_extension=umi_extension)
 
     # Heuristic to chose the memory/cpu effort
-    mb_available = int(subprocess.check_output('grep MemAvailable /proc/meminfo'.split()).split()[1]) / 1000
+    try:
+        mb_available = int(subprocess.check_output('grep MemAvailable /proc/meminfo'.split()).split()[1]) / 1000
+    except subprocess.CalledProcessError:
+        logging.warning("Your system does not support calling `grep MemAvailable /proc/meminfo` so the memory effort for the samtools command could not be chosen appropriatelly. 64Gb will be assumed")
+        mb_available = 64000  # 64Gb
     threads_to_use = min(samtools_threads, multiprocessing.cpu_count())
-    mb_to_use = int(min(samtools_memory, mb_available / threads_to_use))
+    mb_to_use = int(min(samtools_memory, mb_available / (len(bamfile) * threads_to_use)))
     compression = vcy.BAM_COMPRESSION
 
     # I need to peek into the bam file to know wich cell barcode flag should be used
-    exincounter.peek(bamfile)
-    tagname = exincounter.cellbarcode_str
-    bamfile_cellsorted = f"{os.path.join(os.path.dirname(bamfile), 'cellsorted_' + os.path.basename(bamfile))}"
-
-    # Start a subprocess that sorts the bam file
-    command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bamfile_cellsorted} {bamfile}"
-    if os.path.exists(bamfile_cellsorted):
-        logging.warning(f"The file {bamfile_cellsorted} already exists. The sorting step will be skipped and the existing file will be used.")
-        check_end_process = False
+    if multi:
+        logging.debug("The multi input option ")
+        tagname = None
     else:
-        sorting_process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-        logging.info(f"Starting the sorting process of {bamfile} the output will be at: {bamfile_cellsorted}")
-        logging.info(f"Command being run is: {command}")
-        logging.info(f"While the bam sorting happens do other things...")
-        check_end_process = True
+        exincounter.peek(bamfile[0])
+        tagname = exincounter.cellbarcode_str
+    bamfile_cellsorted = [f"{os.path.join(os.path.dirname(bmf), 'cellsorted_' + os.path.basename(bmf))}" for bmf in bamfile]
+
+    sorting_process: Dict[int, Any] = {}
+    for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):
+        # Start a subprocess that sorts the bam file
+        command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
+        if os.path.exists(bmf_cellsorted):
+            logging.warning(f"The file {bmf_cellsorted} already exists. The sorting step will be skipped and the existing file will be used.")
+            check_end_process = False
+        else:
+            sorting_process[ni] = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+            logging.info(f"Starting the sorting process of {bamfile[ni]} the output will be at: {bmf_cellsorted}")
+            logging.info(f"Command being run is: {command}")
+            logging.info(f"While the bam sorting happens do other things...")
+            check_end_process = True
 
     # Load annotations
     logging.info(f"Load the annotation from {gtffile}")
@@ -143,9 +168,10 @@ def _run(*, bamfile: str, gtffile: str,
         logging.info(f"Load the repeat masking annotation from {repmask}")
         mask_ivls_by_chromstrand = exincounter.read_repeats(repmask)
 
-    # Go through the sam files a first time to markup introns
-    logging.info(f"Scan {bamfile} to validate intron intervals")
+    # Go through the bam files a first time to markup introns
+    logging.info(f"Scan {' '.join(bamfile)} to validate intron intervals")
     if test:  # NOTE: Remove this after finishing testing, the only purpuso was to save 15min in the debugging process
+        logging.warning("This place is for developer only!")
         import pickle
         if os.path.exists("exincounter_dump.pickle"):
             logging.debug("exincounter_dump.pickle is being loaded")
@@ -155,15 +181,15 @@ def _run(*, bamfile: str, gtffile: str,
             logging.debug("Dumping exincounter_dump.pickle BEFORE markup")
             pickle.dump(exincounter, open("exincounter_dump.pickle", "wb"))
             exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
-            
     else:
         exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
 
     # Wait for child process to terminate
     if check_end_process:
         logging.info(f"Now just waiting that the bam sorting process terminates")
-        sorting_process.wait()
-        logging.info(f"bam file has been sorted")
+        for k in sorting_process.keys():
+            sorting_process[k].wait()
+            logging.info(f"bam file #{k} has been sorted")
 
     # Do the actual counting
     logging.debug("Start molecule counting!")
@@ -186,7 +212,7 @@ def _run(*, bamfile: str, gtffile: str,
     ca.update(additional_ca)
 
     for key, value in sample.items():
-        ca[key] = np.array([value] * len(cell_bcs_order))
+        ca[key] = np.full(len(cell_bcs_order), value)
 
     # Save to loom file
     outfile = os.path.join(outputfolder, f"{sampleid}.loom")

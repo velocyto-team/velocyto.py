@@ -24,7 +24,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 
 
 @click.command(short_help="Runs the velocity analysis outputing a loom file")
-@click.argument("bamfile",
+@click.argument("bamfile", nargs=-1,
                 type=click.Path(exists=True,
                                 file_okay=True,
                                 dir_okay=False,
@@ -67,6 +67,10 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                               file_okay=True,
                               dir_okay=False,
                               readable=True))
+@click.option("--onefilepercell", "-c",
+              help="If True every bamfile passed is interpreted as an independent cell, otherwise files are interpreted as cell poosl to be analized together (default: off)",
+              default=False,
+              is_flag=True)
 @click.option("--logic", "-l",
               help="The logic to use for the filtering (default: Default)",
               default="Default")
@@ -76,11 +80,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               If set to `[N]bp` the first N bases of the sequence will be used to extend `UB` (ideal for STRT). (Default: `no`)""",
               default="no")
 @click.option("--molrep", "-x",
-              help="Outputs pickle files with containing a sample of the read mappings supporting molecule counting. (Useful for development or debugging only)",
-              default=False,
-              is_flag=True)
-@click.option("--multimap", "-M",
-              help="Use reads that did not map uniquely (default: False)",
+              help="Outputs pickle files with containing a sample of the read mappings supporting molecule counting. (Useful for development or debugging only) (default: off)",
               default=False,
               is_flag=True)
 @click.option("--samtools-threads", "-@",
@@ -89,11 +89,12 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 @click.option("--samtools-memory",
               help="The number of MB used for every thread by samtools to sort the bam file",
               default=2048)
+@click.option('--verbose', '-v', help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)", count=True, default=1)
 def run(bamfile: str, gtffile: str,
         bcfile: str, outputfolder: str,
         sampleid: str, metadatatable: str,
-        repmask: str, logic: str, umi_extension: str, molrep: bool,
-        multimap: bool, samtools_threads: int, samtools_memory: int,
+        repmask: str, onefilepercell: bool, logic: str, umi_extension: str, molrep: bool,
+        samtools_threads: int, samtools_memory: int, verbose: int,
         additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
 
@@ -102,6 +103,6 @@ def run(bamfile: str, gtffile: str,
     GTFFILE genome annotation file
     """
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
-                sampleid=sampleid, metadatatable=metadatatable, repmask=repmask,
-                logic=logic, umi_extension=umi_extension, molrep=molrep, multimap=multimap, test=False, samtools_threads=samtools_threads,
-                samtools_memory=samtools_memory, additional_ca=additional_ca)
+                sampleid=sampleid, metadatatable=metadatatable, repmask=repmask, onefilepercell=onefilepercell,
+                logic=logic, umi_extension=umi_extension, molrep=molrep, multimap=False, test=False, samtools_threads=samtools_threads,
+                samtools_memory=samtools_memory, verbose=verbose, additional_ca=additional_ca)
