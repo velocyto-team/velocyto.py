@@ -83,24 +83,23 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               If set to `chr` the mapping position (binned to 10Gb intervals) will be appended to `UB` (ideal for InDrops+dropEst). If set to `Gene` then the `GX` tag will be appended to the `UB` tag.
               If set to `[N]bp` the first N bases of the sequence will be used to extend `UB` (ideal for STRT). (Default: `no`)""",
               default="no")
-@click.option("--molrep", "-x",
-              help="Outputs pickle files with containing a sample of the read mappings supporting molecule counting. (Useful for development or debugging only) (default: off)",
-              default=False,
-              is_flag=True)
 @click.option("--samtools-threads", "-@",
               help="The number of threads to use to sort the bam by cellID file using samtools",
               default=16)
 @click.option("--samtools-memory",
               help="The number of MB used for every thread by samtools to sort the bam file",
               default=2048)
+@click.option("--dump", "-d",
+              help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
+              default="0")
 @click.option('--verbose', '-v',
               help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)",
               count=True, default=1)
 def run(bamfile: str, gtffile: str,
         bcfile: str, outputfolder: str,
         sampleid: str, metadatatable: str,
-        repmask: str, onefilepercell: bool, logic: str, without_umi: str, umi_extension: str, molrep: bool,
-        samtools_threads: int, samtools_memory: int, verbose: int,
+        repmask: str, onefilepercell: bool, logic: str, without_umi: str, umi_extension: str,
+        samtools_threads: int, samtools_memory: int, dump: str, verbose: int,
         additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
 
@@ -110,5 +109,5 @@ def run(bamfile: str, gtffile: str,
     """
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=repmask, onefilepercell=onefilepercell,
-                logic=logic, without_umi=without_umi, umi_extension=umi_extension, molrep=molrep, multimap=False, test=False, samtools_threads=samtools_threads,
-                samtools_memory=samtools_memory, verbose=verbose, additional_ca=additional_ca)
+                logic=logic, without_umi=without_umi, umi_extension=umi_extension, multimap=False, test=False, samtools_threads=samtools_threads,
+                samtools_memory=samtools_memory, dump=dump, verbose=verbose, additional_ca=additional_ca)

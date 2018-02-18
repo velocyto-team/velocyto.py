@@ -4,6 +4,7 @@
 Changelog
 =========
 * :release:`0.15.0 <2018-02-18>`
+* :feature:`-` Improve the debug molecular report option to support hdf5
 * :feature:`-` It supports SmartSeq2 and has a new run_smartseq2 command
 * :feature:`-` Generalized logic to include more layers than just Spliced, Unspliced, Ambiguous
 * :feature:`-` ``--without-umi`` option allows analyzing UMI-less data such as SmartSeq2

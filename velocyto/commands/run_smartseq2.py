@@ -51,11 +51,14 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                               file_okay=True,
                               dir_okay=False,
                               readable=True))
+@click.option("--dump", "-d",
+              help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
+              default="0")
 @click.option('--verbose', '-v',
               help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)",
               count=True, default=1)
 def run_smartseq2(bamfiles: str, gtffile: str, outputfolder: str, sampleid: str,
-                  repmask: str, verbose: int, additional_ca: dict={}) -> None:
+                  repmask: str, dump: str, verbose: int, additional_ca: dict={}) -> None:
     """Runs the velocity analysis on SmartSeq2 data (independent bam file per cell)
 
     [BAMFILES, ...] a sequence of bam files to be analyzed (e.g. use a wild-card expansion)
@@ -65,5 +68,5 @@ def run_smartseq2(bamfiles: str, gtffile: str, outputfolder: str, sampleid: str,
     return _run(bamfile=bamfiles, gtffile=gtffile, bcfile=None, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=None, repmask=repmask, onefilepercell=True,
                 logic="SmartSeq2", without_umi=True, umi_extension="no",
-                molrep=False, multimap=False, test=False, samtools_threads=1,
-                samtools_memory=1, verbose=verbose, additional_ca=additional_ca)
+                multimap=False, test=False, samtools_threads=1,
+                samtools_memory=1, dump=dump, verbose=verbose, additional_ca=additional_ca)

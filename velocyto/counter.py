@@ -9,6 +9,7 @@ from collections import defaultdict
 from itertools import chain
 from collections import OrderedDict
 import velocyto as vcy
+import h5py
 import pysam
 import numpy as np
 import os
@@ -17,7 +18,9 @@ import sys
 
 class ExInCounter:
     """ Main class to do the counting of introns and exons """
-    def __init__(self, logic: vcy.Logic, valid_bcset: Set[str]=None, umi_extension: str="no", onefilepercell: bool=False) -> None:
+    def __init__(self, sampleid: str, logic: vcy.Logic, valid_bcset: Set[str]=None,
+                 umi_extension: str="no", onefilepercell: bool=False, dump_option: str="0") -> None:
+        self.sampleid = sampleid
         self.logic = logic()
         # NOTE: maybe there shoulb be a self.logic.validate() step at the end of init
         if valid_bcset is None:
@@ -50,6 +53,14 @@ class ExInCounter:
             self.cell_barcode_get = self._normal_cell_barcode_get
         # NOTE: by using a default dict and not logging access to keys that do not exist, we might miss bugs!!!
         self.test_flag = None
+        if dump_option[0] == "p":
+            self.kind_of_report = "p"
+            self.report_state = 0
+            self.every_n_report = int(dump_option[1:])
+        else:
+            self.kind_of_report = "h"
+            self.report_state = 0
+            self.every_n_report = int(dump_option)
         self.cellbarcode_str = "NULL_BC"  # This value should never be used this is just to initialize it and detect if there are bugs downstream
         self.umibarcode_str = "NULL_UB"  # This value should never be used this is just to initialize it and detect if there are bugs downstream
     # NOTE: not supported anymore because now we support variable length barcodes
@@ -558,8 +569,6 @@ class ExInCounter:
             path to the bam files to markup
         cell_batch_size: int, default = 50
             it defines whether to require or not exon-intron spanning read to consider an intron valid.
-        molecules_report: bool, default=False
-            whether to output a file that reports the intervals hit for each molecule counted
         
         Returns
         -------
@@ -608,7 +617,7 @@ class ExInCounter:
                 # Perfrom the molecule counting
                 nth += 1
                 logging.debug(f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads")
-                dict_layer_columns, list_bcs = self.count_cell_batch(molecules_report and (nth % 10 == 1))
+                dict_layer_columns, list_bcs = self.count_cell_batch()
                 cell_bcs_order += list_bcs
 
                 for layer_name, layer_columns in dict_layer_columns.items():
@@ -637,7 +646,7 @@ class ExInCounter:
         logging.debug(f"Counting done!")
         return dict_list_arrays, cell_bcs_order
 
-    def count_cell_batch(self, molecules_report: bool=False) -> Tuple[Dict[str, np.ndarray], List[str]]:
+    def count_cell_batch(self) -> Tuple[Dict[str, np.ndarray], List[str]]:
         """It performs molecule counting for the current batch of cells
 
         Returns
@@ -690,13 +699,44 @@ class ExInCounter:
             # NOTE I need to generalize this to any set of layers
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
 
-        if molecules_report:
-            import pickle
-            first_cell_batch = next(iter(molitems.keys())).split("$")[0]
-            if not os.path.exists("pickle_dump"):
-                os.makedirs("pickle_dump")
-            pickle.dump(molitems, open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"))
-            pickle.dump(self.reads_to_count, open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"))
+        if self.every_n_report and (self.report_state % self.every_n_report == 0):
+            self.report_state += 1
+            if self.kind_of_report == "p":
+                import pickle
+                first_cell_batch = next(iter(molitems.keys())).split("$")[0]
+                if not os.path.exists("pickle_dump"):
+                    os.makedirs("pickle_dump")
+                pickle.dump(molitems, open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"))
+                pickle.dump(self.reads_to_count, open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"))
+            else:
+                if not os.path.exists("velocyto_dump"):
+                    os.makedirs("velocyto_dump")
+                f = h5py.File(f'velocyto_dump/{self.sampleid}.hdf5')  # From the docs: Read/write if exists, create otherwise (default)
+
+                if "info/geneixs" not in f:
+                    logging.warning("The hdf5 report is less accurate in reporting exactly all the information than the pickle.")
+                    gene_names = np.array(list(self.geneid2ix.keys()), dtype='S15')
+                    gene_ixs = np.array(list(self.geneid2ix.values()), dtype=np.uint16)
+                    f.create_dataset("info/gene_ixs", data=gene_ixs)
+                    f.create_dataset("info/gene_names", data=gene_names)
+
+                cell_name = next(iter(molitems.keys())).split("$")[0]
+                pos: Union[List[Tuple[int, int]], np.ndarray] = []
+                chrom: Union[List[str], np.ndarray] = []
+                gene: Union[List[int], np.ndarray] = []
+                for mol_bc, molitem in molitems.items():
+                    for match in next(iter(molitem.mappings_record.items()))[1]:
+                        pos.append(match.segment)
+                        chrom.append(match.feature.transcript_model.chromstrand)
+                        gene.append(self.geneid2ix[match.feature.transcript_model.genename])
+                pos = np.array(pos, dtype=np.int32)
+                chrom = np.array(chrom, dtype="S5")
+                gene = np.array(gene, dtype=np.uint16)
+
+                f.create_dataset(f'cells/{cell_name}/pos', data=pos, maxshape=pos.shape, chunks=(100, 2), compression="gzip", shuffle=False, compression_opts=4)
+                f.create_dataset(f'cells/{cell_name}/chrom', data=chrom, maxshape=chrom.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
+                f.create_dataset(f'cells/{cell_name}/gene', data=gene, maxshape=gene.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
+                f.close()
 
         idx2bc = {v: k for k, v in bc2idx.items()}
         

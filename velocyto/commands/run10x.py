@@ -55,11 +55,15 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
 @click.option("--samtools-memory",
               help="The number of MB used for every thread by samtools to sort the bam file",
               default=2048)
+@click.option("--dump", "-d",
+              help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
+              default="0")
 @click.option('--verbose', '-v',
               help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)",
               count=True, default=1)
 def run10x(samplefolder: str, gtffile: str,
-           metadatatable: str, repmask: str, logic: str, samtools_threads: int, samtools_memory: int, verbose: str) -> None:
+           metadatatable: str, repmask: str, logic: str,
+           samtools_threads: int, samtools_memory: int, dump: str, verbose: str) -> None:
     """Runs the velocity analysis for a Chromium 10X Sample
 
     10XSAMPLEFOLDER specifies the cellranger sample folder
@@ -94,5 +98,5 @@ def run10x(samplefolder: str, gtffile: str,
 
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=repmask, onefilepercell=False,
-                logic=logic, without_umi=False, umi_extension="no", molrep=False, multimap=False, test=False, samtools_threads=samtools_threads,
-                samtools_memory=samtools_memory, verbose=verbose, additional_ca=additional_ca)
+                logic=logic, without_umi=False, umi_extension="no", multimap=False, test=False, samtools_threads=samtools_threads,
+                samtools_memory=samtools_memory, dump=dump, verbose=verbose, additional_ca=additional_ca)

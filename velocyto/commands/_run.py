@@ -27,8 +27,8 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
          bcfile: str, outputfolder: str,
          sampleid: str, metadatatable: str,
          repmask: str, onefilepercell: bool, logic: str,
-         without_umi: str, umi_extension: str, molrep: bool,
-         multimap: bool, test: bool, samtools_threads: int, samtools_memory: int, verbose: int,
+         without_umi: str, umi_extension: str, multimap: bool, test: bool,
+         samtools_threads: int, samtools_memory: int, dump: bool, verbose: int,
          additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
 
@@ -136,7 +136,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         if umi_extension != "no":
             logging.warning("--umi-extension was specified but uncompatible with --without-umi, it will be ignored!")
         umi_extension = "without_umi"
-    exincounter = vcy.ExInCounter(logic=logic_class, valid_bcset=valid_bcset, umi_extension=umi_extension, onefilepercell=onefilepercell)
+    exincounter = vcy.ExInCounter(sampleid=sampleid, logic=logic_class, valid_bcset=valid_bcset, umi_extension=umi_extension, onefilepercell=onefilepercell, dump_option=dump)
 
     # Heuristic to chose the memory/cpu effort
     try:
@@ -214,7 +214,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
 
     # Do the actual counting
     logging.debug("Start molecule counting!")
-    results = exincounter.count(bamfile_cellsorted, multimap=multimap, molecules_report=molrep)  # NOTE: we would avoid some millions of if statements evalution if we write two function count and count_with output
+    results = exincounter.count(bamfile_cellsorted, multimap=multimap)  # NOTE: we would avoid some millions of if statements evalution if we write two function count and count_with output
     dict_list_arrays, cell_bcs_order = results
 
     ########################
