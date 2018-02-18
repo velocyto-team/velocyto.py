@@ -83,11 +83,12 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     if not os.path.exists(outputfolder):
         os.mkdir(outputfolder)
 
-    logic_obj = getattr(vcy, logic)
-    if not issubclass(logic_obj, vcy.Logic):
+    logic_class = getattr(vcy, logic)
+    if not issubclass(logic_class, vcy.Logic):
         raise ValueError(f"{logic} is not a valid logic. Choose one among {', '.join([k for k, v in vcy.logic.__dict__.items() if issubclass(v, vcy.Logic)])}")
     else:
         logging.debug(f"Using logic: {logic}")
+        logic_obj = logic_class()
 
     if bcfile is None:
         logging.debug("Cell barcodes will be determined while reading the .bam file")
@@ -135,7 +136,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         if umi_extension != "no":
             logging.warning("--umi-extension was specified but uncompatible with --without-umi, it will be ignored!")
         umi_extension = "without_umi"
-    exincounter = vcy.ExInCounter(logic=logic_obj, valid_bcset=valid_bcset, umi_extension=umi_extension, onefilepercell=onefilepercell)
+    exincounter = vcy.ExInCounter(logic=logic_class, valid_bcset=valid_bcset, umi_extension=umi_extension, onefilepercell=onefilepercell)
 
     # Heuristic to chose the memory/cpu effort
     try:
