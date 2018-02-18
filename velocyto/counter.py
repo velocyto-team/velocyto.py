@@ -724,17 +724,21 @@ class ExInCounter:
                 pos: Union[List[Tuple[int, int]], np.ndarray] = []
                 chrom: Union[List[str], np.ndarray] = []
                 gene: Union[List[int], np.ndarray] = []
-                for mol_bc, molitem in molitems.items():
+                mol: Union[List[int], np.ndarray] = []
+                for i, (mol_bc, molitem) in enumerate(molitems.items()):
                     for match in next(iter(molitem.mappings_record.items()))[1]:
                         pos.append(match.segment)
                         chrom.append(match.feature.transcript_model.chromstrand)
                         gene.append(self.geneid2ix[match.feature.transcript_model.geneid])
+                        mol.append(i)
                 pos = np.array(pos, dtype=np.int32)
                 chrom = np.array(chrom, dtype="S5")
                 gene = np.array(gene, dtype=np.uint16)
+                mol = np.array(mol, dtype=np.uint32)
 
                 f.create_dataset(f'cells/{cell_name}/pos', data=pos, maxshape=pos.shape, chunks=(100, 2), compression="gzip", shuffle=False, compression_opts=4)
                 f.create_dataset(f'cells/{cell_name}/chrom', data=chrom, maxshape=chrom.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
+                f.create_dataset(f'cells/{cell_name}/mol', data=mol, maxshape=mol.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
                 f.create_dataset(f'cells/{cell_name}/gene', data=gene, maxshape=gene.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
                 f.close()
 
