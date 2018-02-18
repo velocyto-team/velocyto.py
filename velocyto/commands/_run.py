@@ -54,7 +54,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         raise IOError(f"Something went wrong in the argument parsing. You passed as bamfile: {bamfile}")
 
     if onefilepercell and multi:
-        if bcfile is None:
+        if bcfile is not None:
             raise ValueError("Inputs incompatibility. --bcfile/-b option was used together with --onefilepercell/-c option.")
         logging.warning("Each bam file will be interpreted as a DIFFERENT cell")
     elif not onefilepercell and multi:
