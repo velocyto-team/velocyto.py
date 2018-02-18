@@ -28,11 +28,11 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
          sampleid: str, metadatatable: str,
          repmask: str, onefilepercell: bool, logic: str,
          without_umi: str, umi_extension: str, molrep: bool,
-         multimap: bool, test: bool, samtools_threads: int, samtools_memory: int, verbosity: int,
+         multimap: bool, test: bool, samtools_threads: int, samtools_memory: int, verbose: int,
          additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
 
-    BAMFILE bam file with sorted reads
+    BAMFILE or [BAMFILES] one or several bam files with position-sorted
 
     GTFFILE annotation file
 
@@ -44,7 +44,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     ########################
 
     logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s',
-                        level=[logging.WARNING, logging.INFO, logging.DEBUG][verbosity])
+                        level=[logging.WARNING, logging.INFO, logging.DEBUG][verbose])
 
     if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile[-1][-4:] in [".bam", ".sam"]:
         multi = True
@@ -121,6 +121,8 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
 
     # Initialize Exon-Intron Counter with the logic and valid barcodes (need to do it now to peek)
     if without_umi:
+        if umi_extension != "no":
+            logging.warning("--umi-extension was specified but uncompatible with --without-umi, it will be ignored!")
         umi_extension = "without_umi"
     exincounter = vcy.ExInCounter(logic=logic_obj, valid_bcset=valid_bcset, umi_extension=umi_extension, onefilepercell=onefilepercell)
 
