@@ -16,9 +16,8 @@ class Logic(metaclass=abc.ABCMeta):
         return ["spliced", "unspliced", "ambiguous"]
 
     @abc.abstractmethod  # This needs to be overridden
-    def count(self, molitem: vcy.Molitem, cell_bcidx: int, spliced: np.ndarray,
-              unspliced: np.ndarray, ambiguous: np.ndarray, geneid2ix: Dict[str, int]) -> None:
-        """This methods will have to countain the core operatios of the logic to attribute a molecule to one of the cathergories
+    def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
+        """This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories
         
         Arguments
         ---------
@@ -26,24 +25,15 @@ class Logic(metaclass=abc.ABCMeta):
             The :py:class:`vcy.Molitem` object to be considered by the logic
         cell_bcidx: int
             The cell index in the memory buffers below
-        spliced: np.ndarray,
-            The memory buffer that will be saved in the loom file after counting
-        unspliced: np.ndarray
-            The memory buffer that will be saved in the loom file after counting
-        ambiguous: np.ndarray
-            The memory buffer that will be saved in the loom file after counting
+        dict_layers_columns: Dict[str, np.ndarray]
+            A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting
         geneid2ix: Dict[str, int]
             Dictionary containing the Acession of the genes mapping to its column index position
-        
         
         Returns
         -------
         Nothing but it adds the molecule to the appropriate layer (or does not count at all)
 
-        Note
-        ----
-        I need to generalize this to any set of layers: instead of spliced, unspliced  and ambiguous
-        np.ndarray a dictionary {"name_layer": np.ndarray} should be passed
         """
         # NOTE I need to generalize this to any set of layers
         return
@@ -66,9 +56,12 @@ class Permissive10X(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
-    def count(self, molitem: vcy.Molitem, cell_bcidx: int, spliced: np.ndarray,
-              unspliced: np.ndarray, ambiguous: np.ndarray, geneid2ix: Dict[str, int]) -> None:
-
+    def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
+        # NOTE This can be simplified qyuite a bit, without loss of acuracy!
+        # The hits are not compatible with any annotated transcript model
+        spliced = dict_layers_columns["spliced"]
+        unspliced = dict_layers_columns["unspliced"]
+        ambiguous = dict_layers_columns["ambiguous"]
         # The hits are not compatible with any annotated transcript model
         if len(molitem.mappings_record) == 0:
             return
@@ -220,9 +213,12 @@ class Intermediate10X(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
-    def count(self, molitem: vcy.Molitem, cell_bcidx: int, spliced: np.ndarray,
-              unspliced: np.ndarray, ambiguous: np.ndarray, geneid2ix: Dict[str, int]) -> None:
-
+    def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
+        # NOTE This can be simplified qyuite a bit, without loss of acuracy!
+        # The hits are not compatible with any annotated transcript model
+        spliced = dict_layers_columns["spliced"]
+        unspliced = dict_layers_columns["unspliced"]
+        ambiguous = dict_layers_columns["ambiguous"]
         # The hits are not compatible with any annotated transcript model
         if len(molitem.mappings_record) == 0:
             return
@@ -370,9 +366,12 @@ class ValidatedIntrons10X(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
-    def count(self, molitem: vcy.Molitem, cell_bcidx: int, spliced: np.ndarray,
-              unspliced: np.ndarray, ambiguous: np.ndarray, geneid2ix: Dict[str, int]) -> None:
-
+    def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
+        # NOTE This can be simplified qyuite a bit, without loss of acuracy!
+        # The hits are not compatible with any annotated transcript model
+        spliced = dict_layers_columns["spliced"]
+        unspliced = dict_layers_columns["unspliced"]
+        ambiguous = dict_layers_columns["ambiguous"]
         # The hits are not compatible with any annotated transcript model
         if len(molitem.mappings_record) == 0:
             return
@@ -518,9 +517,12 @@ class Stricter10X(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
-    def count(self, molitem: vcy.Molitem, cell_bcidx: int, spliced: np.ndarray,
-              unspliced: np.ndarray, ambiguous: np.ndarray, geneid2ix: Dict[str, int]) -> None:
-
+    def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
+        # NOTE This can be simplified qyuite a bit, without loss of acuracy!
+        # The hits are not compatible with any annotated transcript model
+        spliced = dict_layers_columns["spliced"]
+        unspliced = dict_layers_columns["unspliced"]
+        ambiguous = dict_layers_columns["ambiguous"]
         # The hits are not compatible with any annotated transcript model
         if len(molitem.mappings_record) == 0:
             return
@@ -664,9 +666,12 @@ class ObservedSpanning10X(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
-    def count(self, molitem: vcy.Molitem, cell_bcidx: int, spliced: np.ndarray,
-              unspliced: np.ndarray, ambiguous: np.ndarray, geneid2ix: Dict[str, int]) -> None:
-
+    def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
+        # NOTE This can be simplified qyuite a bit, without loss of acuracy!
+        # The hits are not compatible with any annotated transcript model
+        spliced = dict_layers_columns["spliced"]
+        unspliced = dict_layers_columns["unspliced"]
+        ambiguous = dict_layers_columns["ambiguous"]
         # The hits are not compatible with any annotated transcript model
         if len(molitem.mappings_record) == 0:
             return
@@ -799,12 +804,16 @@ class SmartSeq2(Logic):
 
     @property
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
-        return ["spliced", "unspliced", "ambiguous"]
+        return ["spliced", "unspliced", "ambiguous", "spanning"]
 
-    def count(self, molitem: vcy.Molitem, cell_bcidx: int, spliced: np.ndarray,
-              unspliced: np.ndarray, ambiguous: np.ndarray, geneid2ix: Dict[str, int]) -> None:
-
+    def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
+        # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
+        spliced = dict_layers_columns["spliced"]
+        unspliced = dict_layers_columns["unspliced"]
+        ambiguous = dict_layers_columns["ambiguous"]
+        spanning = dict_layers_columns["spanning"]
+
         if len(molitem.mappings_record) == 0:
             return
         # Compatible with one or more transcript models:
@@ -870,6 +879,7 @@ class SmartSeq2(Logic):
                     return
                 else:
                     if not len(molitem.mappings_record):
+                        # NOTE it does not happen for Smartseq2
                         # No gene is compatible with the observation, do not count
                         return
                     else:
@@ -879,39 +889,16 @@ class SmartSeq2(Logic):
                             spliced[gene_ix, cell_bcidx] += 1
                             return
                         if has_only_span_exin_model:
+                            # NOTE This is what I want to count as spanning
                             # All the compatible transcript models have spanning exon-intron boundaries, count unspliced
                             gene_ix = geneid2ix[transcript_model.geneid]
-                            unspliced[gene_ix, cell_bcidx] += 1
+                            spanning[gene_ix, cell_bcidx] += 1
                             return
                         if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
-                            if len(segments_list) == 1:
-                                # Singleton in validated intron
-                                gene_ix = geneid2ix[transcript_model.geneid]
-                                unspliced[gene_ix, cell_bcidx] += 1
-                                return
-                            else:
-                                # Non-singleton in validated intron
-                                gene_ix = geneid2ix[transcript_model.geneid]
-                                unspliced[gene_ix, cell_bcidx] += 1
-                                return
-                        if has_onlyintron_model and not has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
-                            if len(segments_list) == 1:
-                                # Singleton in non-validated intron
-                                gene_ix = geneid2ix[transcript_model.geneid]
-                                unspliced[gene_ix, cell_bcidx] += 1
-                                return
-                            else:
-                                # Non-singleton in non-validated intron
-                                gene_ix = geneid2ix[transcript_model.geneid]
-                                unspliced[gene_ix, cell_bcidx] += 1
-                                return
-                        if has_invalid_mixed_model and not has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model and not has_only_span_exin_model:
-                            # Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant. Count anyways
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model and not has_only_span_exin_model:
-                            # Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.
+                        if has_onlyintron_model and not has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
@@ -920,18 +907,9 @@ class SmartSeq2(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if has_onlyintron_model and not has_onlyexo_model and has_mixed_model:
-                            # Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous
-                            gene_ix = geneid2ix[transcript_model.geneid]
-                            ambiguous[gene_ix, cell_bcidx] += 1
-                            return
                         if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
+                            # NOTE has_mixed model is used only here in this logic
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous
-                            gene_ix = geneid2ix[transcript_model.geneid]
-                            ambiguous[gene_ix, cell_bcidx] += 1
-                            return
-                        if has_onlyintron_model and has_onlyexo_model and has_mixed_model:
-                            # Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return

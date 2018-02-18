@@ -549,7 +549,7 @@ class ExInCounter:
         # VERBOSE: import pickle
         # VERBOSE: pickle.dump(dump_list, open("dump_mark_overlapping_ivls.pickle", "wb"))
 
-    def count(self, bamfile: Tuple[str], multimap: bool, cell_batch_size: int=100, molecules_report: bool=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
+    def count(self, bamfile: Tuple[str], multimap: bool, cell_batch_size: int=100, molecules_report: bool=False) -> Tuple[Dict[str, List[np.ndarray]], List[str]]:
         """ Do the counting of molecules
         
         Arguments
@@ -563,7 +563,7 @@ class ExInCounter:
         
         Returns
         -------
-        list_spliced_arrays, list_unspliced_arrays, list_ambiguous_arrays, cell_bcs_order
+        dict_list_arrays, cell_bcs_order
 
         Note
         ----
@@ -600,9 +600,7 @@ class ExInCounter:
         logging.debug(f"Validated {n_is_intron_valid} introns (of which unique intervals {len(unique_valid)}) out of {n_is_intron} total possible introns (considering each possible transcript models).")
 
         cell_bcs_order: List[str] = []
-        list_spliced_arrays: List[np.ndarray] = []
-        list_unspliced_arrays: List[np.ndarray] = []
-        list_ambiguous_arrays: List[np.ndarray] = []
+        dict_list_arrays: Dict[str, List[np.ndarray]] = {layer_name: [] for layer_name in self.logic.layers}
         nth = 0
         # Loop through the aligment of the bamfile
         for r in self.iter_alignments(bamfile, unique=not multimap):
@@ -610,11 +608,12 @@ class ExInCounter:
                 # Perfrom the molecule counting
                 nth += 1
                 logging.debug(f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads")
-                spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch(molecules_report and (nth % 10 == 1))
+                dict_layer_columns, list_bcs = self.count_cell_batch(molecules_report and (nth % 10 == 1))
                 cell_bcs_order += list_bcs
-                list_spliced_arrays.append(spliced)
-                list_unspliced_arrays.append(unspliced)
-                list_ambiguous_arrays.append(ambiguous)
+
+                for layer_name, layer_columns in dict_layer_columns.items():
+                    dict_list_arrays[layer_name].append(layer_columns)
+
                 self.cell_batch = set()
                 # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
                 self.reads_to_count = []
@@ -636,16 +635,15 @@ class ExInCounter:
         # self.cell_batch = set()
         # self.reads_to_count = []
         logging.debug(f"Counting done!")
-        return list_spliced_arrays, list_unspliced_arrays, list_ambiguous_arrays, cell_bcs_order
+        return dict_list_arrays, cell_bcs_order
 
-    def count_cell_batch(self, molecules_report: bool=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
+    def count_cell_batch(self, molecules_report: bool=False) -> Tuple[Dict[str, np.ndarray], List[str]]:
         """It performs molecule counting for the current batch of cells
 
         Returns
         -------
-        spliced: np.ndarray
-        unspliced: np.ndarray
-        ambiguous: np.ndarray
+        dict_layers_columns: Dict[str, np.ndarray]
+            name_layer->np.ndarray of the batch
         idx2bc: List[str]
             list of barcodes
         """
@@ -678,16 +676,17 @@ class ExInCounter:
         logging.debug(f"{repeats_reads_count} reads not considered because fully enclosed in repeat masked regions")  # VERBOSE
         # initialize np.ndarray
         shape = (len(self.geneid2ix), len(self.cell_batch))
-        spliced = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE)
-        unspliced = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE)
-        ambiguous = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE)
-        bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
 
+        dict_layers_columns: Dict[str, np.ndarray] = {}
+        for layer_name in self.logic.layers:
+            dict_layers_columns[layer_name] = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE, order="C")
+
+        bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
         for bcumi, molitem in molitems.items():
             bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
             bcidx = bc2idx[bc]
-            self.logic.count(molitem, bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
+            self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
             # NOTE I need to generalize this to any set of layers
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
 
@@ -701,7 +700,7 @@ class ExInCounter:
 
         idx2bc = {v: k for k, v in bc2idx.items()}
         
-        return spliced, unspliced, ambiguous, [idx2bc[i] for i in range(len(idx2bc))]
+        return dict_layers_columns, [idx2bc[i] for i in range(len(idx2bc))]
 
     def pcount(self, samfile: str, cell_batch_size: int=50, molecules_report: bool=False, n_processes: int=4) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
         """ Do the counting of molecules in parallel using multiprocessing

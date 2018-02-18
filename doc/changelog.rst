@@ -3,6 +3,9 @@
 =========
 Changelog
 =========
+* :release:`0.15.0 <2018-02-18>`
+* :feature:`-` It supports SmartSeq2 and has a new run_smartseq2 command
+* :feature:`-` Generalized logic to include more layers than just Spliced, Unspliced, Ambiguous
 * :feature:`-` ``--without-umi`` option allows analyzing UMI-less data such as SmartSeq2
 * :feature:`-` support different verbosity levels with the ``-v`` flag
 * :support:`-` ``--multimap`` option was removed because it could have yield incorrect results depending on the output format chosen for the aligner

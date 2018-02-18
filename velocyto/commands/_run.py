@@ -214,7 +214,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     # Do the actual counting
     logging.debug("Start molecule counting!")
     results = exincounter.count(bamfile_cellsorted, multimap=multimap, molecules_report=molrep)  # NOTE: we would avoid some millions of if statements evalution if we write two function count and count_with output
-    list_spliced_arrays, list_unspliced_arrays, list_ambiguous_arrays, cell_bcs_order = results
+    dict_list_arrays, cell_bcs_order = results
 
     ########################
     #         Output       #
@@ -255,27 +255,30 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         ra[name_col_attr] = tmp_array.astype(dtyp)
     
     logging.debug("Generating data table")
-    spliced = np.concatenate(list_spliced_arrays, axis=1)
-    del list_spliced_arrays
-    unspliced = np.concatenate(list_unspliced_arrays, axis=1)
-    del list_unspliced_arrays
-    ambiguous = np.concatenate(list_ambiguous_arrays, axis=1)
-    del list_ambiguous_arrays
+    layers: Dict[str, np.ndarray] = {}
+
+    for layer_name in logic_obj.layers:
+        layers[layer_name] = np.concatenate(dict_list_arrays[layer_name], axis=1)
+        del dict_list_arrays[layer_name]
     
-    total = spliced + unspliced + ambiguous
+    for layer_name in logic_obj.layers:
+        total: np.ndarray  # This is just a type annotation to avoid mypy compaints
+        try:
+            total += layers[layer_name]
+        except NameError:
+            total = layers[layer_name]
+
     logging.debug("Writing loom file")
     try:
         ds = loompy.create(filename=outfile, matrix=total, row_attrs=ra, col_attrs=ca, dtype="float32")
-        ds.set_layer(name="spliced", matrix=spliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
-        ds.set_layer(name="unspliced", matrix=unspliced, dtype=vcy.LOOM_NUMERIC_DTYPE)
-        ds.set_layer(name="ambiguous", matrix=ambiguous, dtype=vcy.LOOM_NUMERIC_DTYPE)
+        for layer_name in logic_obj.layers:
+            ds.set_layer(name=layer_name, matrix=layers[layer_name], dtype=vcy.LOOM_NUMERIC_DTYPE)
         ds.attrs["velocyto.__version__"] = vcy.__version__
         ds.close()
     except TypeError:
         # If user is using loompy2
-        loompy.create(filename=outfile, layers={"": total.astype("float32", order="C", copy=False),
-                                                "spliced": spliced.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False),
-                                                "unspliced": unspliced.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False),
-                                                "ambiguous": ambiguous.astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False)},
-                      row_attrs=ra, col_attrs=ca, file_attrs={"velocyto.__version__": vcy.__version__})
+        # NOTE maybe this is not super efficient if the type and order are already correct
+        tmp_layers = {"": total.astype("float32", order="C", copy=False)}
+        tmp_layers.update({layer_name: layers[layer_name].astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False) for layer_name in logic_obj.layers})
+        loompy.create(filename=outfile, layers=tmp_layers, row_attrs=ra, col_attrs=ca, file_attrs={"velocyto.__version__": vcy.__version__})
     logging.debug("Terminated Succesfully!")

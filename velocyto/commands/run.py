@@ -16,7 +16,7 @@ from typing import *
 import velocyto as vcy
 from ._run import _run
 
-logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+# logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 
 def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits) -> str:
@@ -24,7 +24,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 
 
 @click.command(short_help="Runs the velocity analysis outputing a loom file")
-@click.argument("bamfile", nargs=-1,
+@click.argument("bamfile", nargs=-1, required=True,
                 type=click.Path(exists=True,
                                 file_okay=True,
                                 dir_okay=False,

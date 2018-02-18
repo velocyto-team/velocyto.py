@@ -5,6 +5,7 @@ from typing import Any
 from collections import OrderedDict
 from .run import run
 from .run10x import run10x
+from .run_smartseq2 import run_smartseq2
 import velocyto._version
 
 
@@ -26,6 +27,7 @@ class NaturalOrderGroup(click.Group):
         """
         return self.commands.keys()
 
+
 @click.version_option(version=velocyto._version.__version__)
 @click.group(cls=NaturalOrderGroup, commands=OrderedDict(), context_settings=dict(max_content_width=300, terminal_width=300))
 def cli() -> None:
@@ -35,3 +37,4 @@ def cli() -> None:
 
 cli.add_command(run)
 cli.add_command(run10x)
+cli.add_command(run_smartseq2)
