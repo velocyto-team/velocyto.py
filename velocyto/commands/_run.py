@@ -61,9 +61,20 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         logging.warning("Several input files but --onefilepercell is False. Each bam file will be interpreted as containing a SET of cells!!!")
 
     if sampleid is None:
-        assert metadatatable is None, "Cannot fetch sample metadata without valid sampleid"
-        sampleid = f'{os.path.basename(bamfile[0]).split(".")[0]}_{id_generator(5)}'
-        logging.info(f"No SAMPLEID specified, the sample will be called {sampleid}")
+        assert metadatatable is None, "--metadatatable was specified but cannot fetch sample metadata without valid sampleid"
+        if multi:
+            logging.info(f"When using mutliple files you may want to use --sampleid option to specify the name of the output file")
+        if multi and not onefilepercell:
+            full_name = "_".join([os.path.basename(bamfile[i]).split(".")[0] for i in range(len(bamfile))])
+            if len(full_name) > 50:
+                sampleid = f'multi_input_{os.path.basename(bamfile[0]).split(".")[0]}_{id_generator(5)}'
+            else:
+                sampleid = f'multi_input_{full_name}_and_others_{id_generator(5)}'
+        elif multi and onefilepercell:
+            sampleid = f'onefilepercell_{os.path.basename(bamfile[0]).split(".")[0]}_and_others_{id_generator(5)}'
+        else:
+            sampleid = f'{os.path.basename(bamfile[0]).split(".")[0]}_{id_generator(5)}'
+        logging.info(f"No SAMPLEID specified, the sample will be called {sampleid} (last 5 digits are a random-id to avoid overwriting some other file by mistake)")
 
     # Create an output folder inside the cell ranger output folder
     if outputfolder is None:

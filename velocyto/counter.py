@@ -176,7 +176,7 @@ class ExInCounter:
         
         counter_skipped_no_barcode = 0
         for bamfile in bamfiles:
-            self._current_bamfile = bamfile
+            self._current_bamfile = os.path.basename(bamfile)
             logging.debug(f"Reading {bamfile}")
 
             fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
