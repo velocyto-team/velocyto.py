@@ -494,6 +494,12 @@ class ExInCounter:
         Situations not considered:
         # If an the exon is so short that is possible to get both exonA-exonB junction and exonB-intronB boundary in the same read
         """
+        
+        # Since I support multiple files (Smart seq2 it makes sense here to load the feature indexes into memory)
+        # NOTE this means that maybe I could do this once at a level above
+        self.feature_indexes: DefaultDict[str, vcy.FeatureIndex] = defaultdict(vcy.FeatureIndex)
+        for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
+            self.feature_indexes[chromstrand_key] = vcy.FeatureIndex(sorted(chain.from_iterable(annotions_ordered_dict.values())))
 
         # VERBOSE: dump_list = []
         # Read the file
@@ -511,8 +517,6 @@ class ExInCounter:
                 logging.debug("Change of file. Reset index: start scanning from initial position.")
                 for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
                     self.feature_indexes[chromstrand_key].reset()
-                for chromstrand_key, annotions_list in self.mask_ivls_by_chromstrand.items():
-                    self.mask_indexes[chromstrand_key].reset()
                 continue
             if r.is_spliced:
                 continue
@@ -526,16 +530,14 @@ class ExInCounter:
                 currchrom = r.chrom
                 if currchrom + '+' not in self.annotations_by_chrm_strand:
                     logging.warn(f"The .bam file refers to a chromosome '{currchrom}+' not present in the annotation (.gtf) file")
-                    sorted_features_f: List[vcy.Feature] = []
+                    iif = vcy.FeatureIndex([])
                 else:
-                    sorted_features_f = sorted(chain.from_iterable(self.annotations_by_chrm_strand[currchrom + '+'].values()))
+                    iif = self.feature_indexes[currchrom + '+']
                 if currchrom + '-' not in self.annotations_by_chrm_strand:
                     logging.warn(f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file")
-                    sorted_features_r: List[vcy.Feature] = []
+                    iir = vcy.FeatureIndex([])
                 else:
-                    sorted_features_r = sorted(chain.from_iterable(self.annotations_by_chrm_strand[currchrom + '-'].values()))
-                iif = vcy.FeatureIndex(sorted_features_f)
-                iir = vcy.FeatureIndex(sorted_features_r)
+                    iir = self.feature_indexes[currchrom + '-']
             
             # Consider the correct strand
             ii = iif if r.strand == '+' else iir
@@ -574,6 +576,7 @@ class ExInCounter:
         self.reads_to_count: List[vcy.Read] = []
         # self.cells_since_last_count = 0
         # Analysis is cell wise so the Feature Index swapping is happening often and it is worth to preload everything in memory
+        # NOTE: for the features this was already done at markup time, maybe I should just reset them
         self.feature_indexes: DefaultDict[str, vcy.FeatureIndex] = defaultdict(vcy.FeatureIndex)
         for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
             self.feature_indexes[chromstrand_key] = vcy.FeatureIndex(sorted(chain.from_iterable(annotions_ordered_dict.values())))
