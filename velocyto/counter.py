@@ -610,7 +610,7 @@ class ExInCounter:
                 # Perfrom the molecule counting
                 nth += 1
                 logging.debug(f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads")
-                spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch(molecules_report and (nth % 10 == 0))
+                spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch(molecules_report and (nth % 10 == 1))
                 cell_bcs_order += list_bcs
                 list_spliced_arrays.append(spliced)
                 list_unspliced_arrays.append(unspliced)
