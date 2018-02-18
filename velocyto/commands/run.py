@@ -68,7 +68,8 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                               dir_okay=False,
                               readable=True))
 @click.option("--onefilepercell", "-c",
-              help="If this flag is used every bamfile passed is interpreted as an independent cell, otherwise files are interpreted as cell poosl to be analized together (default: off)",
+              help="""If this flag is used every bamfile passed is interpreted as an independent cell, otherwise multiple files are interpreted as batch of different cells to be analized together.
+              Important: cells reads should not be distributed over multiple bamfiles is not supported!! (default: off)""",
               default=False,
               is_flag=True)
 @click.option("--logic", "-l",

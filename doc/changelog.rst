@@ -6,6 +6,7 @@ Changelog
 * :release:`0.15.0 <2018-02-18>`
 * :feature:`-` Improve the debug molecular report option to support hdf5
 * :feature:`-` It supports SmartSeq2 and has a new run_smartseq2 command
+* :feature:`-` It supports multiple bam files input, it can interpret it both as one-file-one-cell or just as batches to be analyzed together. IMPORTANT: a cell cannot be distributed over different bamfiles!
 * :feature:`-` Generalized logic to include more layers than just Spliced, Unspliced, Ambiguous
 * :feature:`-` ``--without-umi`` option allows analyzing UMI-less data such as SmartSeq2
 * :feature:`-` support different verbosity levels with the ``-v`` flag
