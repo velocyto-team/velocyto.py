@@ -44,7 +44,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     ########################
 
     logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s',
-                        level=[logging.WARNING, logging.INFO, logging.DEBUG][verbose])
+                        level=[logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG][verbose])
 
     if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile[-1][-4:] in [".bam", ".sam"]:
         multi = True
