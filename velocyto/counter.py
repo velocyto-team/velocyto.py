@@ -506,6 +506,14 @@ class ExInCounter:
                 # This happens only when there is a change of file
                 currchrom = ""
                 set_chromosomes_seen = set()
+                # I need to reset indexes in position before the next file is restarted
+                # NOTE this is far from optimal for lots of cells
+                logging.debug("Change of file. Reset index: start scanning from initial position.")
+                for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
+                    self.feature_indexes[chromstrand_key].reset()
+                for chromstrand_key, annotions_list in self.mask_ivls_by_chromstrand.items():
+                    self.mask_indexes[chromstrand_key].reset()
+                continue
             if r.is_spliced:
                 continue
 
@@ -595,7 +603,7 @@ class ExInCounter:
         nth = 0
         # Loop through the aligment of the bamfile
         for r in self.iter_alignments(bamfile, unique=not multimap):
-            if len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch:
+            if (r is None) or (len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch):
                 # Perfrom the molecule counting
                 nth += 1
                 logging.debug(f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads")
@@ -611,17 +619,19 @@ class ExInCounter:
                     self.feature_indexes[chromstrand_key].reset()
                 for chromstrand_key, annotions_list in self.mask_ivls_by_chromstrand.items():
                     self.mask_indexes[chromstrand_key].reset()
-
-            self.cell_batch.add(r.bc)
-            self.reads_to_count.append(r)
-        logging.debug(f"Counting molecule for last batch of {len(self.cell_batch)}, total reads {len(self.reads_to_count)}")
-        spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch()
-        cell_bcs_order += list_bcs
-        list_spliced_arrays.append(spliced)
-        list_unspliced_arrays.append(unspliced)
-        list_ambiguous_arrays.append(ambiguous)
-        self.cell_batch = set()
-        self.reads_to_count = []
+            
+            if r is not None:
+                self.cell_batch.add(r.bc)
+                self.reads_to_count.append(r)
+        # NOTE: Since iter_allignments is yielding None at each file change (even when only one bamfile) I do not need the following
+        # logging.debug(f"Counting molecule for last batch of {len(self.cell_batch)}, total reads {len(self.reads_to_count)}")
+        # spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch()
+        # cell_bcs_order += list_bcs
+        # list_spliced_arrays.append(spliced)
+        # list_unspliced_arrays.append(unspliced)
+        # list_ambiguous_arrays.append(ambiguous)
+        # self.cell_batch = set()
+        # self.reads_to_count = []
         logging.debug(f"Counting done!")
         return list_spliced_arrays, list_unspliced_arrays, list_ambiguous_arrays, cell_bcs_order
 
