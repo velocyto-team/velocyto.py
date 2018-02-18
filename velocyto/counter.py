@@ -388,7 +388,7 @@ class ExInCounter:
         regex_trname = re.compile('transcript_name "([^"]+)"')
         regex_geneid = re.compile('gene_id "([^"]+)"')
         regex_genename = re.compile('gene_name "([^"]+)"')
-        regex_exonno = re.compile('exon_number "([^"]+)"')
+        regex_exonno = re.compile('exon_number (("([^"]+)")|[0-9]{1,3})')  # re.compile('exon_number "([^"]+)"')
 
         # Initialize containers
         # headerlines: List[str] = []
