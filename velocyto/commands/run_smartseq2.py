@@ -65,5 +65,5 @@ def run_smartseq2(bamfiles: str, gtffile: str, outputfolder: str, sampleid: str,
     return _run(bamfile=bamfiles, gtffile=gtffile, bcfile=None, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=None, repmask=repmask, onefilepercell=True,
                 logic="SmartSeq2", without_umi=True, umi_extension="no",
-                molrep=False, multimap=False, test=False, samtools_threads=0,
-                samtools_memory=0, verbose=verbose, additional_ca=additional_ca)
+                molrep=False, multimap=False, test=False, samtools_threads=1,
+                samtools_memory=1, verbose=verbose, additional_ca=additional_ca)

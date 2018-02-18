@@ -125,7 +125,7 @@ class ExInCounter:
                 self.umibarcode_str = "XM"
                 break
             elif failed > 5 * lines:
-                raise IOError("The bam file does not contain cell and umi barcodes appropriatelly formatted")
+                raise IOError("The bam file does not contain cell and umi barcodes appropriatelly formatted. If you are runnin UMI-less data you should use the -U flag.")
             else:
                 pass
         fin.close()
