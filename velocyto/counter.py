@@ -713,12 +713,12 @@ class ExInCounter:
                     os.makedirs("velocyto_dump")
                 f = h5py.File(f'velocyto_dump/{self.sampleid}.hdf5')  # From the docs: Read/write if exists, create otherwise (default)
 
-                if "info/geneixs" not in f:
+                if "info/gene_ixs" not in f:
                     logging.warning("The hdf5 report is less accurate in reporting exactly all the information than the pickle.")
                     gene_names = np.array(list(self.geneid2ix.keys()), dtype='S15')
                     gene_ixs = np.array(list(self.geneid2ix.values()), dtype=np.uint16)
                     f.create_dataset("info/gene_ixs", data=gene_ixs)
-                    f.create_dataset("info/gene_names", data=gene_names)
+                    f.create_dataset("info/gene_ids", data=gene_names)
 
                 cell_name = next(iter(molitems.keys())).split("$")[0]
                 pos: Union[List[Tuple[int, int]], np.ndarray] = []
@@ -728,7 +728,7 @@ class ExInCounter:
                     for match in next(iter(molitem.mappings_record.items()))[1]:
                         pos.append(match.segment)
                         chrom.append(match.feature.transcript_model.chromstrand)
-                        gene.append(self.geneid2ix[match.feature.transcript_model.genename])
+                        gene.append(self.geneid2ix[match.feature.transcript_model.geneid])
                 pos = np.array(pos, dtype=np.int32)
                 chrom = np.array(chrom, dtype="S5")
                 gene = np.array(gene, dtype=np.uint16)
