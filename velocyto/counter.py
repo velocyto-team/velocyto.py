@@ -22,7 +22,7 @@ class ExInCounter:
                  umi_extension: str="no", onefilepercell: bool=False, dump_option: str="0") -> None:
         self.sampleid = sampleid
         self.logic = logic()
-        # NOTE: maybe there shoulb be a self.logic.validate() step at the end of init
+        # NOTE: maybe there shoulb be a self.logic.verify_inputs(args) step at the end of init
         if valid_bcset is None:
             self.valid_bcset: Set[str] = set()
             self.filter_mode = False
@@ -506,59 +506,63 @@ class ExInCounter:
         # If an the exon is so short that is possible to get both exonA-exonB junction and exonB-intronB boundary in the same read
         """
         
-        # Since I support multiple files (Smart seq2 it makes sense here to load the feature indexes into memory)
-        # NOTE this means that maybe I could do this once at a level above
-        self.feature_indexes: DefaultDict[str, vcy.FeatureIndex] = defaultdict(vcy.FeatureIndex)
-        for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
-            self.feature_indexes[chromstrand_key] = vcy.FeatureIndex(sorted(chain.from_iterable(annotions_ordered_dict.values())))
+        if not self.logic.validate:
+            return
+        else:
+            # Since I support multiple files (Smart seq2 it makes sense here to load the feature indexes into memory)
+            # NOTE this means that maybe I could do this once at a level above
+            # NOTE if this is not done in count then I need to bring it before the if/else statement
+            self.feature_indexes: DefaultDict[str, vcy.FeatureIndex] = defaultdict(vcy.FeatureIndex)
+            for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
+                self.feature_indexes[chromstrand_key] = vcy.FeatureIndex(sorted(chain.from_iterable(annotions_ordered_dict.values())))
 
-        # VERBOSE: dump_list = []
-        # Read the file
-        currchrom = ""
-        set_chromosomes_seen: Set[str] = set()
-        for r in self.iter_alignments(bamfile, unique=not multimap):
-            # Don't consider spliced reads (exonic) in this step
-            # NOTE Can the exon be so short that we get splicing and exon-intron boundary
-            if r is None:
-                # This happens only when there is a change of file
-                currchrom = ""
-                set_chromosomes_seen = set()
-                # I need to reset indexes in position before the next file is restarted
-                # NOTE this is far from optimal for lots of cells
-                logging.debug("Change of file. Reset index: start scanning from initial position.")
-                for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
-                    self.feature_indexes[chromstrand_key].reset()
-                continue
-            if r.is_spliced:
-                continue
+            # VERBOSE: dump_list = []
+            # Read the file
+            currchrom = ""
+            set_chromosomes_seen: Set[str] = set()
+            for r in self.iter_alignments(bamfile, unique=not multimap):
+                # Don't consider spliced reads (exonic) in this step
+                # NOTE Can the exon be so short that we get splicing and exon-intron boundary
+                if r is None:
+                    # This happens only when there is a change of file
+                    currchrom = ""
+                    set_chromosomes_seen = set()
+                    # I need to reset indexes in position before the next file is restarted
+                    # NOTE this is far from optimal for lots of cells
+                    logging.debug("Change of file. Reset index: start scanning from initial position.")
+                    for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
+                        self.feature_indexes[chromstrand_key].reset()
+                    continue
+                if r.is_spliced:
+                    continue
 
-            # When the chromosome mapping of the read changes, change interval index.
-            if r.chrom != currchrom:
-                if r.chrom in set_chromosomes_seen:
-                    raise IOError(f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)")
-                set_chromosomes_seen.add(r.chrom)
-                logging.debug(f"Marking up chromosome {r.chrom}")
-                currchrom = r.chrom
-                if currchrom + '+' not in self.annotations_by_chrm_strand:
-                    logging.warn(f"The .bam file refers to a chromosome '{currchrom}+' not present in the annotation (.gtf) file")
-                    iif = vcy.FeatureIndex([])
-                else:
-                    iif = self.feature_indexes[currchrom + '+']
-                if currchrom + '-' not in self.annotations_by_chrm_strand:
-                    logging.warn(f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file")
-                    iir = vcy.FeatureIndex([])
-                else:
-                    iir = self.feature_indexes[currchrom + '-']
-            
-            # Consider the correct strand
-            ii = iif if r.strand == '+' else iir
+                # When the chromosome mapping of the read changes, change interval index.
+                if r.chrom != currchrom:
+                    if r.chrom in set_chromosomes_seen:
+                        raise IOError(f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)")
+                    set_chromosomes_seen.add(r.chrom)
+                    logging.debug(f"Marking up chromosome {r.chrom}")
+                    currchrom = r.chrom
+                    if currchrom + '+' not in self.annotations_by_chrm_strand:
+                        logging.warn(f"The .bam file refers to a chromosome '{currchrom}+' not present in the annotation (.gtf) file")
+                        iif = vcy.FeatureIndex([])
+                    else:
+                        iif = self.feature_indexes[currchrom + '+']
+                    if currchrom + '-' not in self.annotations_by_chrm_strand:
+                        logging.warn(f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file")
+                        iir = vcy.FeatureIndex([])
+                    else:
+                        iir = self.feature_indexes[currchrom + '-']
+                
+                # Consider the correct strand
+                ii = iif if r.strand == '+' else iir
 
-            # VERBOSE: # Look for overlap between the intervals and the read
-            # VERBOSE: dump_list += ii.mark_overlapping_ivls(r)
-            ii.mark_overlapping_ivls(r)
+                # VERBOSE: # Look for overlap between the intervals and the read
+                # VERBOSE: dump_list += ii.mark_overlapping_ivls(r)
+                ii.mark_overlapping_ivls(r)
 
-        # VERBOSE: import pickle
-        # VERBOSE: pickle.dump(dump_list, open("dump_mark_overlapping_ivls.pickle", "wb"))
+            # VERBOSE: import pickle
+            # VERBOSE: pickle.dump(dump_list, open("dump_mark_overlapping_ivls.pickle", "wb"))
 
     def count(self, bamfile: Tuple[str], multimap: bool, cell_batch_size: int=100, molecules_report: bool=False) -> Tuple[Dict[str, List[np.ndarray]], List[str]]:
         """ Do the counting of molecules

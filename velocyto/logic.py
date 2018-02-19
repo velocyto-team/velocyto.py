@@ -13,7 +13,11 @@ class Logic(metaclass=abc.ABCMeta):
 
     @property
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
-        return ["spliced", "unspliced", "ambiguous"]
+        return []
+
+    @property
+    def perform_validation_markup(self) -> bool:
+        return True
 
     @abc.abstractmethod  # This needs to be overridden
     def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
@@ -55,6 +59,10 @@ class Permissive10X(Logic):
     @property
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
+
+    @property
+    def perform_validation_markup(self) -> bool:
+        return True
 
     def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
@@ -213,6 +221,10 @@ class Intermediate10X(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
+    @property
+    def perform_validation_markup(self) -> bool:
+        return True
+
     def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -366,6 +378,10 @@ class ValidatedIntrons10X(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
+    @property
+    def perform_validation_markup(self) -> bool:
+        return True
+
     def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -517,6 +533,10 @@ class Stricter10X(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
+    @property
+    def perform_validation_markup(self) -> bool:
+        return True
+
     def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -666,6 +686,10 @@ class ObservedSpanning10X(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
+    @property
+    def perform_validation_markup(self) -> bool:
+        return True
+
     def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -806,6 +830,10 @@ class SmartSeq2(Logic):
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous", "spanning"]
 
+    @property
+    def perform_validation_markup(self) -> bool:
+        return False
+
     def count(self, molitem: vcy.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, np.ndarray], geneid2ix: Dict[str, int]) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -824,9 +852,6 @@ class SmartSeq2(Logic):
                 
                 has_onlyintron_model = 0
                 has_only_span_exin_model = 1
-                has_onlyintron_and_valid_model = 0
-                has_valid_mixed_model = 0
-                has_invalid_mixed_model = 0
                 has_onlyexo_model = 0
                 has_mixed_model = 0
                 multi_gene = 0
@@ -837,38 +862,27 @@ class SmartSeq2(Logic):
                     has_introns = 0
                     has_exons = 0
                     has_exseg_with_spliced_flag = 0
-                    has_validated_intron = 0
                     has_exin_intron_span = 0
-                    has_non3prime = 0
                     for segment_match in segments_list:
                         if segment_match.maps_to_intron:
                             has_introns = 1
-                            if segment_match.feature.is_validated:
-                                has_validated_intron = 1
-                                if segment_match.feature.end_overlaps_with_part_of(segment_match.segment):
-                                    downstream_exon = segment_match.feature.get_downstream_exon()
-                                    if downstream_exon.start_overlaps_with_part_of(segment_match.segment):
-                                        has_exin_intron_span = 1
-                                if segment_match.feature.start_overlaps_with_part_of(segment_match.segment):
-                                    upstream_exon = segment_match.feature.get_upstream_exon()
-                                    if upstream_exon.end_overlaps_with_part_of(segment_match.segment):
-                                        has_exin_intron_span = 1
+                            if segment_match.feature.end_overlaps_with_part_of(segment_match.segment):
+                                downstream_exon = segment_match.feature.get_downstream_exon()
+                                if downstream_exon.start_overlaps_with_part_of(segment_match.segment):
+                                    has_exin_intron_span = 1
+                            if segment_match.feature.start_overlaps_with_part_of(segment_match.segment):
+                                upstream_exon = segment_match.feature.get_upstream_exon()
+                                if upstream_exon.end_overlaps_with_part_of(segment_match.segment):
+                                    has_exin_intron_span = 1
                         elif segment_match.maps_to_exon:
                             has_exons = 1
-                            if not segment_match.feature.is_last_3prime:
-                                has_non3prime = 1
                             if segment_match.is_spliced:
                                 has_exseg_with_spliced_flag = 1
-                    if has_validated_intron and not has_exons:
-                        has_onlyintron_and_valid_model = 1
                     if has_introns and not has_exons:
                         has_onlyintron_model = 1
                     if has_exons and not has_introns:
                         has_onlyexo_model = 1
-                    if has_exons and has_introns and not has_validated_intron and not has_exin_intron_span:
-                        has_invalid_mixed_model = 1
-                        has_mixed_model = 1
-                    if has_exons and has_introns and has_validated_intron and not has_exin_intron_span:
+                    if has_exons and has_introns and not has_exin_intron_span:
                         has_valid_mixed_model = 1
                         has_mixed_model = 1
                     if not has_exin_intron_span:
@@ -894,11 +908,7 @@ class SmartSeq2(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spanning[gene_ix, cell_bcidx] += 1
                             return
-                        if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
-                            gene_ix = geneid2ix[transcript_model.geneid]
-                            unspliced[gene_ix, cell_bcidx] += 1
-                            return
-                        if has_onlyintron_model and not has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
+                        if has_onlyintron_model and not has_mixed_model and not has_onlyexo_model:
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
