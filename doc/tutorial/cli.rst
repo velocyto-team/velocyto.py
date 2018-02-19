@@ -7,7 +7,7 @@ Introduction
 ------------
 
 After you have velocyto correctly installed on your machine (see :ref:`installation tutorial <install>`) the ``velocyto`` command will become available in the terminal.
-``velocyto`` is a command line tool with subcomands. You can get info on all the available commands typing ``velocyto --help``. You will get the following output:
+``velocyto`` is a command line tool with subcommands. You can get info on all the available commands typing ``velocyto --help``. You will get the following output:
 
 .. include:: ../substitutions/velocyto.txt
 
@@ -64,7 +64,7 @@ Notes on ``velocyto run``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As one of its first steps ``velocyto run`` will try to create a copy of the input .bam files sorted by cell-barcode. The sorted .bam file will be placed in the same directory as the original file and it will be named ``cellsorted_[ORIGINALBAMNAME]``.
-The sorting procedure uses ``samtools sort`` and it is expected to be time consumning, because of this, the procedurre is perfomed in parellel by default. It is possible to control this parallelization using the parameters ``--samtools-threads`` and  ``--samtools-memory``.
+The sorting procedure uses ``samtools sort`` and it is expected to be time consuming, because of this, the procedure is perfomed in parallel by default. It is possible to control this parallelization using the parameters ``--samtools-threads`` and  ``--samtools-memory``.
 
 .. note::
     If the file ``cellsorted_[ORIGINALBAMNAME]`` exists, the sorting procedure will be skipped and the file present will be used.
