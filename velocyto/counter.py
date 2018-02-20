@@ -506,7 +506,7 @@ class ExInCounter:
         # If an the exon is so short that is possible to get both exonA-exonB junction and exonB-intronB boundary in the same read
         """
         
-        if not self.logic.validate:
+        if not self.logic.perform_validation_markup:
             return
         else:
             # Since I support multiple files (Smart seq2 it makes sense here to load the feature indexes into memory)
