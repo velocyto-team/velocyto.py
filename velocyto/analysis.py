@@ -249,9 +249,9 @@ class VelocytoLoom:
         To perform the filtering use the method `filter_genes`
         """
         if winsorize:
-            if min_expr_cells <= ((100 - winsor_perc[1]) * self.S.shape[0] * 0.01):
+            if min_expr_cells <= ((100 - winsor_perc[1]) * self.S.shape[1] * 0.01):
                 min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.S.shape[0] * 0.01)) + 2
-                logging.debug(f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[0]}, ugrading to min_expr_cells ={min_expr_cells}")
+                logging.debug(f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, ugrading to min_expr_cells ={min_expr_cells}")
                 
         detected_bool = ((self.S > 0).sum(1) > min_expr_cells) & (self.S.mean(1) < max_expr_avg)
         Sf = self.S[detected_bool, :]
