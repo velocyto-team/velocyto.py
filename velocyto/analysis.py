@@ -166,6 +166,7 @@ class VelocytoLoom:
         self.ca = {k: v[bool_array] for k, v in self.ca.items()}
         try:
             self.cluster_labels = self.cluster_labels[bool_array]  # type: np.ndarray
+            self.colorandum = self.colorandum[bool_array,:]  # type: np.ndarray
         except AttributeError:
             pass
 

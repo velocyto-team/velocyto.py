@@ -3,6 +3,7 @@
 =========
 Changelog
 =========
+* :bug:`-` Fix an error in filter_cells: colors array is now filtered as well
 * :release:`0.15.0 <2018-02-18>`
 * :feature:`-` Improve the debug molecular report option to support hdf5
 * :feature:`-` It supports SmartSeq2 and has a new run_smartseq2 command
