@@ -771,7 +771,8 @@ class VelocytoLoom:
 
     def knn_imputation(self, k: int=None, pca_space: float=True, metric: str="euclidean", diag: float=1,
                        n_pca_dims: int=None, maximum: bool=False, size_norm: bool=True,
-                       balanced: bool=False, b_sight: int=None, b_maxl: int=None, n_jobs: int=8) -> None:
+                       balanced: bool=False, b_sight: int=None, b_maxl: int=None,
+                       group_constraint: Union[str, np.ndarray]=None, n_jobs: int=8) -> None:
         """Performs k-nn smoothing of the data matrix
 
         Arguments
@@ -797,6 +798,9 @@ class VelocytoLoom:
             the sight parameter of BalancedKNN (used only if balanced == True)
         b_maxl: int
             the maxl parameter of BalancedKNN (used only if balanced == True)
+        group_constraint: str or np.ndarray[int]:
+            currently implemented only for balanced valid only with balance
+            if "clusters" the the clusters will be used as a cosntraint so that cells of different clusters cannot be neighbours
         n_jobs: int, default 8
             number of parallel jobs in knn calculation
 
@@ -825,10 +829,17 @@ class VelocytoLoom:
         else:
             space = self.S_norm.T
         if balanced:
-            bknn = BalancedKNN(k=k, sight_k=b_sight, maxl=b_maxl, metric=metric, mode="distance", n_jobs=n_jobs)
+            if group_constraint is not None:
+                if isinstance(group_constraint, str) and group_constraint == "clusters":
+                    constraint = np.array(self.cluster_ix)
+                bknn = BalancedKNN(k=k, sight_k=b_sight, maxl=b_maxl, metric=metric, constraint=constraint, mode="distance", n_jobs=n_jobs)
+            else:
+                bknn = BalancedKNN(k=k, sight_k=b_sight, maxl=b_maxl, metric=metric, mode="distance", n_jobs=n_jobs)
             bknn.fit(space)
             self.knn = bknn.kneighbors_graph(mode="distance")
         else:
+            if group_constraint is not None:
+                raise ValueError("group_constraint is currently supported only if the argument balanced is set to True")
             self.knn = knn_distance_matrix(space, metric=metric, k=k, mode="distance", n_jobs=n_jobs)
         connectivity = (self.knn > 0).astype(float)
         with warnings.catch_warnings():

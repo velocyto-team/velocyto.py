@@ -3,6 +3,7 @@
 =========
 Changelog
 =========
+* :feature:`-` Add possibility to constraint knn averaging: when turned on avoids to set edges between cells of specified groups
 * :bug:`-` Fix an error in filter_cells: colors array is now filtered as well
 * :release:`0.15.0 <2018-02-18>`
 * :feature:`-` Improve the debug molecular report option to support hdf5
