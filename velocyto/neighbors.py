@@ -74,7 +74,7 @@ def balance_knn_loop(dsi: np.ndarray, dist: np.ndarray, lsi: np.ndarray, maxl: i
 
 @jit(signature_or_function="Tuple((float64[:,:], int64[:,:], int64[:]))(int64[:,:], float64[:, :], int64[:], int64[:], int64, int64, boolean)",
      nopython=True)
-def balance_knn_loop_constrained(dsi: np.ndarray, dist: np.ndarray, lsi: np.ndarray, groups: np.ndarray[int], maxl: int, k: int, return_distance: bool) -> Tuple:
+def balance_knn_loop_constrained(dsi: np.ndarray, dist: np.ndarray, lsi: np.ndarray, groups: np.ndarray, maxl: int, k: int, return_distance: bool) -> Tuple:
     """Fast and greedy algorythm to balance a K-NN graph so that no node is the NN to more than maxl other nodes
 
         Arguments
