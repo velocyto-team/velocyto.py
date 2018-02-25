@@ -164,8 +164,7 @@ class VelocytoLoom:
         self.initial_cell_size = self.initial_cell_size[bool_array]
         self.initial_Ucell_size = self.initial_Ucell_size[bool_array]
         try:
-            self.size_factor: np.ndarray
-            self.size_factor = self.size_factor[bool_array]
+            self.size_factor = self.size_factor[bool_array]  # type: np.ndarray
         except:
             pass
         self.ca = {k: v[bool_array] for k, v in self.ca.items()}
@@ -314,7 +313,7 @@ class VelocytoLoom:
         """
         Y = np.log2(self.S[self.cv_mean_selected, :] + 1)
         Y_avg = Y.mean(1)
-        self.size_factor: np.ndarray = np.median(2**(Y_avg[:, None] - Y), axis=0)
+        self.size_factor: np.ndarray = np.median(2**(Y - Y_avg[:, None]), axis=0)
 
     def score_cluster_expression(self, min_avg_U: float=0.02, min_avg_S: float=0.08) -> np.ndarray:
         """Prepare filtering genes on the basis of cluster-wise expression threshold
@@ -583,7 +582,7 @@ class VelocytoLoom:
             The extra count added when logging (log2)
         relative_size: np.ndarray, default=None
             if None it calculate the sums the molecules per cell (self.S.sum(0))
-            if an array is provided it use it for the normalization
+            if an array is provided it is used for the normalization
         use_S_size_for_U: bool
             U is size normalized using the sum of molecules of S
         target_size: float or Tuple[float, float] (depending if the which parameter implies 1 or more normalizations)
@@ -780,12 +779,12 @@ class VelocytoLoom:
                    c=self.colorandum)
         ax.view_init(elev=elev, azim=azim)
 
-    def _imputed(self, n_components: int=None) -> None:
+    def _perform_PCA_imputed(self, n_components: int=None) -> None:
         """Simply performs PCA of `Sx_norm` and save the result as  `pcax`"""
         self.pcax = PCA(n_components=n_components)
         self.pcsx = self.pcax.fit_transform(self.Sx_norm.T)
 
-    def plot_pca_imputed(self, dim: List[int]=[0, 1, 2], elev: float=60, azim: float=-140) -> None:
+    def _plot_pca_imputed(self, dim: List[int]=[0, 1, 2], elev: float=60, azim: float=-140) -> None:
         """Plot 3d PCA of the smoothed data
         """
         fig = plt.figure(figsize=(8, 6))
