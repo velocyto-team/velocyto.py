@@ -799,8 +799,9 @@ class VelocytoLoom:
         b_maxl: int
             the maxl parameter of BalancedKNN (used only if balanced == True)
         group_constraint: str or np.ndarray[int]:
-            currently implemented only for balanced valid only with balance
+            currently implemented only for balanced = True
             if "clusters" the the clusters will be used as a cosntraint so that cells of different clusters cannot be neighbours
+            if an array of integers of shape vlm.S.shape[1] it will be interpreted as labels of the groups
         n_jobs: int, default 8
             number of parallel jobs in knn calculation
 
