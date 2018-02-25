@@ -221,7 +221,8 @@ class VelocytoLoom:
         return cluster_ix
 
     def score_cv_vs_mean(self, N: int=3000, min_expr_cells: int=2, max_expr_avg: float=20, min_expr_avg: int=0, svr_gamma: float=None,
-                         winsorize: bool=False, winsor_perc: Tuple[float, float]=(1, 99.5), sort_inverse: bool=False, plot: bool=False) -> np.ndarray:
+                         winsorize: bool=False, winsor_perc: Tuple[float, float]=(1, 99.5), sort_inverse: bool=False, which: str="S",
+                         plot: bool=False) -> np.ndarray:
         """Rank genes on the basis of a CV vs mean fit, it uses a nonparametric fit (Support Vector Regression)
 
         Arguments
@@ -242,6 +243,10 @@ class VelocytoLoom:
             the up and lower bound of the winsorization
         sort_inverse: bool, (default=False)
             if True it sorts genes from less noisy to more noisy (to use for size estimation not for feature selection)
+        which: bool, (default="S")
+            it performs the same cv_vs mean procedure on spliced "S" or unspliced "U" count
+            "both" is NOT supported here because most often S the two procedure would have different parameters
+            (notice that default parameters are good heuristics only for S) 
         plot: bool, default=False
             whether to show a plot
 
@@ -257,69 +262,134 @@ class VelocytoLoom:
 
         To perform the filtering use the method `filter_genes`
         """
-        if winsorize:
-            if min_expr_cells <= ((100 - winsor_perc[1]) * self.S.shape[1] * 0.01):
-                min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.S.shape[0] * 0.01)) + 2
-                logging.debug(f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, ugrading to min_expr_cells ={min_expr_cells}")
-                
-        detected_bool = ((self.S > 0).sum(1) > min_expr_cells) & (self.S.mean(1) < max_expr_avg) & (self.S.mean(1) > min_expr_avg)
-        Sf = self.S[detected_bool, :]
-        if winsorize:
-            down, up = np.percentile(Sf, winsor_perc, 1)
-            Sfw = np.clip(Sf, down[:, None], up[:, None])
-            mu = Sfw.mean(1)
-            sigma = Sfw.std(1, ddof=1)
+        if which == "S":
+            if winsorize:
+                if min_expr_cells <= ((100 - winsor_perc[1]) * self.S.shape[1] * 0.01):
+                    min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.S.shape[0] * 0.01)) + 2
+                    logging.debug(f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, ugrading to min_expr_cells ={min_expr_cells}")
+                    
+            detected_bool = ((self.S > 0).sum(1) > min_expr_cells) & (self.S.mean(1) < max_expr_avg) & (self.S.mean(1) > min_expr_avg)
+            Sf = self.S[detected_bool, :]
+            if winsorize:
+                down, up = np.percentile(Sf, winsor_perc, 1)
+                Sfw = np.clip(Sf, down[:, None], up[:, None])
+                mu = Sfw.mean(1)
+                sigma = Sfw.std(1, ddof=1)
+            else:
+                mu = Sf.mean(1)
+                sigma = Sf.std(1, ddof=1)
+
+            cv = sigma / mu
+            log_m = np.log2(mu)
+            log_cv = np.log2(cv)
+
+            if svr_gamma is None:
+                svr_gamma = 150. / len(mu)
+                logging.debug(f"svr_gamma set to {svr_gamma}")
+            # Fit the Support Vector Regression
+            clf = SVR(gamma=svr_gamma)
+            clf.fit(log_m[:, None], log_cv)
+            fitted_fun = clf.predict
+            ff = fitted_fun(log_m[:, None])
+            score = log_cv - ff
+            if sort_inverse:
+                score = - score
+            nth_score = np.sort(score)[::-1][N]
+            if plot:
+                scatter_viz(log_m[score > nth_score], log_cv[score > nth_score], s=3, alpha=0.4, c="tab:red")
+                scatter_viz(log_m[score <= nth_score], log_cv[score <= nth_score], s=3, alpha=0.4, c="tab:blue")
+                mu_linspace = np.linspace(np.min(log_m), np.max(log_m))
+                plt.plot(mu_linspace, fitted_fun(mu_linspace[:, None]), c="k")
+                plt.xlabel("log2 mean S")
+                plt.ylabel("log2 CV S")
+            self.cv_mean_score = np.zeros(detected_bool.shape)
+            self.cv_mean_score[~detected_bool] = np.min(score) - 1e-16
+            self.cv_mean_score[detected_bool] = score
+            self.cv_mean_selected = self.cv_mean_score >= nth_score
         else:
-            mu = Sf.mean(1)
-            sigma = Sf.std(1, ddof=1)
+            if winsorize:
+                if min_expr_cells <= ((100 - winsor_perc[1]) * self.U.shape[1] * 0.01):
+                    min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.U.shape[0] * 0.01)) + 2
+                    logging.debug(f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, ugrading to min_expr_cells ={min_expr_cells}")
+                    
+            detected_bool = ((self.U > 0).sum(1) > min_expr_cells) & (self.U.mean(1) < max_expr_avg) & (self.U.mean(1) > min_expr_avg)
+            Uf = self.U[detected_bool, :]
+            if winsorize:
+                down, up = np.percentile(Uf, winsor_perc, 1)
+                Ufw = np.clip(Uf, down[:, None], up[:, None])
+                mu = Ufw.mean(1)
+                sigma = Ufw.std(1, ddof=1)
+            else:
+                mu = Uf.mean(1)
+                sigma = Uf.std(1, ddof=1)
 
-        cv = sigma / mu
-        log_m = np.log2(mu)
-        log_cv = np.log2(cv)
+            cv = sigma / mu
+            log_m = np.log2(mu)
+            log_cv = np.log2(cv)
 
-        if svr_gamma is None:
-            svr_gamma = 150. / len(mu)
-            logging.debug(f"svr_gamma set to {svr_gamma}")
-        # Fit the Support Vector Regression
-        clf = SVR(gamma=svr_gamma)
-        clf.fit(log_m[:, None], log_cv)
-        fitted_fun = clf.predict
-        ff = fitted_fun(log_m[:, None])
-        score = log_cv - ff
-        if sort_inverse:
-            score = - score
-        nth_score = np.sort(score)[::-1][N]
-        if plot:
-            scatter_viz(log_m[score > nth_score], log_cv[score > nth_score], s=3, alpha=0.4, c="tab:red")
-            scatter_viz(log_m[score <= nth_score], log_cv[score <= nth_score], s=3, alpha=0.4, c="tab:blue")
-            mu_linspace = np.linspace(np.min(log_m), np.max(log_m))
-            plt.plot(mu_linspace, fitted_fun(mu_linspace[:, None]), c="k")
-        self.cv_mean_score = np.zeros(detected_bool.shape)
-        self.cv_mean_score[~detected_bool] = np.min(score) - 1e-16
-        self.cv_mean_score[detected_bool] = score
-        self.cv_mean_selected = self.cv_mean_score >= nth_score
+            if svr_gamma is None:
+                svr_gamma = 150. / len(mu)
+                logging.debug(f"svr_gamma set to {svr_gamma}")
+            # Fit the Support Vector Regression
+            clf = SVR(gamma=svr_gamma)
+            clf.fit(log_m[:, None], log_cv)
+            fitted_fun = clf.predict
+            ff = fitted_fun(log_m[:, None])
+            score = log_cv - ff
+            if sort_inverse:
+                score = - score
+            nth_score = np.sort(score)[::-1][N]
+            if plot:
+                scatter_viz(log_m[score > nth_score], log_cv[score > nth_score], s=3, alpha=0.4, c="tab:red")
+                scatter_viz(log_m[score <= nth_score], log_cv[score <= nth_score], s=3, alpha=0.4, c="tab:blue")
+                mu_linspace = np.linspace(np.min(log_m), np.max(log_m))
+                plt.plot(mu_linspace, fitted_fun(mu_linspace[:, None]), c="k")
+                plt.xlabel("log2 mean U")
+                plt.ylabel("log2 CV U")
+            self.Ucv_mean_score = np.zeros(detected_bool.shape)
+            self.Ucv_mean_score[~detected_bool] = np.min(score) - 1e-16
+            self.Ucv_mean_score[detected_bool] = score
+            self.Ucv_mean_selected = self.Ucv_mean_score >= nth_score
 
-    def robust_size_factor(self, pc: float=0.1) -> None:
+    def robust_size_factor(self, pc: float=0.1, which: str="both") -> None:
         """Calculates a size factor in a similar way of Anders and Huber 2010
 
         Arguments
         --------
         pc: float, default=0.1
             The pseudocount to add to the expression before taking the log for the purpose of the size factor calculation
+        which: str, default="both"
+            For which counts estimate the normalization size factor. It can be "both", "S" or "U"
 
         Returns
         -------
-        Nothing but it creates the attribute self.size_factor
+        Nothing but it creates the attribute `self.size_factor` and `self.Usize_factor`
         normalization is self.S / self.size_factor and is perfromed by using `self.normalize(relative_size=self.size_factor)`
 
         Note
         ----
         Before running this method `score_cv_vs_mean` need to be run with sort_inverse=True, since only lowly variable genes are used for this size estimation
         """
-        Y = np.log2(self.S[self.cv_mean_selected, :] + pc)
-        Y_avg = Y.mean(1)
-        self.size_factor: np.ndarray = np.median(2**(Y - Y_avg[:, None]), axis=0)
-        self.size_factor = self.size_factor / np.mean(self.size_factor)
+        if which == "both":
+            Y = np.log2(self.S[self.cv_mean_selected, :] + pc)
+            Y_avg = Y.mean(1)
+            self.size_factor: np.ndarray = np.median(2**(Y - Y_avg[:, None]), axis=0)
+            self.size_factor = self.size_factor / np.mean(self.size_factor)
+
+            Y = np.log2(self.U[self.Ucv_mean_selected, :] + pc)
+            Y_avg = Y.mean(1)
+            self.Usize_factor: np.ndarray = np.median(2**(Y - Y_avg[:, None]), axis=0)
+            self.Usize_factor = self.Usize_factor / np.mean(self.Usize_factor)
+        elif which == "S":
+            Y = np.log2(self.S[self.cv_mean_selected, :] + pc)
+            Y_avg = Y.mean(1)
+            self.size_factor: np.ndarray = np.median(2**(Y - Y_avg[:, None]), axis=0)
+            self.size_factor = self.size_factor / np.mean(self.size_factor)
+        elif which == "U":
+            Y = np.log2(self.U[self.Ucv_mean_selected, :] + pc)
+            Y_avg = Y.mean(1)
+            self.Usize_factor: np.ndarray = np.median(2**(Y - Y_avg[:, None]), axis=0)
+            self.Usize_factor = self.Usize_factor / np.mean(self.Usize_factor)
 
     def score_cluster_expression(self, min_avg_U: float=0.02, min_avg_S: float=0.08) -> np.ndarray:
         """Prepare filtering genes on the basis of cluster-wise expression threshold
@@ -641,7 +711,7 @@ class VelocytoLoom:
         else:
             self.pcs = self.pca.fit_transform(X.T)
 
-    def normalize_by_total(self, min_perc_U: float=0.5, plot: bool=False, skip_low_U_pop: bool=True) -> None:
+    def normalize_by_total(self, min_perc_U: float=0.5, plot: bool=False, skip_low_U_pop: bool=True, same_size_UnS: bool=False) -> None:
         """Normalize the cells using the (initial) total molecules as size estimate
 
         Arguments
@@ -651,6 +721,10 @@ class VelocytoLoom:
         plot: bool, default=False
             whether
         skip_low_U_pop: bool, default=True
+            population with very low unspliced will not be multiplied by the scaling factor to avoid predicting very strong
+            velocity just as a consequence of low detection
+        same_size_UnS: bool, default=False
+            Each cell is set tot have the same total number of spliced and unspliced molecules
 
         Returns
         -------
@@ -661,9 +735,14 @@ class VelocytoLoom:
         """
         target_cell_size = np.median(self.initial_cell_size)
         min_Ucell_size = np.percentile(self.initial_Ucell_size, min_perc_U)
+        if min_Ucell_size < 2:
+            raise ValueError(f"min_perc_U={min_perc_U} corresponds to total Unspliced of 1 molecule of less. Please choose higher value or filter our these cell")
         bool_f = self.initial_Ucell_size < min_Ucell_size
         self.small_U_pop = bool_f
-        target_Ucell_size = np.median(self.initial_Ucell_size[~self.small_U_pop])  # 0.15 * target_cell_size
+        if same_size_UnS:
+            target_Ucell_size = target_cell_size  # 0.15 * target_cell_size
+        else:
+            target_Ucell_size = np.median(self.initial_Ucell_size[~self.small_U_pop])  # 0.15 * target_cell_size
 
         if plot:
             plt.figure(None, (12, 6))
@@ -680,6 +759,63 @@ class VelocytoLoom:
             plt.ylabel("log total unspliced")
 
         self._normalize_S(relative_size=self.initial_cell_size,
+                          target_size=target_cell_size)
+        if skip_low_U_pop:
+            self._normalize_U(relative_size=np.clip(self.initial_Ucell_size, min_Ucell_size, None),
+                              target_size=target_Ucell_size)
+        else:
+            self._normalize_U(relative_size=self.initial_Ucell_size,
+                              target_size=target_Ucell_size)
+
+    def normalize_by_size_factor(self, min_perc_U: float=0.5, plot: bool=False, skip_low_U_pop: bool=True, same_size_UnS: bool=False) -> None:
+        """Normalize the cells using the (initial) size_factor
+
+        Arguments
+        ---------
+        min_perc_U: float
+            the percentile to use as a minimum value allowed for the size normalization
+        plot: bool, default=False
+            whether
+        skip_low_U_pop: bool, default=True
+            population with very low unspliced will not be multiplied by the scaling factor to avoid predicting very strong
+            velocity just as a consequence of low detection
+        same_size_UnS: bool, default=False
+            Each cell is set tot have the same total number of spliced and unspliced molecules
+
+        Returns
+        -------
+        Returns nothing but it creates the attributes:
+        small_U_pop: np.ndarray
+            Cells with extremely low unspliced count
+
+        """
+        cell_size = self.S.sum(0)
+        Ucell_size = self.U.sum(0)
+        target_cell_size = np.median(cell_size)
+        min_Ucell_size = np.percentile(Ucell_size, min_perc_U)
+        if min_Ucell_size < 2:
+            raise ValueError(f"min_perc_U={min_perc_U} corresponds to total Unspliced of 1 molecule of less. Please choose higher value or filter our these cell")
+        bool_f = Ucell_size < min_Ucell_size
+        self.small_U_pop = bool_f
+        if same_size_UnS:
+            target_Ucell_size = target_cell_size  # 0.15 * target_cell_size
+        else:
+            target_Ucell_size = np.median(Ucell_size[~self.small_U_pop])
+            
+        if plot:
+            plt.figure(None, (12, 6))
+            plt.subplot(121)
+            plt.scatter(cell_size, Ucell_size, s=3, alpha=0.1)
+            plt.xlabel("S cell_size")
+            plt.ylabel("U cell_size")
+            plt.scatter(cell_size[bool_f], Ucell_size[bool_f], s=3, alpha=0.1)
+            plt.subplot(122)
+            plt.scatter(np.log2(cell_size), np.log2(Ucell_size), s=7, alpha=0.3)
+            plt.scatter(np.log2(cell_size)[bool_f], np.log2(Ucell_size)[bool_f], s=7, alpha=0.3)
+            plt.xlabel("log S cell_size")
+            plt.ylabel("log U cell_size")
+
+        self._normalize_S(relative_size=self.size_factor,
                           target_size=target_cell_size)
         if skip_low_U_pop:
             self._normalize_U(relative_size=np.clip(self.initial_Ucell_size, min_Ucell_size, None),
@@ -759,6 +895,9 @@ class VelocytoLoom:
         Sx_sz: np.ndarray
         Ux_sz: np.ndarray
         """
+        if not hasattr(self, "small_U_pop"):
+            self.small_U_pop = np.zeros(self.U_sz.shape[1], dtype=bool)
+            logging.warning("object does not have the attribute `small_U_pop`, so all the upliced will be normalized by relative size, this might cause the overinflation the unspliced counts of cells where only few unspliced molecules were detected")
         if which == "renormalize":
             self.S_sz = self.S_sz * (np.median(self.S_sz.sum(0)) / self.S_sz.sum(0))
             if skip_low_U_pop:

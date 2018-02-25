@@ -3,9 +3,10 @@
 =========
 Changelog
 =========
+* :feature:`-` Add feature selection for the unspliced
+* :feature:`-` Add size factor normalization option
 * :feature:`-` Add possibility to constraint knn averaging: when turned on avoids to set edges between cells of specified groups
 * :bug:`-` Fix an error in filter_cells: colors array is now filtered as well
-* :release:`0.15.0 <2018-02-18>`
 * :feature:`-` Improve the debug molecular report option to support hdf5
 * :feature:`-` It supports SmartSeq2 and has a new run_smartseq2 command
 * :feature:`-` It supports multiple bam files input, it can interpret it both as one-file-one-cell or just as batches to be analyzed together. IMPORTANT: a cell cannot be distributed over different bamfiles!
