@@ -216,17 +216,19 @@ class VelocytoLoom:
         _, cluster_ix = np.unique(self.cluster_labels, return_inverse=True)
         return cluster_ix
 
-    def score_cv_vs_mean(self, N: int=3000, min_expr_cells: int=2, max_expr_avg: float=20, svr_gamma: float=None,
-                         winsorize: bool=False, winsor_perc: Tuple[float, float]=(1, 99.5), plot: bool=False) -> np.ndarray:
+    def score_cv_vs_mean(self, N: int=3000, min_expr_cells: int=2, max_expr_avg: float=20, min_expr_avg: int=0, svr_gamma: float=None,
+                         winsorize: bool=False, winsor_perc: Tuple[float, float]=(1, 99.5), sort_inverse: bool=False, plot: bool=False) -> np.ndarray:
         """Rank genes on the basis of a CV vs mean fit, it uses a nonparametric fit (Support Vector Regression)
 
         Arguments
         ---------
         N: int
             the number to select
-        min_expr_cells: int
+        min_expr_cells: int, (default=2)
             minimum number of cells that express that gene for it to be considered in the fit
-        max_expr_avg: float
+        min_expr_avg: int, (default=0)
+            The minimum average accepted before discarding from the the gene as not expressed
+        max_expr_avg: float, (default=20)
             The maximum average accepted before discarding from the the gene as house-keeping/outlier
         svr_gamma: float
             the gamma hyperparameter of the SVR
@@ -234,6 +236,8 @@ class VelocytoLoom:
             Wether to winsorize the data for the cv vs mean model
         winsor_perc: tuple, default=(1, 99.5)
             the up and lower bound of the winsorization
+        sort_inverse: bool, (default=False)
+            if True it sorts genes from less noisy to more noisy (to use for size estimation not for feature selection)
         plot: bool, default=False
             whether to show a plot
 
@@ -245,7 +249,7 @@ class VelocytoLoom:
         cv_mean_selected: np.ndarray bool
             on the basis of the N parameter
 
-        Note: genes excluded from the fit will have in the output the same score as the less noisy gene in the dataset.
+        Note: genes excluded from the fit will have in the output the same score as the lowest scoring gene in the dataset.
 
         To perform the filtering use the method `filter_genes`
         """
@@ -254,7 +258,7 @@ class VelocytoLoom:
                 min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.S.shape[0] * 0.01)) + 2
                 logging.debug(f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, ugrading to min_expr_cells ={min_expr_cells}")
                 
-        detected_bool = ((self.S > 0).sum(1) > min_expr_cells) & (self.S.mean(1) < max_expr_avg)
+        detected_bool = ((self.S > 0).sum(1) > min_expr_cells) & (self.S.mean(1) < max_expr_avg) & (self.S.mean(1) > min_expr_avg)
         Sf = self.S[detected_bool, :]
         if winsorize:
             down, up = np.percentile(Sf, winsor_perc, 1)
@@ -278,6 +282,8 @@ class VelocytoLoom:
         fitted_fun = clf.predict
         ff = fitted_fun(log_m[:, None])
         score = log_cv - ff
+        if sort_inverse:
+            score = - score
         nth_score = np.sort(score)[::-1][N]
         if plot:
             scatter_viz(log_m[score > nth_score], log_cv[score > nth_score], s=3, alpha=0.4, c="tab:red")
@@ -288,6 +294,22 @@ class VelocytoLoom:
         self.cv_mean_score[~detected_bool] = np.min(score) - 1e-16
         self.cv_mean_score[detected_bool] = score
         self.cv_mean_selected = self.cv_mean_score >= nth_score
+
+    def robust_size_factor(self) -> None:
+        """Calculates a size factor in a similar way of Anders and Huber 2010
+
+        Returns
+        -------
+        Nothing but it creates the attribute self.size_factor
+        normalization is self.S / self.size_factor and is perfromed by using `self.normalize(relative_size=self.size_factor)`
+
+        Note
+        ----
+        Before running this method `score_cv_vs_mean` need to be run with sort_inverse=True, since only lowly variable genes are used for this size estimation
+        """
+        Y = np.log2(self.S[self.cv_mean_selected, :] + 1)
+        Y_avg = Y.mean(1)
+        self.size_factor = np.median(2**(Y_avg[:, None] - Y), axis=0)
 
     def score_cluster_expression(self, min_avg_U: float=0.02, min_avg_S: float=0.08) -> np.ndarray:
         """Prepare filtering genes on the basis of cluster-wise expression threshold
