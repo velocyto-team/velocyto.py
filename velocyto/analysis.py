@@ -163,6 +163,11 @@ class VelocytoLoom:
         self.S, self.U, self.A = (X[:, bool_array] for X in (self.S, self.U, self.A))
         self.initial_cell_size = self.initial_cell_size[bool_array]
         self.initial_Ucell_size = self.initial_Ucell_size[bool_array]
+        try:
+            self.size_factor: np.ndarray
+            self.size_factor = self.size_factor[bool_array]
+        except:
+            pass
         self.ca = {k: v[bool_array] for k, v in self.ca.items()}
         try:
             self.cluster_labels = self.cluster_labels[bool_array]  # type: np.ndarray
@@ -309,7 +314,7 @@ class VelocytoLoom:
         """
         Y = np.log2(self.S[self.cv_mean_selected, :] + 1)
         Y_avg = Y.mean(1)
-        self.size_factor = np.median(2**(Y_avg[:, None] - Y), axis=0)
+        self.size_factor: np.ndarray = np.median(2**(Y_avg[:, None] - Y), axis=0)
 
     def score_cluster_expression(self, min_avg_U: float=0.02, min_avg_S: float=0.08) -> np.ndarray:
         """Prepare filtering genes on the basis of cluster-wise expression threshold
