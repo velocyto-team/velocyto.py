@@ -299,8 +299,13 @@ class VelocytoLoom:
         self.cv_mean_score[detected_bool] = score
         self.cv_mean_selected = self.cv_mean_score >= nth_score
 
-    def robust_size_factor(self) -> None:
+    def robust_size_factor(self, pc: float=0.1) -> None:
         """Calculates a size factor in a similar way of Anders and Huber 2010
+
+        Arguments
+        --------
+        pc: float, default=0.1
+            The pseudocount to add to the expression before taking the log for the purpose of the size factor calculation
 
         Returns
         -------
@@ -311,9 +316,10 @@ class VelocytoLoom:
         ----
         Before running this method `score_cv_vs_mean` need to be run with sort_inverse=True, since only lowly variable genes are used for this size estimation
         """
-        Y = np.log2(self.S[self.cv_mean_selected, :] + 1)
+        Y = np.log2(self.S[self.cv_mean_selected, :] + pc)
         Y_avg = Y.mean(1)
         self.size_factor: np.ndarray = np.median(2**(Y - Y_avg[:, None]), axis=0)
+        self.size_factor = self.size_factor / np.mean(self.size_factor)
 
     def score_cluster_expression(self, min_avg_U: float=0.02, min_avg_S: float=0.08) -> np.ndarray:
         """Prepare filtering genes on the basis of cluster-wise expression threshold
