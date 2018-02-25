@@ -895,7 +895,7 @@ class VelocytoLoom:
         Sx_sz: np.ndarray
         Ux_sz: np.ndarray
         """
-        if not hasattr(self, "small_U_pop"):
+        if not hasattr(self, "small_U_pop") and skip_low_U_pop:
             self.small_U_pop = np.zeros(self.U_sz.shape[1], dtype=bool)
             logging.warning("object does not have the attribute `small_U_pop`, so all the upliced will be normalized by relative size, this might cause the overinflation the unspliced counts of cells where only few unspliced molecules were detected")
         if which == "renormalize":
