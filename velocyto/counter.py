@@ -142,7 +142,7 @@ class ExInCounter:
         fin.close()
 
     def _no_extension(self, read: pysam.AlignedSegment) -> str:
-        return read.get_tag(self.umibarcode_str)
+        return read.get_tag(self.umibarcode_str).split("-")[0]
 
     def _extension_Nbp(self, read: pysam.AlignedSegment) -> str:
         return read.get_tag(self.umibarcode_str) + read.query_alignment_sequence[:self.umi_bp]
@@ -203,10 +203,8 @@ class ExInCounter:
                     bc = self.cell_barcode_get(read)  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
                     umi = self.umi_extract(read)  # read.get_tag(self.umibarcode_str)
                 except KeyError:
-                    if read.has_tag(self.cellbarcode_str):
-                        raise KeyError("Some errors in parsing the cell barcode has occurred")
-                    if read.has_tag(self.umibarcode_str):
-                        raise KeyError("Some errors in parsing the molecular barcode has occurred")
+                    if read.has_tag(self.cellbarcode_str) and read.has_tag(self.umibarcode_str):
+                        raise KeyError(f"Some errors in parsing the cell barcode has occurred {self.cellbarcode_str}, {self.umibarcode_str}\n{read}")
                     counter_skipped_no_barcode += 1
                     continue  # NOTE: Here errors could go unnoticed
                 if bc not in self.valid_bcset:
