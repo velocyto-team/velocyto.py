@@ -728,11 +728,14 @@ class ExInCounter:
                 gene: Union[List[int], np.ndarray] = []
                 mol: Union[List[int], np.ndarray] = []
                 for i, (mol_bc, molitem) in enumerate(molitems.items()):
-                    for match in next(iter(molitem.mappings_record.items()))[1]:
-                        pos.append(match.segment)
-                        chrom.append(match.feature.transcript_model.chromstrand)
-                        gene.append(self.geneid2ix[match.feature.transcript_model.geneid])
-                        mol.append(i)
+                    try:
+                        for match in next(iter(molitem.mappings_record.items()))[1]:
+                            pos.append(match.segment)
+                            chrom.append(match.feature.transcript_model.chromstrand)
+                            gene.append(self.geneid2ix[match.feature.transcript_model.geneid])
+                            mol.append(i)
+                    except StopIteration:
+                        pass  # An empty or chimeric molitem ?
                 pos = np.array(pos, dtype=np.int32)
                 chrom = np.array(chrom, dtype="S5")
                 gene = np.array(gene, dtype=np.uint16)
