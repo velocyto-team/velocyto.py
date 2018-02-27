@@ -267,7 +267,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         try:
             total += layers[layer_name]
         except NameError:
-            total = layers[layer_name]
+            total = np.array(layers[layer_name])
 
     logging.debug("Writing loom file")
     try:
