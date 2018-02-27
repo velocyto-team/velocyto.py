@@ -142,7 +142,7 @@ class ExInCounter:
         fin.close()
 
     def _no_extension(self, read: pysam.AlignedSegment) -> str:
-        return read.get_tag(self.umibarcode_str).split("-")[0]
+        return read.get_tag(self.umibarcode_str)
 
     def _extension_Nbp(self, read: pysam.AlignedSegment) -> str:
         return read.get_tag(self.umibarcode_str) + read.query_alignment_sequence[:self.umi_bp]
