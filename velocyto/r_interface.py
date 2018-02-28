@@ -35,10 +35,10 @@ try:
                         return f"< RS4Object with attributes: {list(self.__dict__.keys())} >"
                 rs4obj = RS4Object()
                 for k in tuple(v.slotnames()):
-                    setattr(rs4obj, k, convert_r_obj(v.slots[v], obj_to_obj=obj_to_obj))
+                    setattr(rs4obj, k, convert_r_obj(v.slots[k], obj_to_obj=obj_to_obj))
                 return rs4obj
             else:
-                return {k: convert_r_obj(v.slots[v]) for k in tuple(v.slotnames())}
+                return {k: convert_r_obj(v.slots[k]) for k in tuple(v.slotnames())}
         else:
             print(f"not supported yet {type(v)}")
 
