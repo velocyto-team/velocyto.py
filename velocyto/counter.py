@@ -742,21 +742,21 @@ class ExInCounter:
                     for i in range(len(info_tr_id)):
                         self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
                     f.create_dataset("info/tr_id", data=np.array(info_tr_id, dtype="S24"),
-                                     maxshape=len(info_tr_id), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_tr_id), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/features_gene", data=np.array(info_features_gene, dtype="S15"),
-                                     maxshape=len(info_features_gene), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_features_gene), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/is_last3prime", data=np.array(info_is_last3prime, dtype=bool),
-                                     maxshape=len(info_is_last3prime), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_is_last3prime), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/is_intron", data=np.array(info_is_intron, dtype=bool),
-                                     maxshape=len(info_is_intron), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_is_intron), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/start_end", data=np.array(info_start_end, dtype=np.int64),
-                                     maxshape=len(info_start_end), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_start_end), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/exino", data=np.array(info_exino, dtype=np.uint8),
-                                     maxshape=len(info_exino), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_exino), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
-                                     maxshape=len(info_strandplus), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_strandplus), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/chrm", data=np.array(info_chrm, dtype="S6"),
-                                     maxshape=len(info_chrm), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_chrm), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     
                 cell_name = next(iter(molitems.keys())).split("$")[0]
                 pos: Union[List[Tuple[int, int]], np.ndarray] = []
