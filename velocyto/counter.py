@@ -8,6 +8,7 @@ from typing import *
 from collections import defaultdict
 from itertools import chain
 from collections import OrderedDict
+from collections import Counter
 import velocyto as vcy
 import h5py
 import pysam
@@ -186,9 +187,18 @@ class ExInCounter:
         """
         # No peeking here, this will happen a layer above, and only once  on the not sorted file! before it was self.peek(samfile, lines=10)
         
+        bamfile_name_seen = set()
         counter_skipped_no_barcode = 0
+        if Counter(bamfiles).most_common(1)[0][1] != 1:
+            logging.warning("The bamfiles names are not unique. The full path to them will be used as unique identifier")
+            use_basename = False
+        else:
+            use_basename = True
         for bamfile in bamfiles:
-            self._current_bamfile = os.path.basename(bamfile)
+            if use_basename:
+                self._current_bamfile = os.path.basename(bamfile)
+            else:
+                self._current_bamfile = str(bamfile)
             logging.debug(f"Reading {bamfile}")
 
             fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
@@ -702,8 +712,8 @@ class ExInCounter:
             # NOTE I need to generalize this to any set of layers
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
 
-        if self.every_n_report and (self.report_state % self.every_n_report == 0):
-            self.report_state += 1
+        self.report_state += 1
+        if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
             if self.kind_of_report == "p":
                 import pickle
                 first_cell_batch = next(iter(molitems.keys())).split("$")[0]
@@ -764,6 +774,17 @@ class ExInCounter:
                 ixs: Union[List[int], np.ndarray] = []
                 count_i: int = 0
                 for mol_bc, molitem in molitems.items():
+                    if mol_bc.split("$")[0] != cell_name:  # The cell has changed write to file and empty lists
+                        pos = np.array(pos, dtype=np.int32)
+                        ixs = np.array(ixs, dtype=np.intp)
+                        mol = np.array(mol, dtype=np.uint32)
+                        f.create_dataset(f'cells/{cell_name}/pos', data=pos, maxshape=pos.shape, chunks=(100, 2), compression="gzip", shuffle=False, compression_opts=4)
+                        f.create_dataset(f'cells/{cell_name}/ixs', data=ixs, maxshape=ixs.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
+                        f.create_dataset(f'cells/{cell_name}/mol', data=mol, maxshape=mol.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
+                        pos = []
+                        mol = []
+                        ixs = []
+                        cell_name = mol_bc.split("$")[0]
                     try:
                         for match in next(iter(molitem.mappings_record.items()))[1]:
                             mol.append(count_i)
@@ -772,10 +793,10 @@ class ExInCounter:
                         count_i += 1
                     except StopIteration:
                         pass  # An empty or chimeric molitem ?
+                # Do the last cell and close the file
                 pos = np.array(pos, dtype=np.int32)
                 ixs = np.array(ixs, dtype=np.intp)
                 mol = np.array(mol, dtype=np.uint32)
-
                 f.create_dataset(f'cells/{cell_name}/pos', data=pos, maxshape=pos.shape, chunks=(100, 2), compression="gzip", shuffle=False, compression_opts=4)
                 f.create_dataset(f'cells/{cell_name}/ixs', data=ixs, maxshape=ixs.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
                 f.create_dataset(f'cells/{cell_name}/mol', data=mol, maxshape=mol.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
