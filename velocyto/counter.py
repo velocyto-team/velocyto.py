@@ -726,9 +726,9 @@ class ExInCounter:
                     info_exino = []
                     info_strandplus = []
                     info_chrm = []
-                    for k, v_chr in self.annotations_by_chrm_strand.items():
-                        for v1_tm in v_chr:
-                            for v2_ivl in v1_tm.values():
+                    for k, v_dict_tm in self.annotations_by_chrm_strand.items():
+                        for v1_tm in v_dict_tm.values():
+                            for v2_ivl in v1_tm:
                                 info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,
                                 info_features_gene.append(v2_ivl.transcript_model.genename) # “info/ivls/features_gene“,
                                 info_is_last3prime.append(v2_ivl.is_last_3prime)  # “info/ivls/is_last3prime“, 
