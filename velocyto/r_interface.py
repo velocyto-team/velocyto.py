@@ -10,7 +10,9 @@ try:
     def convert_r_obj(v: Any, obj_to_obj: bool=True) -> Any:
         """Function with manually specified conversion from a r-object to a python object
         """
-        if type(v) == ro.vectors.Matrix:
+        if type(v) == ro.rinterface.RNULLType:
+            return None
+        elif type(v) == ro.vectors.Matrix:
             return np.array(v)
         elif type(v) == ro.vectors.FloatVector:
             return np.array(v, dtype="float64")
