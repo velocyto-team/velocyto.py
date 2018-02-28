@@ -136,7 +136,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         if umi_extension != "no":
             logging.warning("--umi-extension was specified but uncompatible with --without-umi, it will be ignored!")
         umi_extension = "without_umi"
-    exincounter = vcy.ExInCounter(sampleid=sampleid, logic=logic_class, valid_bcset=valid_bcset, umi_extension=umi_extension, onefilepercell=onefilepercell, dump_option=dump)
+    exincounter = vcy.ExInCounter(sampleid=sampleid, logic=logic_class, valid_bcset=valid_bcset, umi_extension=umi_extension, onefilepercell=onefilepercell, dump_option=dump, outputfolder=outputfolder)
 
     # Heuristic to chose the memory/cpu effort
     try:

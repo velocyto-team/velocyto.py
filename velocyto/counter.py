@@ -19,7 +19,8 @@ import sys
 class ExInCounter:
     """ Main class to do the counting of introns and exons """
     def __init__(self, sampleid: str, logic: vcy.Logic, valid_bcset: Set[str]=None,
-                 umi_extension: str="no", onefilepercell: bool=False, dump_option: str="0") -> None:
+                 umi_extension: str="no", onefilepercell: bool=False, dump_option: str="0", outputfolder: str="./") -> None:
+        self.outputfolder = outputfolder
         self.sampleid = sampleid
         self.logic = logic()
         # NOTE: maybe there shoulb be a self.logic.verify_inputs(args) step at the end of init
@@ -711,40 +712,73 @@ class ExInCounter:
                 pickle.dump(molitems, open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"))
                 pickle.dump(self.reads_to_count, open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"))
             else:
-                if not os.path.exists("velocyto_dump"):
-                    os.makedirs("velocyto_dump")
-                f = h5py.File(f'velocyto_dump/{self.sampleid}.hdf5')  # From the docs: Read/write if exists, create otherwise (default)
+                if not os.path.exists(os.path.join(self.outputfolder, "dump")):
+                    os.makedirs(os.path.join(self.outputfolder, "dump"))
+                f = h5py.File(os.path.join(self.outputfolder, f"dump/{self.sampleid}.hdf5"))  # From the docs: Read/write if exists, create otherwise (default)
 
-                if "info/gene_ixs" not in f:
+                if "info/tr_id" not in f:
                     logging.warning("The hdf5 report is less accurate in reporting exactly all the information than the pickle.")
-                    gene_names = np.array(list(self.geneid2ix.keys()), dtype='S15')
-                    gene_ixs = np.array(list(self.geneid2ix.values()), dtype=np.uint16)
-                    f.create_dataset("info/gene_ixs", data=gene_ixs)
-                    f.create_dataset("info/gene_ids", data=gene_names)
+                    info_tr_id = []
+                    info_features_gene = []
+                    info_is_last3prime = []
+                    info_is_intron = []
+                    info_start_end = []
+                    info_exino = []
+                    info_strandplus = []
+                    info_chrm = []
+                    for k, v_chr in self.annotations_by_chrm_strand.items():
+                        for v1_tm in v_chr:
+                            for v2_ivl in v1_tm.values():
+                                info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,
+                                info_features_gene.append(v2_ivl.transcript_model.genename) # “info/ivls/features_gene“,
+                                info_is_last3prime.append(v2_ivl.is_last_3prime)  # “info/ivls/is_last3prime“, 
+                                info_is_intron.append(v2_ivl.kind == 105)  # “info/ivls/is_intron“,
+                                info_start_end.append((v2_ivl.start, v2_ivl.end))  # “info/ivls/feture_start_end“
+                                info_exino.append(v2_ivl.exin_no)  # “info/ivls/exino“
+                                info_strandplus.append(v2_ivl.transcript_model.chromstrand[-1:] == "+")  # “info/ivls/strandplus“
+                                info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
 
+                    self.inv_tridstart2ix = {}
+                    for i in range(len(info_tr_id)):
+                        self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
+                    f.create_dataset("info/tr_id", data=np.array(info_tr_id, dtype="S24"),
+                                     maxshape=len(info_tr_id), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/features_gene", data=np.array(info_features_gene, dtype="S15"),
+                                     maxshape=len(info_features_gene), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/is_last3prime", data=np.array(info_is_last3prime, dtype=bool),
+                                     maxshape=len(info_is_last3prime), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/is_intron", data=np.array(info_is_intron, dtype=bool),
+                                     maxshape=len(info_is_intron), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/start_end", data=np.array(info_start_end, dtype=np.int64),
+                                     maxshape=len(info_start_end), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/exino", data=np.array(info_exino, dtype=np.uint8),
+                                     maxshape=len(info_exino), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
+                                     maxshape=len(info_strandplus), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/chrm", data=np.array(info_chrm, dtype="S6"),
+                                     maxshape=len(info_chrm), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                    
                 cell_name = next(iter(molitems.keys())).split("$")[0]
                 pos: Union[List[Tuple[int, int]], np.ndarray] = []
-                chrom: Union[List[str], np.ndarray] = []
-                gene: Union[List[int], np.ndarray] = []
                 mol: Union[List[int], np.ndarray] = []
-                for i, (mol_bc, molitem) in enumerate(molitems.items()):
+                ixs: Union[List[int], np.ndarray] = []
+                count_i: int = 0
+                for mol_bc, molitem in molitems.items():
                     try:
                         for match in next(iter(molitem.mappings_record.items()))[1]:
+                            count_i += 1
+                            mol.append(count_i)
                             pos.append(match.segment)
-                            chrom.append(match.feature.transcript_model.chromstrand)
-                            gene.append(self.geneid2ix[match.feature.transcript_model.geneid])
-                            mol.append(i)
+                            ixs.append(self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"])
                     except StopIteration:
                         pass  # An empty or chimeric molitem ?
                 pos = np.array(pos, dtype=np.int32)
-                chrom = np.array(chrom, dtype="S5")
-                gene = np.array(gene, dtype=np.uint16)
+                ixs = np.array(ixs, dtype=np.intp)
                 mol = np.array(mol, dtype=np.uint32)
 
                 f.create_dataset(f'cells/{cell_name}/pos', data=pos, maxshape=pos.shape, chunks=(100, 2), compression="gzip", shuffle=False, compression_opts=4)
-                f.create_dataset(f'cells/{cell_name}/chrom', data=chrom, maxshape=chrom.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
+                f.create_dataset(f'cells/{cell_name}/ixs', data=ixs, maxshape=ixs.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
                 f.create_dataset(f'cells/{cell_name}/mol', data=mol, maxshape=mol.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
-                f.create_dataset(f'cells/{cell_name}/gene', data=gene, maxshape=gene.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
                 f.close()
 
         idx2bc = {v: k for k, v in bc2idx.items()}
