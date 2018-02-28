@@ -750,7 +750,7 @@ class ExInCounter:
                     f.create_dataset("info/is_intron", data=np.array(info_is_intron, dtype=bool),
                                      maxshape=(len(info_is_intron), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/start_end", data=np.array(info_start_end, dtype=np.int64),
-                                     maxshape=(len(info_start_end), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_start_end), 2), chunks=(200,2), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/exino", data=np.array(info_exino, dtype=np.uint8),
                                      maxshape=(len(info_exino), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
