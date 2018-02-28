@@ -187,7 +187,7 @@ class ExInCounter:
         """
         # No peeking here, this will happen a layer above, and only once  on the not sorted file! before it was self.peek(samfile, lines=10)
         
-        bamfile_name_seen = set()
+        bamfile_name_seen: Set[str] = set()
         counter_skipped_no_barcode = 0
         if Counter(bamfiles).most_common(1)[0][1] != 1:
             logging.warning("The bamfiles names are not unique. The full path to them will be used as unique identifier")
@@ -740,15 +740,15 @@ class ExInCounter:
                         for v1_tm in v_dict_tm.values():
                             for v2_ivl in v1_tm:
                                 info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,
-                                info_features_gene.append(v2_ivl.transcript_model.genename) # “info/ivls/features_gene“,
-                                info_is_last3prime.append(v2_ivl.is_last_3prime)  # “info/ivls/is_last3prime“, 
+                                info_features_gene.append(v2_ivl.transcript_model.genename)  # “info/ivls/features_gene“,
+                                info_is_last3prime.append(v2_ivl.is_last_3prime)  # “info/ivls/is_last3prime“
                                 info_is_intron.append(v2_ivl.kind == 105)  # “info/ivls/is_intron“,
                                 info_start_end.append((v2_ivl.start, v2_ivl.end))  # “info/ivls/feture_start_end“
                                 info_exino.append(v2_ivl.exin_no)  # “info/ivls/exino“
                                 info_strandplus.append(v2_ivl.transcript_model.chromstrand[-1:] == "+")  # “info/ivls/strandplus“
                                 info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
 
-                    self.inv_tridstart2ix = {}
+                    self.inv_tridstart2ix: Dict[str, int] = {}
                     for i in range(len(info_tr_id)):
                         self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
                     f.create_dataset("info/tr_id", data=np.array(info_tr_id, dtype="S24"),
@@ -760,7 +760,7 @@ class ExInCounter:
                     f.create_dataset("info/is_intron", data=np.array(info_is_intron, dtype=bool),
                                      maxshape=(len(info_is_intron), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/start_end", data=np.array(info_start_end, dtype=np.int64),
-                                     maxshape=(len(info_start_end), 2), chunks=(200,2), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_start_end), 2), chunks=(200, 2), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/exino", data=np.array(info_exino, dtype=np.uint8),
                                      maxshape=(len(info_exino), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
@@ -768,38 +768,29 @@ class ExInCounter:
                     f.create_dataset("info/chrm", data=np.array(info_chrm, dtype="S6"),
                                      maxshape=(len(info_chrm), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
                     
-                cell_name = next(iter(molitems.keys())).split("$")[0]
-                pos: Union[List[Tuple[int, int]], np.ndarray] = []
-                mol: Union[List[int], np.ndarray] = []
-                ixs: Union[List[int], np.ndarray] = []
+                # cell_name = next(iter(molitems.keys())).split("$")[0]
+                pos: DefaultDict[str, List[Tuple[int, int]]] = defaultdict(list)
+                mol: DefaultDict[str, List[int]] = defaultdict(list)
+                ixs: DefaultDict[str, List[int]] = defaultdict(list)
                 count_i: int = 0
                 for mol_bc, molitem in molitems.items():
-                    if mol_bc.split("$")[0] != cell_name:  # The cell has changed write to file and empty lists
-                        pos = np.array(pos, dtype=np.int32)
-                        ixs = np.array(ixs, dtype=np.intp)
-                        mol = np.array(mol, dtype=np.uint32)
-                        f.create_dataset(f'cells/{cell_name}/pos', data=pos, maxshape=pos.shape, chunks=(100, 2), compression="gzip", shuffle=False, compression_opts=4)
-                        f.create_dataset(f'cells/{cell_name}/ixs', data=ixs, maxshape=ixs.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
-                        f.create_dataset(f'cells/{cell_name}/mol', data=mol, maxshape=mol.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
-                        pos = []
-                        mol = []
-                        ixs = []
-                        cell_name = mol_bc.split("$")[0]
+                    cell_name = mol_bc.split("$")[0]
                     try:
                         for match in next(iter(molitem.mappings_record.items()))[1]:
-                            mol.append(count_i)
-                            pos.append(match.segment)
-                            ixs.append(self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"])
+                            mol[cell_name].append(count_i)
+                            pos[cell_name].append(match.segment)
+                            ixs[cell_name].append(self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"])
                         count_i += 1
                     except StopIteration:
                         pass  # An empty or chimeric molitem ?
                 # Do the last cell and close the file
-                pos = np.array(pos, dtype=np.int32)
-                ixs = np.array(ixs, dtype=np.intp)
-                mol = np.array(mol, dtype=np.uint32)
-                f.create_dataset(f'cells/{cell_name}/pos', data=pos, maxshape=pos.shape, chunks=(100, 2), compression="gzip", shuffle=False, compression_opts=4)
-                f.create_dataset(f'cells/{cell_name}/ixs', data=ixs, maxshape=ixs.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
-                f.create_dataset(f'cells/{cell_name}/mol', data=mol, maxshape=mol.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
+                for cell_name in mol.keys():
+                    posA = np.array(pos[cell_name], dtype=np.int32)
+                    ixsA = np.array(ixs[cell_name], dtype=np.intp)
+                    molA = np.array(mol[cell_name], dtype=np.uint32)
+                    f.create_dataset(f'cells/{cell_name}/pos', data=posA, maxshape=posA.shape, chunks=(100, 2), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{cell_name}/ixs', data=ixsA, maxshape=ixsA.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{cell_name}/mol', data=molA, maxshape=molA.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
                 f.close()
 
         idx2bc = {v: k for k, v in bc2idx.items()}
