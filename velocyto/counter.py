@@ -766,10 +766,10 @@ class ExInCounter:
                 for mol_bc, molitem in molitems.items():
                     try:
                         for match in next(iter(molitem.mappings_record.items()))[1]:
-                            count_i += 1
                             mol.append(count_i)
                             pos.append(match.segment)
                             ixs.append(self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"])
+                        count_i += 1
                     except StopIteration:
                         pass  # An empty or chimeric molitem ?
                 pos = np.array(pos, dtype=np.int32)
