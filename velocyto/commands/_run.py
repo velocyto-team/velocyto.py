@@ -142,8 +142,8 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     try:
         mb_available = int(subprocess.check_output('grep MemAvailable /proc/meminfo'.split()).split()[1]) / 1000
     except subprocess.CalledProcessError:
-        logging.warning("Your system does not support calling `grep MemAvailable /proc/meminfo` so the memory effort for the samtools command could not be chosen appropriatelly. 64Gb will be assumed")
-        mb_available = 64000  # 64Gb
+        logging.warning("Your system does not support calling `grep MemAvailable /proc/meminfo` so the memory effort for the samtools command could not be chosen appropriatelly. 32Gb will be assumed")
+        mb_available = 32000  # 64Gb
     threads_to_use = min(samtools_threads, multiprocessing.cpu_count())
     mb_to_use = int(min(samtools_memory, mb_available / (len(bamfile) * threads_to_use)))
     compression = vcy.BAM_COMPRESSION
@@ -209,8 +209,11 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     if check_end_process:
         logging.info(f"Now just waiting that the bam sorting process terminates")
         for k in sorting_process.keys():
-            sorting_process[k].wait()
-            logging.info(f"bam file #{k} has been sorted")
+            returncode = sorting_process[k].wait()
+            if returncode == 0:
+                logging.info(f"bam file #{k} has been sorted")
+            else:
+                raise MemoryError(f"bam file #{k} could not be sorted by cells. This is probably a memory error, try to set the --samtools_memory option to a value compatible with your system. Otherwise sort manually by samtools sort -l [compression] -m [mb_to_use]M -t [tagname] -O BAM -@ [threads_to_use] -o [output] [bamfile]")
 
     # Do the actual counting
     logging.debug("Start molecule counting!")
