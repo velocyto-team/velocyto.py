@@ -48,7 +48,9 @@ try:
             else:
                 return {k: convert_r_obj(v.slots[k]) for k in tuple(v.slotnames())}
         else:
-            print(f"not supported yet {type(v)}")
+            if type(v) != str:
+                print(f"not supported yet {type(v)}")
+            return v
 
 except:
     pass
