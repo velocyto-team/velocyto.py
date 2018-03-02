@@ -21,12 +21,18 @@ try:
         elif type(v) == ro.rinterface.RNULLType:
             return None
         elif type(v) == ro.vectors.ListVector:
-            return {v.names[i]: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))}
+            try:
+                return {v.names[i]: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))}
+            except TypeError:
+                return {i: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))}
         elif type(v) == ro.vectors.StrVector:
             if len(v) == 1:
                 return str(v[0])
             else:
-                return np.array(v)
+                try:
+                    return {v.names[i]: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))}
+                except TypeError:
+                    return {i: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))}
         elif type(v) == ro.vectors.DataFrame:
             from rpy2.robjects import pandas2ri
             return pandas2ri.ri2py(v)

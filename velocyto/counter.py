@@ -711,8 +711,7 @@ class ExInCounter:
             self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
             # NOTE I need to generalize this to any set of layers
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
-
-        self.report_state += 1
+        
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
             if self.kind_of_report == "p":
                 import pickle
@@ -752,21 +751,21 @@ class ExInCounter:
                     for i in range(len(info_tr_id)):
                         self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
                     f.create_dataset("info/tr_id", data=np.array(info_tr_id, dtype="S24"),
-                                     maxshape=(len(info_tr_id), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_tr_id), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/features_gene", data=np.array(info_features_gene, dtype="S15"),
-                                     maxshape=(len(info_features_gene), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_features_gene), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/is_last3prime", data=np.array(info_is_last3prime, dtype=bool),
-                                     maxshape=(len(info_is_last3prime), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_is_last3prime), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/is_intron", data=np.array(info_is_intron, dtype=bool),
-                                     maxshape=(len(info_is_intron), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_is_intron), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/start_end", data=np.array(info_start_end, dtype=np.int64),
-                                     maxshape=(len(info_start_end), 2), chunks=(200, 2), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_start_end), 2), chunks=(500, 2), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/exino", data=np.array(info_exino, dtype=np.uint8),
-                                     maxshape=(len(info_exino), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_exino), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
-                                     maxshape=(len(info_strandplus), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_strandplus), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/chrm", data=np.array(info_chrm, dtype="S6"),
-                                     maxshape=(len(info_chrm), ), chunks=(200,), compression="gzip", shuffle=False, compression_opts=4)
+                                     maxshape=(len(info_chrm), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
                     
                 # cell_name = next(iter(molitems.keys())).split("$")[0]
                 pos: DefaultDict[str, List[Tuple[int, int]]] = defaultdict(list)
@@ -788,11 +787,12 @@ class ExInCounter:
                     posA = np.array(pos[cell_name], dtype=np.int32)
                     ixsA = np.array(ixs[cell_name], dtype=np.intp)
                     molA = np.array(mol[cell_name], dtype=np.uint32)
-                    f.create_dataset(f'cells/{cell_name}/pos', data=posA, maxshape=posA.shape, chunks=(100, 2), compression="gzip", shuffle=False, compression_opts=4)
-                    f.create_dataset(f'cells/{cell_name}/ixs', data=ixsA, maxshape=ixsA.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
-                    f.create_dataset(f'cells/{cell_name}/mol', data=molA, maxshape=molA.shape, chunks=(100,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/pos', data=posA, maxshape=posA.shape, chunks=(min(500, posA.shape[0]), 2), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/ixs', data=ixsA, maxshape=ixsA.shape, chunks=(min(500, ixsA.shape[0]),), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/mol', data=molA, maxshape=molA.shape, chunks=(min(500, molA.shape[0]),), compression="gzip", shuffle=False, compression_opts=4)
                 f.close()
 
+        self.report_state += 1
         idx2bc = {v: k for k, v in bc2idx.items()}
         
         return dict_layers_columns, [idx2bc[i] for i in range(len(idx2bc))]

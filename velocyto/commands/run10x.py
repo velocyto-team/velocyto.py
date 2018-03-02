@@ -96,7 +96,7 @@ def run10x(samplefolder: str, gtffile: str,
     except Exception:
         logging.error("Some IO problem in loading cellranger tsne/pca/kmeans files occurred!")
 
-    return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
+    return _run(bamfile=bamfile, gtffile=gtffile, bcfile=(bcfile,), outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=repmask, onefilepercell=False,
                 logic=logic, without_umi=False, umi_extension="no", multimap=False, test=False, samtools_threads=samtools_threads,
                 samtools_memory=samtools_memory, dump=dump, verbose=verbose, additional_ca=additional_ca)

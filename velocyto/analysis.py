@@ -85,7 +85,8 @@ class VelocytoLoom:
             if np.mean(self.ca["_Valid"]) < 1:
                 logging.warn(f"fraction of _Valid cells is {np.mean(self.ca['_Valid'])} but all will be taken in consideration")
         except KeyError:
-            logging.debug("The file did not specify the _Valid column attribute")
+            pass
+            # logging.debug("The file did not specify the _Valid column attribute")
 
     def to_hdf5(self, filename: str, **kwargs: Dict[str, Any]) -> None:
         """Serialize the VelocytoLoom object in its current state
