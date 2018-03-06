@@ -63,7 +63,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     if sampleid is None:
         assert metadatatable is None, "--metadatatable was specified but cannot fetch sample metadata without valid sampleid"
         if multi:
-            logging.info(f"When using mutliple files you may want to use --sampleid option to specify the name of the output file")
+            logging.warning(f"When using mutliple files you may want to use --sampleid option to specify the name of the output file")
         if multi and not onefilepercell:
             full_name = "_".join([os.path.basename(bamfile[i]).split(".")[0] for i in range(len(bamfile))])
             if len(full_name) > 50:
@@ -213,7 +213,10 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
             if returncode == 0:
                 logging.info(f"bam file #{k} has been sorted")
             else:
-                raise MemoryError(f"bam file #{k} could not be sorted by cells. This is probably a memory error, try to set the --samtools_memory option to a value compatible with your system. Otherwise sort manually by samtools sort -l [compression] -m [mb_to_use]M -t [tagname] -O BAM -@ [threads_to_use] -o [output] [bamfile]")
+                raise MemoryError(f"bam file #{k} could not be sorted by cells.\n\
+                This is probably related to an old version of samtools, please install samtools >= 1.6.\
+                In alternative this could be a memory error, try to set the --samtools_memory option to a value compatible with your system. \
+                Otherwise sort manually by samtools ``sort -l [compression] -m [mb_to_use]M -t [tagname] -O BAM -@ [threads_to_use] -o cellsorted_[bamfile] [bamfile]``")
 
     # Do the actual counting
     logging.debug("Start molecule counting!")
