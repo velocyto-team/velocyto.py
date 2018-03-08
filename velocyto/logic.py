@@ -925,4 +925,4 @@ class SmartSeq2(Logic):
                             return
 
 
-Default: type = ValidatedIntrons10X
+Default: type = Permissive10X

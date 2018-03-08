@@ -607,6 +607,9 @@ class ExInCounter:
         for chromstrand_key, annotions_list in self.mask_ivls_by_chromstrand.items():
             self.mask_indexes[chromstrand_key] = vcy.FeatureIndex(annotions_list)  # This suould be sorted
 
+        logging.debug(f"Features available for chromosomes : {list(self.feature_indexes.keys())}")
+        logging.debug(f"Mask available for chromosomes : {list(self.mask_indexes.keys())}")
+
         # Before counting, report how many features where validated
         logging.debug(f"Summarizing the results of intron validation.")
         n_is_intron = 0
