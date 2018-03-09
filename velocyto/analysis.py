@@ -2118,7 +2118,7 @@ def ixs_thatsort_a2b(a: np.ndarray, b: np.ndarray, check_content: bool=True) -> 
         assert len(np.intersect1d(a, b)) == len(a), f"The two arrays are not matching"
     return np.argsort(a)[np.argsort(np.argsort(b))]
 
-colors20 = np.vstack((plt.cm.Vega20b(np.linspace(0., 1, 20))[::2], plt.cm.Vega20c(np.linspace(0, 1, 20))[1::2]))
+colors20 = np.vstack((plt.cm.tab20b(np.linspace(0., 1, 20))[::2], plt.cm.tab20c(np.linspace(0, 1, 20))[1::2]))
 
 
 def colormap_fun(x: np.ndarray) -> np.ndarray:
