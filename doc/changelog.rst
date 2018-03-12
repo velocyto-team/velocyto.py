@@ -3,6 +3,7 @@
 =========
 Changelog
 =========
+* :bug:`-` Fix colormap bug with matplotlib 2.2.0
 * :feature:`-` Add feature selection for the unspliced
 * :feature:`-` Add size factor normalization option
 * :feature:`-` Add possibility to constraint knn averaging: when turned on avoids to set edges between cells of specified groups
