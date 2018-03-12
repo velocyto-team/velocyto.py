@@ -1248,6 +1248,9 @@ class VelocytoLoom:
                 self.gammas = fit_slope(tmpU[:, self.steady_state],
                                         tmpS[:, self.steady_state])
 
+        # Fix gammas
+        self.gammas[~np.isfinite(self.gammas)] = 0
+
     def filter_genes_good_fit(self, minR: float=0.1, min_gamma: float=0.01) -> None:
         """Use the coefficient of determination to filter away genes that have an irregular/complex phase portrait
 

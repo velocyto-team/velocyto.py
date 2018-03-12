@@ -322,9 +322,14 @@ def fit_slope_weighted_offset(Y: np.ndarray, X: np.ndarray, W: np.ndarray, fixpe
         offsets[i] = q
         if return_R2:
             # NOTE: the coefficient of determination is not weighted but the fit is
-            SSres = np.sum((m * X[i, :] + q - Y[i, :])**2)
-            SStot = np.sum((Y[i, :].mean() - Y[i, :])**2)
-            R2[i] = 1 - (SSres / SStot)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                SSres = np.sum((m * X[i, :] + q - Y[i, :])**2)
+                SStot = np.sum((Y[i, :].mean() - Y[i, :])**2)
+                _R2 = 1 - (SSres / SStot)
+            if np.isfinite(_R2):
+                R2[i] = _R2
+            else:
+                R2[i] = -1e16
     if return_R2:
         return slopes, offsets, R2
     return slopes, offsets
