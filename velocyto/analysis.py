@@ -1198,20 +1198,22 @@ class VelocytoLoom:
                 down, up = np.percentile(tmpS, maxmin_perc, 1)  # Do this asymmetrically, data is sparse!
                 W = ((tmpS <= down[:, None]) | (tmpS >= up[:, None])).astype(float)
             elif weights == "maxmin_diag":
-                denom_Sx = np.percentile(self.Sx, 99.9, 1)[:, None]
+                denom_Sx = np.percentile(self.Sx, 99.9, 1)
                 denom_Sx[denom_Sx == 0] = np.maximum(np.max(self.Sx[denom_Sx == 0, :], 1), 0.001)
-                denom_Ux = np.percentile(self.Ux, 99.9, 1)[:, None]
+                denom_Ux = np.percentile(self.Ux, 99.9, 1)
                 denom_Ux[denom_Ux == 0] = np.maximum(np.max(self.Ux[denom_Ux == 0, :], 1), 0.001)
-                Sx_maxnorm = self.Sx / denom_Sx
-                Ux_maxnorm = self.Ux / denom_Ux
+                Sx_maxnorm = self.Sx / denom_Sx[:, None]
+                Ux_maxnorm = self.Ux / denom_Ux[:, None]
                 X = Sx_maxnorm + Ux_maxnorm
                 down, up = np.percentile(X, maxmin_perc, axis=1)
                 W = ((X <= down[:, None]) | (X >= up[:, None])).astype(float)
             elif weights == "maxmin_double":
-                denom_Sx = np.percentile(self.Sx, 99.9, 1)[:, None]
+                denom_Sx = np.percentile(self.Sx, 99.9, 1)
                 denom_Sx[denom_Sx == 0] = np.maximum(np.max(self.Sx[denom_Sx == 0, :], 1), 0.001)
-                denom_Ux = np.percentile(self.Ux, 99.9, 1)[:, None]
+                denom_Ux = np.percentile(self.Ux, 99.9, 1)
                 denom_Ux[denom_Ux == 0] = np.maximum(np.max(self.Ux[denom_Ux == 0, :], 1), 0.001)
+                Sx_maxnorm = self.Sx / denom_Sx[:, None]
+                Ux_maxnorm = self.Ux / denom_Ux[:, None]
                 X = Sx_maxnorm + Ux_maxnorm
                 down, up = np.percentile(X, maxmin_perc, axis=1)
                 W = ((X <= down[:, None]) | (X >= up[:, None])).astype(float)
