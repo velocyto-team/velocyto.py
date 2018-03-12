@@ -261,13 +261,13 @@ cdef void x_colDeltaCorLog10(double *e,
 @cython.wraparound(False)
 @cython.cdivision(True)
 cdef void x_colDeltaCorpartial(double *e,
-                                   double *d,
-                                   double *rm,
-                                   Py_ssize_t *ixs,
-                                   int rows,
-                                   int cols,
-                                   int nrndm,
-                                   int num_threads):
+                                double *d,
+                                double *rm,
+                                Py_ssize_t *ixs,
+                                int rows,
+                                int cols,
+                                int nrndm,
+                                int num_threads):
     cdef:
         int i, j, c, n
     
@@ -573,8 +573,7 @@ def _colDeltaCorpartial(double[:, ::1] e,
                         double[:, ::1] d,
                         double[:, ::1] rm,
                         Py_ssize_t[:, ::1] ixs,
-                        int num_threads,
-                        double psc):
+                        int num_threads):
     cdef:
         int rows = e.shape[0]
         int cols = e.shape[1]
