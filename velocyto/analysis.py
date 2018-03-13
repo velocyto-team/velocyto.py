@@ -2072,7 +2072,6 @@ class VelocytoLoom:
         else:
             logging.warning("The arrow scale was set to be 'absolute' make sure you know how to properly interpret the plots")
 
-        
         if color_arrow == "cluster":
             colorandum = self.colorandum[ix_choice, :]
         else:

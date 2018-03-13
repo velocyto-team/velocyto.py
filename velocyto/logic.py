@@ -16,6 +16,10 @@ class Logic(metaclass=abc.ABCMeta):
         return []
 
     @property
+    def stranded(self) -> bool:
+        return True
+
+    @property
     def perform_validation_markup(self) -> bool:
         return True
 
@@ -59,6 +63,10 @@ class Permissive10X(Logic):
     @property
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
+
+    @property
+    def stranded(self) -> bool:
+        return True
 
     @property
     def perform_validation_markup(self) -> bool:
@@ -222,6 +230,10 @@ class Intermediate10X(Logic):
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
+    def stranded(self) -> bool:
+        return True
+
+    @property
     def perform_validation_markup(self) -> bool:
         return True
 
@@ -379,6 +391,10 @@ class ValidatedIntrons10X(Logic):
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
+    def stranded(self) -> bool:
+        return True
+
+    @property
     def perform_validation_markup(self) -> bool:
         return True
 
@@ -534,6 +550,10 @@ class Stricter10X(Logic):
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
+    def stranded(self) -> bool:
+        return True
+
+    @property
     def perform_validation_markup(self) -> bool:
         return True
 
@@ -687,6 +707,10 @@ class ObservedSpanning10X(Logic):
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
+    def stranded(self) -> bool:
+        return True
+
+    @property
     def perform_validation_markup(self) -> bool:
         return True
 
@@ -829,6 +853,10 @@ class SmartSeq2(Logic):
     @property
     def layers(self) -> List[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous", "spanning"]
+
+    @property
+    def stranded(self) -> bool:
+        return False
 
     @property
     def perform_validation_markup(self) -> bool:
