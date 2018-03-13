@@ -56,7 +56,9 @@ def colDeltaCorpartial(emat: np.ndarray, dmat: np.ndarray, ixs: np.ndarray, thre
     else:
         num_threads = max(threads, multiprocessing.cpu_count())
     out = np.zeros((emat.shape[1], emat.shape[1]))
-    _colDeltaCorpartial(emat, dmat, out, ixs.astype("int32"), num_threads)
+    emat = np.require(emat, requirements="C")
+    ixs = np.require(ixs, requirements="C").astype(np.intp)
+    _colDeltaCorpartial(emat, dmat, out, ixs, num_threads)
     return out
 
 

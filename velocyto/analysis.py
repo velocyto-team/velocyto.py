@@ -247,7 +247,7 @@ class VelocytoLoom:
         which: bool, (default="S")
             it performs the same cv_vs mean procedure on spliced "S" or unspliced "U" count
             "both" is NOT supported here because most often S the two procedure would have different parameters
-            (notice that default parameters are good heuristics only for S) 
+            (notice that default parameters are good heuristics only for S)
         plot: bool, default=False
             whether to show a plot
 
@@ -1416,7 +1416,7 @@ class VelocytoLoom:
         self.ts = bh_tsne.fit_transform(self.pcs[:, :n_pca_dim])
 
     def estimate_transition_prob(self, hidim: str="Sx_sz", embed: str="ts", transform: str="sqrt",
-                                 ndims: int=None, n_neighbors: int=None, psc: float = 1.0,
+                                 ndims: int=None, n_neighbors: int=None, psc: float=1.0,
                                  knn_random: bool=False, sampled_fraction: float=0.3, delta_kind: str="clipped",
                                  sampling_pobs: Tuple[float, float]=(0.5, 0.1), max_dist_embed: float=None,
                                  n_jobs: int=4, threads: int=None, random_seed: int=15071990) -> None:
@@ -1471,11 +1471,13 @@ class VelocytoLoom:
                 hi_dim = np.array(getattr(self, hidim).T[:, :ndims], order="C")
                 hi_dim_t = np.array(getattr(self, hidim + "_t").T[:, :ndims], order="C")
             else:
+                if ndims is not None:
+                    raise ValueError(f"ndims was set to {ndims} but hidim != 'pcs'. Set ndims = None for hidim='{hidim}'")
                 hi_dim = getattr(self, hidim)  # [:, :ndims]
                 if delta_kind == "clipped":
                     hi_dim_t = getattr(self, hidim + "_t")  # [:, :ndims]
                 elif delta_kind == "unclipped":
-                    hi_dim_t = hi_dim + self.used_delta_t * self.delta_S # [:, :ndims] [:, :ndims]
+                    hi_dim_t = hi_dim + self.used_delta_t * self.delta_S  # [:, :ndims] [:, :ndims]
                 elif delta_kind == "residual":
                     hi_dim_t = hi_dim + self.delta_S  # [:, :ndims] [:, :ndims]
                 
