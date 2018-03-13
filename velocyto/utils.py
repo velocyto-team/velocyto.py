@@ -1,4 +1,5 @@
 from typing import *
+import numpy as np
 import velocyto as vcy
 
 
