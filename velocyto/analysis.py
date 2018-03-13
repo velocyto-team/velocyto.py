@@ -1471,13 +1471,13 @@ class VelocytoLoom:
                 hi_dim = np.array(getattr(self, hidim).T[:, :ndims], order="C")
                 hi_dim_t = np.array(getattr(self, hidim + "_t").T[:, :ndims], order="C")
             else:
-                hi_dim = getattr(self, hidim)[:, :ndims]
+                hi_dim = getattr(self, hidim)  # [:, :ndims]
                 if delta_kind == "clipped":
-                    hi_dim_t = getattr(self, hidim + "_t")[:, :ndims]
+                    hi_dim_t = getattr(self, hidim + "_t")  # [:, :ndims]
                 elif delta_kind == "unclipped":
-                    hi_dim_t = hi_dim[:, :ndims] + self.used_delta_t * self.delta_S[:, :ndims]
+                    hi_dim_t = hi_dim + self.used_delta_t * self.delta_S # [:, :ndims] [:, :ndims]
                 elif delta_kind == "residual":
-                    hi_dim_t = hi_dim[:, :ndims] + self.delta_S[:, :ndims]
+                    hi_dim_t = hi_dim + self.delta_S  # [:, :ndims] [:, :ndims]
                 
             embedding = getattr(self, embed)
             self.embedding = embedding
