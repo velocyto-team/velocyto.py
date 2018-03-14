@@ -1626,7 +1626,7 @@ class VelocytoLoom:
             self.transition_prob = np.exp(self.corrcoef / sigma_corr) * self.embedding_knn.A  # naive
             self.transition_prob /= self.transition_prob.sum(1)[:, None]
             if hasattr(self, "corrcoef_random"):
-                logging.debug("Calculate transition probability for positive control")
+                logging.debug("Calculate transition probability for negative control")
                 self.transition_prob_random = np.exp(self.corrcoef_random / sigma_corr) * self.embedding_knn.A  # naive
                 self.transition_prob_random /= self.transition_prob_random.sum(1)[:, None]
 
