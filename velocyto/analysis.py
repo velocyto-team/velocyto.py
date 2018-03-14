@@ -1950,11 +1950,11 @@ class VelocytoLoom:
         if scale_type == "relative":
             if hasattr(self, "flow_rndm"):
                 plot_scale = np.linalg.norm(np.max(self.flow_grid, 0) - np.min(self.flow_grid, 0), 2)  # Diagonal of the plot
-                arrows_scale = np.percentile(np.linalg.norm(self.flow_rndm[self.total_p_mass >= min_mass, :], 2, 1), 65)  # Tipical lenght of an arrow
+                arrows_scale = np.percentile(np.linalg.norm(self.flow_rndm[self.total_p_mass >= min_mass, :], 2, 1), 80)  # Tipical lenght of an arrow
                 if quiver_scale == "auto":
-                    quiver_scale = arrows_scale / (plot_scale * 0.01)
+                    quiver_scale = arrows_scale / (plot_scale * 0.005)
                 else:
-                    quiver_scale = quiver_scale * arrows_scale / (plot_scale * 0.01)
+                    quiver_scale = quiver_scale * arrows_scale / (plot_scale * 0.005)
             else:
                 raise ValueError(""""`scale_type` was set to 'relative' but the randomized control was not computed when running estimate_transition_prob
                 Please run estimate_transition_prob or set `scale_type` to `absolute`""")
@@ -2048,7 +2048,7 @@ class VelocytoLoom:
         Nothing, just plots the tsne with arrows
         """
         if choice == "auto":
-            choice = int(vlm.S.shape[1] / 3)
+            choice = int(self.S.shape[1] / 3)
             logging.warning(f"Only {choice} arrows will be shown to avoid overcrowding, you can choose the exact number setting the `choice` argument")
         _quiver_kwargs = {"angles": 'xy', "scale_units": 'xy', "minlength": 1.5}
         _scatter_kwargs = dict(c="0.8", alpha=0.4, s=10, edgecolor=(0, 0, 0, 1), lw=0.3)
@@ -2065,13 +2065,13 @@ class VelocytoLoom:
         if scale_type == "relative":
             if hasattr(self, "delta_embedding_random"):
                 plot_scale = np.linalg.norm(np.max(self.flow_grid, 0) - np.min(self.flow_grid, 0), 2)  # Diagonal of the plot
-                arrows_scale = np.percentile(np.linalg.norm(self.delta_embedding_random, 2, 1), 65)  # Tipical length of an arrow
+                arrows_scale = np.percentile(np.linalg.norm(self.delta_embedding_random, 2, 1), 80)  # Tipical length of an arrow
                 if quiver_scale == "auto":
-                    quiver_scale = arrows_scale / (plot_scale * 0.01)
+                    quiver_scale = arrows_scale / (plot_scale * 0.005)
                 else:
-                    quiver_scale = quiver_scale * arrows_scale / (plot_scale * 0.01)
+                    quiver_scale = quiver_scale * arrows_scale / (plot_scale * 0.005)
             else:
-                raise ValueError(""""`scale_type` was set to 'relative' but the randomized control was not computed when running estimate_transition_prob
+                raise ValueError("""`scale_type` was set to 'relative' but the randomized control was not computed when running estimate_transition_prob
                 Please run estimate_transition_prob or set `scale_type` to `absolute`""")
         else:
             logging.warning("The arrow scale was set to be 'absolute' make sure you know how to properly interpret the plots")
@@ -2102,6 +2102,7 @@ class VelocytoLoom:
         plt.quiver(self.embedding[ix_choice, 0], self.embedding[ix_choice, 1],
                    self.delta_embedding[ix_choice, 0], self.delta_embedding[ix_choice, 1],
                    scale=quiver_scale, **_quiver_kwargs)
+        plt.axis("off")
     
     def plot_cell_transitions(self, cell_ix: int=0, alpha: float=0.1, alpha_neigh: float=0.2,
                               cmap_name: str="RdBu_r", plot_arrow: bool=True,

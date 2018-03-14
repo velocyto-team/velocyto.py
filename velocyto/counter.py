@@ -979,7 +979,7 @@ class ExInCounter:
             iimr = self.mask_indexes[f"{r.chrom}{reverse(r.strand)}"]
 
             # Check if read is fully inside a masked region, in that case skip it
-            if iim.has_ivls_enclosing(r) or iimr.has_ivls_enclosing(r):
+            if iim.has_ivls_enclosing(r) and iimr.has_ivls_enclosing(r):
                 repeats_reads_count += 1  # VERBOSE
                 continue
 
@@ -990,7 +990,7 @@ class ExInCounter:
                 molitems[bcumi].add_mappings_record(mappings_record)
 
             mappings_record_r = iir.find_overlapping_ivls(r)
-            if len(mappings_record):
+            if len(mappings_record_r):
                 bcumi = f"{r.bc}${r.umi}"
                 molitems[bcumi].add_mappings_record(mappings_record_r)
 
