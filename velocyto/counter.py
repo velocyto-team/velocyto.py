@@ -995,14 +995,14 @@ class ExInCounter:
                 else:
                     minus_reads_count += 1
 
-            mappings_record_r = iir.find_overlapping_ivls(r)
-            if len(mappings_record_r):
-                bcumi = f"{r.bc}${r.umi}"
-                molitems[bcumi].add_mappings_record(mappings_record_r)
-                if r.strand == "-":
-                    plus_reads_count += 1
-                else:
-                    minus_reads_count += 1
+            # mappings_record_r = iir.find_overlapping_ivls(r)
+            # if len(mappings_record_r):
+            #     bcumi = f"{r.bc}${r.umi}"
+            #     molitems[bcumi].add_mappings_record(mappings_record_r)
+            #     if r.strand == "-":
+            #         plus_reads_count += 1
+            #     else:
+            #         minus_reads_count += 1
 
             if len(mappings_record) and len(mappings_record_r):
                 both_reads_count += 1
