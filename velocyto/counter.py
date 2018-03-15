@@ -721,7 +721,6 @@ class ExInCounter:
             bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
             bcidx = bc2idx[bc]
             self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
-            # NOTE I need to generalize this to any set of layers
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
         
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
@@ -1049,7 +1048,7 @@ class ExInCounter:
                     info_is_intron = []
                     info_start_end = []
                     info_exino = []
-                    #  info_strandplus = []
+                    info_strandplus = []
                     info_chrm = []
                     for k, v_dict_tm in self.annotations_by_chrm_strand.items():
                         for v1_tm in v_dict_tm.values():
@@ -1060,7 +1059,7 @@ class ExInCounter:
                                 info_is_intron.append(v2_ivl.kind == 105)  # “info/ivls/is_intron“,
                                 info_start_end.append((v2_ivl.start, v2_ivl.end))  # “info/ivls/feture_start_end“
                                 info_exino.append(v2_ivl.exin_no)  # “info/ivls/exino“
-                                # info_strandplus.append(v2_ivl.transcript_model.chromstrand[-1:] == "+")  # “info/ivls/strandplus“
+                                info_strandplus.append(v2_ivl.transcript_model.chromstrand[-1:] == "+")  # “info/ivls/strandplus“
                                 info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
 
                     self.inv_tridstart2ix: Dict[str, int] = {}
@@ -1078,8 +1077,8 @@ class ExInCounter:
                                      maxshape=(len(info_start_end), 2), chunks=(500, 2), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/exino", data=np.array(info_exino, dtype=np.uint8),
                                      maxshape=(len(info_exino), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
-                    # f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
-                    #                  maxshape=(len(info_strandplus), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
+                                     maxshape=(len(info_strandplus), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
                     f.create_dataset("info/chrm", data=np.array(info_chrm, dtype="S6"),
                                      maxshape=(len(info_chrm), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
                     
