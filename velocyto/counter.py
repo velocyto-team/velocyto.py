@@ -1007,7 +1007,7 @@ class ExInCounter:
                     minus_reads_count += 1
 
             if len(mappings_record) and len(mappings_record_r):
-               both_reads_count += 1
+                both_reads_count += 1
 
         logging.debug(f"{repeats_reads_count} reads in repeat masked regions")  # VERBOSE
         logging.debug(f"{plus_reads_count} reads overlapping with features on plus strand")  # VERBOSE
