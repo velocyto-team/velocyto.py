@@ -3,6 +3,7 @@
 =========
 Changelog
 =========
+* :bug:`-` Fix a skip repeat error with SmartSeq2 pipeline
 * :feature:`-` run automatically randomized (negative) control for the velocity. Added plotting options for the randomized control visualization
 * :bug:`-` Fix colormap bug with matplotlib 2.2.0
 * :feature:`-` Add feature selection for the unspliced

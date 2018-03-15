@@ -683,6 +683,7 @@ class ExInCounter:
         """
         molitems: DefaultDict[str, vcy.Molitem] = defaultdict(vcy.Molitem)
         # Sort similarly to what the sort linux command would do. (implemented using Read.__lt__)
+        # NOTE NOTE!!!! Here I changed the way to sort because it was using the strand causing to skip a lot of reads in SmartSeq2
         self.reads_to_count.sort()
         # NOTE: I could start by sorting the reads by chromosome, strand, position but for now let's see if it is fast without doing do
 
@@ -966,6 +967,7 @@ class ExInCounter:
         """
         molitems: DefaultDict[str, vcy.Molitem] = defaultdict(vcy.Molitem)
         # Sort similarly to what the sort linux command would do. (implemented using Read.__lt__)
+        # NOTE NOTE!!!! Here I changed the way to sort because it was using the strand causing to skip a lot of reads in SmartSeq2
         self.reads_to_count.sort()
         # NOTE: I could start by sorting the reads by chromosome, strand, position but for now let's see if it is fast without doing do
 
@@ -995,17 +997,17 @@ class ExInCounter:
                 else:
                     minus_reads_count += 1
 
-            # mappings_record_r = iir.find_overlapping_ivls(r)
-            # if len(mappings_record_r):
-            #     bcumi = f"{r.bc}${r.umi}"
-            #     molitems[bcumi].add_mappings_record(mappings_record_r)
-            #     if r.strand == "-":
-            #         plus_reads_count += 1
-            #     else:
-            #         minus_reads_count += 1
+            mappings_record_r = iir.find_overlapping_ivls(r)
+            if len(mappings_record_r):
+                bcumi = f"{r.bc}${r.umi}"
+                molitems[bcumi].add_mappings_record(mappings_record_r)
+                if r.strand == "-":
+                    plus_reads_count += 1
+                else:
+                    minus_reads_count += 1
 
-            # if len(mappings_record) and len(mappings_record_r):
-            #    both_reads_count += 1
+            if len(mappings_record) and len(mappings_record_r):
+               both_reads_count += 1
 
         logging.debug(f"{repeats_reads_count} reads in repeat masked regions")  # VERBOSE
         logging.debug(f"{plus_reads_count} reads overlapping with features on plus strand")  # VERBOSE

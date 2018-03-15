@@ -28,20 +28,16 @@ class Read:
 
     def __lt__(self, other: Any) -> bool:
         if self.chrom == other.chrom:
-            if self.strand == other.strand:
-                if self.start == other.start:
-                    return self.end < other.end
-                return self.start < other.start
-            return not self.strand < other.strand  # "-" should come before than "+" but "-" < "+" evaluates to False.
+            if self.start == other.start:
+                return self.end < other.end
+            return self.start < other.start
         return self.chrom < other.chrom
 
     def __gt__(self, other: Any) -> bool:
         if self.chrom == other.chrom:
-            if self.strand == other.strand:
-                if self.start == other.start:
-                    return self.end > other.end
-                return self.start > other.start
-            return not self.strand > other.strand  # "-" should come before than "+" but "-" < "+" evaluates to False.
+            if self.start == other.start:
+                return self.end > other.end
+            return self.start > other.start
         return self.chrom > other.chrom
 
     def __str__(self) -> str:
