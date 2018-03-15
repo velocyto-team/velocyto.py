@@ -971,6 +971,9 @@ class ExInCounter:
         # NOTE: I could start by sorting the reads by chromosome, strand, position but for now let's see if it is fast without doing do
 
         repeats_reads_count = 0
+        plus_reads_count = 0
+        minus_reads_count = 0
+        both_reads_count = 0
         for r in self.reads_to_count:
             # Consider the correct strand
             ii = self.feature_indexes[f"{r.chrom}{r.strand}"]
@@ -979,7 +982,7 @@ class ExInCounter:
             iimr = self.mask_indexes[f"{r.chrom}{reverse(r.strand)}"]
 
             # Check if read is fully inside a masked region, in that case skip it
-            if iim.has_ivls_enclosing(r) and iimr.has_ivls_enclosing(r):
+            if iim.has_ivls_enclosing(r) or iimr.has_ivls_enclosing(r):
                 repeats_reads_count += 1  # VERBOSE
                 continue
 
@@ -988,13 +991,27 @@ class ExInCounter:
             if len(mappings_record):
                 bcumi = f"{r.bc}${r.umi}"
                 molitems[bcumi].add_mappings_record(mappings_record)
+                if r.strand == "+":
+                    plus_reads_count += 1
+                else:
+                    minus_reads_count += 1
 
             mappings_record_r = iir.find_overlapping_ivls(r)
             if len(mappings_record_r):
                 bcumi = f"{r.bc}${r.umi}"
                 molitems[bcumi].add_mappings_record(mappings_record_r)
+                if r.strand == "-":
+                    plus_reads_count += 1
+                else:
+                    minus_reads_count += 1
 
-        logging.debug(f"{repeats_reads_count} reads not considered because fully enclosed in repeat masked regions")  # VERBOSE
+            if len(mappings_record) and len(mappings_record_r):
+                both_reads_count += 1
+
+        logging.debug(f"{repeats_reads_count} reads in repeat masked regions")  # VERBOSE
+        logging.debug(f"{plus_reads_count} reads overlapping with features on plus strand")  # VERBOSE
+        logging.debug(f"{minus_reads_count} reads overlapping with features on minus strand")  # VERBOSE
+        logging.debug(f"{both_reads_count} reads overlapping with features on both strands")  # VERBOSE
         # initialize np.ndarray
         shape = (len(self.geneid2ix), len(self.cell_batch))
 
