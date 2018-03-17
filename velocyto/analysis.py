@@ -1244,9 +1244,11 @@ class VelocytoLoom:
                 self.gammas = fit_slope_weighted(tmpU[:, self.steady_state],
                                                  tmpS[:, self.steady_state],
                                                  W)
+                self.q = np.zeros_like(self.gammas)
             else:
                 self.gammas = fit_slope(tmpU[:, self.steady_state],
                                         tmpS[:, self.steady_state])
+                self.q = np.zeros_like(self.gammas)
 
         # Fix gammas
         self.gammas[~np.isfinite(self.gammas)] = 0

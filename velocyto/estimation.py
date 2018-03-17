@@ -188,7 +188,7 @@ def _fit1_slope(y: np.ndarray, x: np.ndarray) -> float:
     return m
 
 
-def _fit1_slope_weighted(y: np.ndarray, x: np.ndarray, w: np.ndarray, bounds: Tuple[float, float]=(0, 3)) -> float:
+def _fit1_slope_weighted(y: np.ndarray, x: np.ndarray, w: np.ndarray, limit_gamma: bool=False, bounds: Tuple[float, float]=(0, 3)) -> float:
     """Simple function that fit a weighted linear regression model without intercept
     """
     if not np.any(x):
@@ -196,7 +196,16 @@ def _fit1_slope_weighted(y: np.ndarray, x: np.ndarray, w: np.ndarray, bounds: Tu
     elif not np.any(y):
         m = 0
     else:
-        m = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y)**2), bounds=(0, 3), method="bounded").x
+        if limit_gamma:
+            if np.median(y) > np.median(x):
+                high_x = x > np.percentile(x, 90)
+                up_gamma = np.percentile(y[high_x], 10) / np.median(x[high_x])
+                up_gamma = np.maximum(1.5, up_gamma)
+            else:
+                up_gamma = 1.5  # Just a bit more than 1
+            m = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y)**2), bounds=(1e-8, up_gamma), method="bounded").x
+        else:
+            m = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y)**2), bounds=bounds, method="bounded").x
     return m
 
 
@@ -288,7 +297,7 @@ def fit_slope_offset(Y: np.ndarray, X: np.ndarray, fixperc_q: bool=False) -> Tup
     return slopes, offsets
 
 
-def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, bounds: Tuple[float, float]=(0, 3)) -> np.ndarray:
+def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, return_R2: bool=False, limit_gamma:bool=False, bounds: Tuple[float, float]=(0, 3)) -> np.ndarray:
     """Loop through the genes and fits the slope
 
     Y: np.ndarray, shape=(genes, cells)
@@ -302,6 +311,26 @@ def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, bounds: Tupl
     slopes = np.fromiter((_fit1_slope_weighted(Y[i, :], X[i, :], W[i, :], bounds=bounds) for i in range(Y.shape[0])),
                          dtype="float32",
                          count=Y.shape[0])
+
+    slopes = np.zeros(Y.shape[0], dtype="float32")
+    offsets = np.zeros(Y.shape[0], dtype="float32")
+    if return_R2:
+        R2 = np.zeros(Y.shape[0], dtype="float32")
+    for i in range(Y.shape[0]):
+        m = _fit1_slope_weighted(Y[i, :], X[i, :], W[i, :], limit_gamma)
+        slopes[i] = m
+        if return_R2:
+            # NOTE: the coefficient of determination is not weighted but the fit is
+            with np.errstate(divide='ignore', invalid='ignore'):
+                SSres = np.sum((m * X[i, :] - Y[i, :])**2)
+                SStot = np.sum((Y[i, :].mean() - Y[i, :])**2)
+                _R2 = 1 - (SSres / SStot)
+            if np.isfinite(_R2):
+                R2[i] = _R2
+            else:
+                R2[i] = -1e16
+    if return_R2:
+        return slopes, R2
     return slopes
 
 
