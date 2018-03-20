@@ -165,6 +165,10 @@ class VelocytoLoom:
         self.initial_cell_size = self.initial_cell_size[bool_array]
         self.initial_Ucell_size = self.initial_Ucell_size[bool_array]
         try:
+            self.ts = self.ts[bool_array]  # type: np.ndarray
+        except:
+            pass
+        try:
             self.size_factor = self.size_factor[bool_array]  # type: np.ndarray
         except:
             pass
@@ -1311,13 +1315,17 @@ class VelocytoLoom:
         else:
             self.Upred = getattr(self, which_gamma)[:, None] * getattr(self, which_S) + getattr(self, which_offset)[:, None]
 
-    def calculate_velocity(self, kind: str="residual") -> None:
+    def calculate_velocity(self, kind: str="residual", eps: float=None) -> None:
         """Calculate velocity
 
         Arguments
         ---------
         kind: str, default="residual"
             "residual" calculates the velocity as U_measured - U_predicted
+        
+        eps: float, default=None
+            if specified, velocities with absolute value smaller than eps * range_of_U will be set to 0
+            if None this step will be skipped
         
         Results
         -------
@@ -1335,6 +1343,10 @@ class VelocytoLoom:
                 NotImplementedError(f"Not implemented with which_S = {self.which_S_for_pred}")
         else:
             raise NotImplementedError(f"Velocity calculation kind={kind} is not implemented")
+
+        if eps:
+            minimal_signed_res = self.Upred.max(1) * eps
+            self.velocity[np.abs(self.velocity) < minimal_signed_res] = 0
 
     def calculate_shift(self, assumption: str="constant_velocity", delta_t: float=1) -> None:
         """Find the change (deltaS) in gene expression for every cell

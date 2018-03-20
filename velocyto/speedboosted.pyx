@@ -370,7 +370,9 @@ cdef void x_colDeltaCorSqrtpartial(double *e,
                 for n in range(nrndm):
                     i = ixs[c*nrndm + n]
                     tmp[0] = e[j*cols + i] - e[j*cols + c]
-                    if tmp[0] >= 0:
+                    if fabs(tmp[0]) < 1e-16:  # == 0
+                        A[j*nrndm + n] = 0
+                    elif tmp[0] > 0:
                         A[j*nrndm + n] = sqrt(tmp[0] + psc)
                     else:
                         A[j*nrndm + n] = -sqrt(-tmp[0] + psc)
