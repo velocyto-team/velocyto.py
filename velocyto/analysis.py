@@ -1033,6 +1033,10 @@ class VelocytoLoom:
             self.Sx = np.maximum(self.S_sz, self.Sx)
             self.Ux = np.maximum(self.U_sz, self.Ux)
 
+        # Make a differently named varaible for backwards compatibility
+        self.Sx_sz = np.copy(self.Sx)
+        self.Ux_sz = np.copy(self.Ux)
+
     def knn_imputation_precomputed(self, knn_smoothing_w: sparse.lil_matrix, maximum: bool=False) -> None:
         """Performs k-nn imputation (like `.knn_imputation()`) but with a precomputed weight matrix
         
