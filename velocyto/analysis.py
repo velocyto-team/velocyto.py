@@ -1064,6 +1064,9 @@ class VelocytoLoom:
             self.Sx = np.maximum(self.S_sz, self.Sx)
             self.Ux = np.maximum(self.U_sz, self.Ux)
 
+        self.Sx_sz = np.copy(self.Sx)
+        self.Ux_sz = np.copy(self.Ux)
+
     def gene_knn_imputation(self, k: int=15, pca_space: float=False, metric: str="correlation", diag: float=1,
                             scale_weights: bool=True, balanced: bool=True, b_sight: int=100, b_maxl: int=18,
                             n_jobs: int=8) -> None:
