@@ -1346,7 +1346,7 @@ class VelocytoLoom:
 
         if eps:
             minimal_signed_res = self.Upred.max(1) * eps
-            self.velocity[np.abs(self.velocity) < minimal_signed_res] = 0
+            self.velocity[np.abs(self.velocity) < minimal_signed_res[:, None]] = 0
 
     def calculate_shift(self, assumption: str="constant_velocity", delta_t: float=1) -> None:
         """Find the change (deltaS) in gene expression for every cell
