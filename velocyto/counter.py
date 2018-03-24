@@ -545,7 +545,7 @@ class ExInCounter:
                     set_chromosomes_seen = set()
                     # I need to reset indexes in position before the next file is restarted
                     # NOTE this is far from optimal for lots of cells
-                    logging.debug("Change of file. Reset index: start scanning from initial position.")
+                    logging.debug("End of file. Reset index: start scanning from initial position.")
                     for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
                         self.feature_indexes[chromstrand_key].reset()
                     continue
