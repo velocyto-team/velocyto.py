@@ -188,7 +188,7 @@ def _fit1_slope(y: np.ndarray, x: np.ndarray) -> float:
     return m
 
 
-def _fit1_slope_weighted(y: np.ndarray, x: np.ndarray, w: np.ndarray, limit_gamma: bool=False, bounds: Tuple[float, float]=(0, 3)) -> float:
+def _fit1_slope_weighted(y: np.ndarray, x: np.ndarray, w: np.ndarray, limit_gamma: bool=False, bounds: Tuple[float, float]=(0, 20)) -> float:
     """Simple function that fit a weighted linear regression model without intercept
     """
     if not np.any(x):
@@ -233,7 +233,7 @@ def _fit1_slope_weighted_offset(y: np.ndarray, x: np.ndarray, w: np.ndarray, fix
                 else:
                     up_gamma = 1.5  # Just a bit more than 1
             else:
-                up_gamma = 30
+                up_gamma = 20
             up_q = 2 * np.sum(y * w) / np.sum(w)
             m = scipy.optimize.minimize(lambda m: np.sum(w * (-y + x * m[0] + m[1])**2),
                                         x0=(0.1, 1e-16), method="L-BFGS-B",
