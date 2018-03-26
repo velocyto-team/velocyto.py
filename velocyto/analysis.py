@@ -1134,7 +1134,7 @@ class VelocytoLoom:
         
     def fit_gammas(self, steady_state_bool: np.ndarray=None, use_imputed_data: bool=True, use_size_norm: bool=True,
                    fit_offset: bool=True, fixperc_q: bool=False, weighted: bool=True, weights: np.ndarray = "maxmin_diag",
-                   limit_gamma: bool=True, maxmin_perc: List[float]=[2, 98], maxmin_weighted_pow: float=15) -> None:
+                   limit_gamma: bool=False, maxmin_perc: List[float]=[2, 98], maxmin_weighted_pow: float=15) -> None:
         """Fit gamma using spliced and unspliced data
 
         Arguments
