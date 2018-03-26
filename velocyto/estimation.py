@@ -220,7 +220,7 @@ def _fit1_slope_weighted_offset(y: np.ndarray, x: np.ndarray, w: np.ndarray, fix
     else:
         if fixperc_q:
             m1 = np.percentile(y[x <= np.percentile(x, 1)], 50)
-            m0 = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y + m1)**2), bounds=(0, 3), method="bounded").x
+            m0 = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y + m1)**2), bounds=(0, 20), method="bounded").x
             m = (m0, m1)
         else:
             # m, _ = scipy.optimize.leastsq(lambda m: np.sqrt(w) * (-y + x * m[0] + m[1]), x0=(0, 0))  # This is probably faster but it can have negative slope
@@ -253,7 +253,7 @@ def _fit1_slope_offset(y: np.ndarray, x: np.ndarray, fixperc_q: bool=False) -> T
         # m = result[0]
         if fixperc_q:
             m1 = np.percentile(y[x <= np.percentile(x, 1)], 50)
-            m0 = scipy.optimize.minimize_scalar(lambda m: np.sum((x * m - y + m1)**2), bounds=(0, 3), method="bounded").x
+            m0 = scipy.optimize.minimize_scalar(lambda m: np.sum((x * m - y + m1)**2), bounds=(0, 20), method="bounded").x
             m = (m0, m1)
         else:
             m, _ = scipy.optimize.leastsq(lambda m: -y + x * m[0] + m[1], x0=(0, 0))
@@ -297,7 +297,7 @@ def fit_slope_offset(Y: np.ndarray, X: np.ndarray, fixperc_q: bool=False) -> Tup
     return slopes, offsets
 
 
-def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, return_R2: bool=False, limit_gamma:bool=False, bounds: Tuple[float, float]=(0, 3)) -> np.ndarray:
+def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, return_R2: bool=False, limit_gamma:bool=False, bounds: Tuple[float, float]=(0, 20)) -> np.ndarray:
     """Loop through the genes and fits the slope
 
     Y: np.ndarray, shape=(genes, cells)
