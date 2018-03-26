@@ -1237,16 +1237,20 @@ class VelocytoLoom:
                                                                          tmpS[:, self.steady_state],
                                                                          W,
                                                                          return_R2=True,
-                                                                         limit_gamma=False)
+                                                                         limit_gamma=limit_gamma)
             else:
+                if limit_gamma:
+                    logging.warning("limit_gamma not implemented with this settings")
                 self.gammas, self.q = fit_slope_offset(tmpU[:, self.steady_state],
                                                        tmpS[:, self.steady_state])
         elif fixperc_q:
             if weighted:
                 self.gammas, self.q = fit_slope_weighted_offset(tmpU[:, self.steady_state],
                                                                 tmpS[:, self.steady_state],
-                                                                W, fixperc_q=True)
+                                                                W, fixperc_q=True, limit_gamma=limit_gamma)
             else:
+                if limit_gamma:
+                    logging.warning("limit_gamma not implemented with this settings")
                 self.gammas, self.q = fit_slope_offset(tmpU[:, self.steady_state],
                                                        tmpS[:, self.steady_state],
                                                        fixperc_q=True)
@@ -1254,9 +1258,11 @@ class VelocytoLoom:
             if weighted:
                 self.gammas = fit_slope_weighted(tmpU[:, self.steady_state],
                                                  tmpS[:, self.steady_state],
-                                                 W)
+                                                 W, limit_gamma=limit_gamma)
                 self.q = np.zeros_like(self.gammas)
             else:
+                if limit_gamma:
+                    logging.warning("limit_gamma not implemented with this settings")
                 self.gammas = fit_slope(tmpU[:, self.steady_state],
                                         tmpS[:, self.steady_state])
                 self.q = np.zeros_like(self.gammas)
