@@ -308,9 +308,9 @@ def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, return_R2: b
         the weights that will scale the square residuals
     """
     # NOTE this could be easily parallelized
-    slopes = np.fromiter((_fit1_slope_weighted(Y[i, :], X[i, :], W[i, :], bounds=bounds) for i in range(Y.shape[0])),
-                         dtype="float32",
-                         count=Y.shape[0])
+    #slopes = np.fromiter((_fit1_slope_weighted(Y[i, :], X[i, :], W[i, :], bounds=bounds) for i in range(Y.shape[0])),
+    #                     dtype="float32",
+    #                     count=Y.shape[0])
 
     slopes = np.zeros(Y.shape[0], dtype="float32")
     offsets = np.zeros(Y.shape[0], dtype="float32")
