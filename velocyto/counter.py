@@ -729,14 +729,20 @@ class ExInCounter:
         bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
         failures = 0
+        counter: Counter = Counter()
         for bcumi, molitem in molitems.items():
             bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
             bcidx = bc2idx[bc]
             rcode = self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
-            failures += rcode
+            if rcode:
+                failures += 1
+                counter[rcode] += 1
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
         if failures > (0.25 * len(molitems)):
-            logging.warn(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed")
+            logging.warn(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed, of those:")
+            logging.warn(f"A situation where many genes were compatible with the observation in {(100*counter[1] / len(molitems)):.1f} cases")
+            logging.warn(f"No gene is compatible with the observation in {(100*counter[2] / len(molitems)):.1f} cases")
+            logging.warn(f"Situation that were not described by the logic in the {(100*counter[3] / len(molitems)):.1f} of the caes")
 
 
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):

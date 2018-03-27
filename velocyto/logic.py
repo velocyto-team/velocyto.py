@@ -153,7 +153,7 @@ class Permissive10X(Logic):
                 else:
                     if not len(molitem.mappings_record):
                         # No gene is compatible with the observation, do not count
-                        return 1
+                        return 2
                     else:
                         if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
                             # More common situation, normal exonic read, count as spliced
@@ -216,7 +216,7 @@ class Permissive10X(Logic):
                             # Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
-        return 1
+        return 3
                     
 
 
