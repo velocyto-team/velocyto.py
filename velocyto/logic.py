@@ -88,7 +88,7 @@ class Permissive10X(Logic):
         ambiguous = dict_layers_columns["ambiguous"]
         # The hits are not compatible with any annotated transcript model
         if len(molitem.mappings_record) == 0:
-            return 1
+            return 2
         # Compatible with one or more transcript models:
         else:
             # Check that there are not different possible genes ??
