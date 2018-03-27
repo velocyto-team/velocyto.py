@@ -3,6 +3,7 @@
 =========
 Changelog
 =========
+* :feature:`-` change behavior in no-barcode-list mode: use a very permissive heuristic of < 80 molecules per cell as the threshold to thrash empty droplets / no-cell events
 * :bug:`-` Fix a skip repeat error with SmartSeq2 pipeline
 * :feature:`-` run automatically randomized (negative) control for the velocity. Added plotting options for the randomized control visualization
 * :bug:`-` Fix colormap bug with matplotlib 2.2.0

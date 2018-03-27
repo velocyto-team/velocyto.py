@@ -641,10 +641,20 @@ class ExInCounter:
                 nth += 1
                 logging.debug(f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads")
                 dict_layer_columns, list_bcs = self.count_cell_batch()
-                cell_bcs_order += list_bcs
-
-                for layer_name, layer_columns in dict_layer_columns.items():
-                    dict_list_arrays[layer_name].append(layer_columns)
+                
+                # This is to avoid crazy big matrix output if the barcode selection is not chosen
+                if not self.filter_mode:
+                    logging.warning("The barcode selection mode is off, no cell events will be identified by <80 counts")
+                    tot_mol = dict_layer_columns["spliced"].sum(0) + dict_layer_columns["unspliced"].sum(0)
+                    cell_bcs_order += list(np.array(list_bcs)[tot_mol > 80])
+                    for layer_name, layer_columns in dict_layer_columns.items():
+                        dict_list_arrays[layer_name].append(layer_columns[:, tot_mol > 80])
+                    logging.warning(f"{np.sum(tot_mol < 80)} of the barcodes where without cell")
+                else:
+                    # The normal case
+                    cell_bcs_order += list_bcs
+                    for layer_name, layer_columns in dict_layer_columns.items():
+                        dict_list_arrays[layer_name].append(layer_columns)
 
                 self.cell_batch = set()
                 # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
@@ -726,8 +736,9 @@ class ExInCounter:
             failures += rcode
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
         if failures > (0.25 * len(molitems)):
-            logging.warn(r"More than 20% ({100*failures / len(molitems):1.f}%) of molitems trashed")
-        
+            logging.warn(f"More than 20% ({100*failures / len(molitems):1.f}%) of molitems trashed")
+
+
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
             if self.kind_of_report == "p":
                 import pickle
