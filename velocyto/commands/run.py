@@ -60,7 +60,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                               file_okay=True,
                               dir_okay=False,
                               readable=True))
-@click.option("--repmask", "-m",
+@click.option("--mask", "-m",
               help=".gtf file containing intervals to mask",
               default=None,
               type=click.Path(resolve_path=True,
@@ -84,6 +84,9 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               If set to `chr` the mapping position (binned to 10Gb intervals) will be appended to `UB` (ideal for InDrops+dropEst). If set to `Gene` then the `GX` tag will be appended to the `UB` tag.
               If set to `[N]bp` the first N bases of the sequence will be used to extend `UB` (ideal for STRT). (Default: `no`)""",
               default="no")
+@click.option("--multimap", "-M",
+              help="""Consider not unique mappings (not reccomended)""",
+              default="no")
 @click.option("--samtools-threads", "-@",
               help="The number of threads to use to sort the bam by cellID file using samtools",
               default=16)
@@ -99,7 +102,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 def run(bamfile: str, gtffile: str,
         bcfile: str, outputfolder: str,
         sampleid: str, metadatatable: str,
-        repmask: str, onefilepercell: bool, logic: str, without_umi: str, umi_extension: str,
+        mask: str, onefilepercell: bool, logic: str, without_umi: str, umi_extension: str, multimap: bool,
         samtools_threads: int, samtools_memory: int, dump: str, verbose: int,
         additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
@@ -109,6 +112,6 @@ def run(bamfile: str, gtffile: str,
     GTFFILE genome annotation file
     """
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
-                sampleid=sampleid, metadatatable=metadatatable, repmask=repmask, onefilepercell=onefilepercell,
-                logic=logic, without_umi=without_umi, umi_extension=umi_extension, multimap=False, test=False, samtools_threads=samtools_threads,
+                sampleid=sampleid, metadatatable=metadatatable, repmask=mask, onefilepercell=onefilepercell,
+                logic=logic, without_umi=without_umi, umi_extension=umi_extension, multimap=multimap, test=False, samtools_threads=samtools_threads,
                 samtools_memory=samtools_memory, dump=dump, verbose=verbose, additional_ca=additional_ca)

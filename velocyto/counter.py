@@ -718,11 +718,15 @@ class ExInCounter:
 
         bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
+        failures = 0
         for bcumi, molitem in molitems.items():
             bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
             bcidx = bc2idx[bc]
-            self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
+            rcode = self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
+            failures += rcode
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
+        if failures > (0.25 * len(molitems)):
+            logging.warn(r"More than 20% ({100*failures / len(molitems):1.f}%) of molitems trashed")
         
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
             if self.kind_of_report == "p":
