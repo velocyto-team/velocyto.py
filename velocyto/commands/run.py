@@ -86,7 +86,8 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               default="no")
 @click.option("--multimap", "-M",
               help="""Consider not unique mappings (not reccomended)""",
-              default="no")
+              default=False,
+              is_flag=True)
 @click.option("--samtools-threads", "-@",
               help="The number of threads to use to sort the bam by cellID file using samtools",
               default=16)

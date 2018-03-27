@@ -51,7 +51,8 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
               default="Default")
 @click.option("--multimap", "-M",
               help="""Consider not unique mappings (not reccomended)""",
-              default="no")
+              default=False,
+              is_flag=True)
 @click.option("--samtools-threads", "-@",
               help="The number of threads to use to sort the bam by cellID file using samtools",
               default=16)
