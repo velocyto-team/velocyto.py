@@ -736,7 +736,7 @@ class ExInCounter:
             failures += rcode
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
         if failures > (0.25 * len(molitems)):
-            logging.warn(f"More than 20% ({100*failures / len(molitems):1.f}%) of molitems trashed")
+            logging.warn(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed")
 
 
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
