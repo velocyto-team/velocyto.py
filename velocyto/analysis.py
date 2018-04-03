@@ -1482,6 +1482,7 @@ class VelocytoLoom:
         """
 
         numba_random_seed(random_seed)
+        self.which_hidim = hidim
 
         if n_neighbors is None:
             n_neighbors = int(self.S.shape[1] / 5)
@@ -1504,9 +1505,9 @@ class VelocytoLoom:
                 hi_dim = getattr(self, hidim)  # [:, :ndims]
                 hi_dim_t = hi_dim + self.used_delta_t * self.delta_S  # [:, :ndims] [:, :ndims]
                 if calculate_randomized:
-                    delta_S_rndm = np.copy(self.delta_S)
-                    permute_rows_nsign(delta_S_rndm)
-                    hi_dim_t_rndm = hi_dim + self.used_delta_t * delta_S_rndm
+                    self.delta_S_rndm = np.copy(self.delta_S)
+                    permute_rows_nsign(self.delta_S_rndm)
+                    hi_dim_t_rndm = hi_dim + self.used_delta_t * self.delta_S_rndm
                 
             embedding = getattr(self, embed)
             self.embedding = embedding
@@ -1547,18 +1548,18 @@ class VelocytoLoom:
                     delta_hi_dim_rndm = hi_dim_t_rndm - hi_dim
                     self.corrcoef_random = colDeltaCorLog10partial(hi_dim, np.log10(np.abs(delta_hi_dim_rndm) + psc) * np.sign(delta_hi_dim_rndm), neigh_ixs, threads=threads, psc=psc)
             elif transform == "logratio":
-                log2hidim = np.log2(hi_dim + 1)
-                delta_hi_dim = np.log2(np.abs(hi_dim_t) + 1) - log2hidim
+                log2hidim = np.log2(hi_dim + psc)
+                delta_hi_dim = np.log2(np.abs(hi_dim_t) + psc) - log2hidim
                 self.corrcoef = colDeltaCorpartial(log2hidim, delta_hi_dim, neigh_ixs, threads=threads)
                 if calculate_randomized:
                     logging.debug(f"Correlation Calculation for negative control")
-                    delta_hi_dim_rndm = np.log2(np.abs(hi_dim_t_rndm) + 1) - log2hidim
-                    self.corrcoef_random = colDeltaCorpartial(log2hidim, delta_hi_dim_rndm, neigh_ixs, threads=threads, psc=psc)
+                    delta_hi_dim_rndm = np.log2(np.abs(hi_dim_t_rndm) + psc) - log2hidim
+                    self.corrcoef_random = colDeltaCorpartial(log2hidim, delta_hi_dim_rndm, neigh_ixs, threads=threads)
             elif transform == "linear":
                 self.corrcoef = colDeltaCorpartial(hi_dim, hi_dim_t - hi_dim, neigh_ixs, threads=threads)
                 if calculate_randomized:
                     logging.debug(f"Correlation Calculation for negative control")
-                    self.corrcoef_random = colDeltaCorpartial(hi_dim, hi_dim_t_rndm - hi_dim, neigh_ixs, threads=threads, psc=psc)
+                    self.corrcoef_random = colDeltaCorpartial(hi_dim, hi_dim_t_rndm - hi_dim, neigh_ixs, threads=threads)
             elif transform == "sqrt":
                 delta_hi_dim = hi_dim_t - hi_dim
                 self.corrcoef = colDeltaCorSqrtpartial(hi_dim, np.sqrt(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), neigh_ixs, threads=threads, psc=psc)
@@ -1597,44 +1598,46 @@ class VelocytoLoom:
             logging.debug("Correlation Calculation 'full'")
             if transform == "log":
                 delta_hi_dim = hi_dim_t - hi_dim
-                self.corrcoef = colDeltaCorLog10(hi_dim, np.log10(np.abs(delta_hi_dim) + 1) * np.sign(delta_hi_dim), threads=threads)
+                self.corrcoef = colDeltaCorLog10(hi_dim, np.log10(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), threads=threads, psc=psc)
                 if calculate_randomized:
                     logging.debug(f"Correlation Calculation for negative control")
                     delta_hi_dim_rndm = hi_dim_t_rndm - hi_dim
-                    self.corrcoef_random = colDeltaCorLog10(hi_dim, np.log10(np.abs(delta_hi_dim_rndm) + 1) * np.sign(delta_hi_dim_rndm), threads=threads)
+                    self.corrcoef_random = colDeltaCorLog10(hi_dim, np.log10(np.abs(delta_hi_dim_rndm) + psc) * np.sign(delta_hi_dim_rndm), threads=threads, psc=psc)
             elif transform == "logratio":
-                log2hidim = np.log2(hi_dim + 1)
-                delta_hi_dim = np.log2(np.abs(hi_dim_t) + 1) - log2hidim
+                log2hidim = np.log2(hi_dim + psc)
+                delta_hi_dim = np.log2(np.abs(hi_dim_t) + psc) - log2hidim
                 self.corrcoef = colDeltaCor(log2hidim, delta_hi_dim, threads=threads)
                 if calculate_randomized:
                     logging.debug(f"Correlation Calculation for negative control")
                     delta_hi_dim_rndm = np.log2(np.abs(hi_dim_t_rndm) + 1) - log2hidim
-                    self.corrcoef = colDeltaCor(log2hidim, delta_hi_dim_rndm, threads=threads)
+                    self.corrcoef_random = colDeltaCor(log2hidim, delta_hi_dim_rndm, threads=threads)
             elif transform == "linear":
                 self.corrcoef = colDeltaCor(hi_dim, hi_dim_t - hi_dim, threads=threads)
                 if calculate_randomized:
                     logging.debug(f"Correlation Calculation for negative control")
-                    self.corrcoef_random = colDeltaCor(hi_dim, hi_dim_t_rndm - hi_dim, threads=threads)
+                    self.corrcoef_random = colDeltaCor(hi_dim, hi_dim_t_rndm - hi_dim, threads=threads, psc=psc)
             elif transform == "sqrt":
-                self.corrcoef = colDeltaCorSqrt(hi_dim, hi_dim_t - hi_dim)
+                delta_hi_dim = hi_dim_t - hi_dim
+                self.corrcoef = colDeltaCorSqrt(hi_dim, np.sqrt(np.abs(delta_hi_dim) + psc) * np.sign(delta_hi_dim), threads=threads, psc=psc)
                 if calculate_randomized:
                     logging.debug(f"Correlation Calculation for negative control")
-                    self.corrcoef_random = colDeltaCorSqrt(hi_dim, hi_dim_t_rndm - hi_dim, threads=threads)
-            elif transform == "rank":
-                raise NotImplementedError(f"transform={transform} is not implemented with corr_calc='full'")
+                    delta_hi_dim_rndm = hi_dim_t_rndm - hi_dim
+                    self.corrcoef_random = colDeltaCorSqrt(hi_dim, np.sqrt(np.abs(delta_hi_dim_rndm) + psc) * np.sign(delta_hi_dim_rndm), threads=threads, psc=psc)
             else:
                 raise NotImplementedError(f"transform={transform} is not a valid parameter")
             np.fill_diagonal(self.corrcoef, 0)
             if calculate_randomized:
                 np.fill_diagonal(self.corrcoef_random, 0)
 
-    def calculate_embedding_shift(self, sigma_corr: float=0.05) -> None:
+    def calculate_embedding_shift(self, sigma_corr: float=0.05, expression_scaling: bool=True) -> None:
         """Use the transition probability to project the velocity direction on the embedding
 
         Arguments
         ---------
         sigma_corr: float, default=0.05
             the kernel scaling
+        expression_scaling: bool, default=True
+            rescale arrow intensity penalizing arrows that explain very small amount of expression differences 
 
         Returns
         -------
@@ -1662,16 +1665,26 @@ class VelocytoLoom:
                 unitary_vectors /= np.linalg.norm(unitary_vectors, ord=2, axis=0)  # divide by L2
                 np.fill_diagonal(unitary_vectors[0, ...], 0)  # fix nans
                 np.fill_diagonal(unitary_vectors[1, ...], 0)
+
             self.delta_embedding = (self.transition_prob * unitary_vectors).sum(2)
             self.delta_embedding -= (self.embedding_knn.A * unitary_vectors).sum(2) / self.embedding_knn.sum(1).A.T
             self.delta_embedding = self.delta_embedding.T
+
+            if expression_scaling:
+                hi_dim = getattr(self, self.which_hidim)
+                estim_delta = hi_dim.dot(self.transition_prob.T) - hi_dim.dot((self.embedding_knn.A / self.embedding_knn.sum(1).A).T)
+                self.scaling = np.clip((self.delta_S * estim_delta).sum(0) / np.sqrt((estim_delta**2).sum(0)), 0, 1)
+                self.delta_embedding = self.delta_embedding * self.scaling[:, None]
+
             if hasattr(self, "corrcoef_random"):
                 self.delta_embedding_random = (self.transition_prob_random * unitary_vectors).sum(2)
                 self.delta_embedding_random -= (self.embedding_knn.A * unitary_vectors).sum(2) / self.embedding_knn.sum(1).A.T
                 self.delta_embedding_random = self.delta_embedding_random.T
-            # sparse matrix version of the same code
-            # self.transition_prob = np.expm1(sparse.csr_matrix.multiply(self.embedding_knn, self.corrcoef) / sigma_corr) + self.embedding_knn[0,:].sum()
-            # self.transition_prob.multiply(1. / sparse.csr_matrix.sum(mknn, axis=1))
+
+                if expression_scaling:
+                    estim_delta_rndm = hi_dim.dot(self.transition_prob_random.T) - hi_dim.dot((self.embedding_knn.A / self.embedding_knn.sum(1).A).T)
+                    self.scaling_rndm = np.clip((self.delta_S_rndm * estim_delta_rndm).sum(0) / np.sqrt((estim_delta_rndm**2).sum(0)), 0, 1)
+                    self.delta_embedding_random = self.delta_embedding_random * self.scaling_rndm[:, None]
         else:
             # NOTE should implement a version with cython
             raise NotImplementedError(f"Weird value self.corr_calc={self.corr_calc}")
