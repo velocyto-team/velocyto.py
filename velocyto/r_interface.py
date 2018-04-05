@@ -7,7 +7,7 @@ try:
     import rpy2.robjects as ro
     from rpy2.robjects import numpy2ri
 
-    def convert_r_obj(v: Any, obj_to_obj: bool=True) -> Any:
+    def convert_r_obj(v: Any, obj_to_obj: bool=True, verbose=True) -> Any:
         """Function with manually specified conversion from a r-object to a python object
         """
         if type(v) == ro.rinterface.RNULLType:
@@ -49,7 +49,8 @@ try:
                 return {k: convert_r_obj(v.slots[k]) for k in tuple(v.slotnames())}
         else:
             if type(v) != str:
-                print(f"not supported yet {type(v)}")
+                if verbose:
+                    print(f"not supported yet {type(v)}")
             return v
 
 except:

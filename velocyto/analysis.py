@@ -1990,11 +1990,11 @@ class VelocytoLoom:
         if scale_type == "relative":
             if hasattr(self, "flow_rndm"):
                 plot_scale = np.linalg.norm(np.max(self.flow_grid, 0) - np.min(self.flow_grid, 0), 2)  # Diagonal of the plot
-                arrows_scale = np.percentile(np.linalg.norm(self.flow_rndm[self.total_p_mass >= min_mass, :], 2, 1), 80)  # Tipical lenght of an arrow
+                arrows_scale = np.percentile(np.linalg.norm(self.flow_rndm[self.total_p_mass >= min_mass, :], 2, 1), 90)  # Tipical lenght of an arrow
                 if quiver_scale == "auto":
-                    quiver_scale = arrows_scale / (plot_scale * 0.005)
+                    quiver_scale = arrows_scale / (plot_scale * 0.0025)
                 else:
-                    quiver_scale = quiver_scale * arrows_scale / (plot_scale * 0.005)
+                    quiver_scale = quiver_scale * arrows_scale / (plot_scale * 0.0025)
             else:
                 raise ValueError(""""`scale_type` was set to 'relative' but the randomized control was not computed when running estimate_transition_prob
                 Please run estimate_transition_prob or set `scale_type` to `absolute`""")
