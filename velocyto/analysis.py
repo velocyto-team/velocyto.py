@@ -1629,7 +1629,7 @@ class VelocytoLoom:
             if calculate_randomized:
                 np.fill_diagonal(self.corrcoef_random, 0)
 
-    def calculate_embedding_shift(self, sigma_corr: float=0.05, expression_scaling: bool=True) -> None:
+    def calculate_embedding_shift(self, sigma_corr: float=0.05, expression_scaling: bool=True, scaling_penalty: float=1.) -> None:
         """Use the transition probability to project the velocity direction on the embedding
 
         Arguments
@@ -1638,6 +1638,9 @@ class VelocytoLoom:
             the kernel scaling
         expression_scaling: bool, default=True
             rescale arrow intensity penalizing arrows that explain very small amount of expression differences 
+        scaling_penalty: float, default=1
+            Higher values correspond to a stronger penalty
+        
 
         Returns
         -------
@@ -1673,7 +1676,8 @@ class VelocytoLoom:
             if expression_scaling:
                 hi_dim = getattr(self, self.which_hidim)
                 estim_delta = hi_dim.dot(self.transition_prob.T) - hi_dim.dot((self.embedding_knn.A / self.embedding_knn.sum(1).A).T)
-                self.scaling = np.clip((self.delta_S * estim_delta).sum(0) / np.sqrt((estim_delta**2).sum(0)), 0, 1)
+                cos_proj = (self.delta_S * estim_delta).sum(0) / np.sqrt((estim_delta**2).sum(0))
+                self.scaling = np.clip(cos_proj / scaling_penalty, 0, 1)
                 self.delta_embedding = self.delta_embedding * self.scaling[:, None]
 
             if hasattr(self, "corrcoef_random"):
@@ -1683,7 +1687,8 @@ class VelocytoLoom:
 
                 if expression_scaling:
                     estim_delta_rndm = hi_dim.dot(self.transition_prob_random.T) - hi_dim.dot((self.embedding_knn.A / self.embedding_knn.sum(1).A).T)
-                    self.scaling_rndm = np.clip((self.delta_S_rndm * estim_delta_rndm).sum(0) / np.sqrt((estim_delta_rndm**2).sum(0)), 0, 1)
+                    cos_proj_rndm = (self.delta_S_rndm * estim_delta_rndm).sum(0) / np.sqrt((estim_delta_rndm**2).sum(0))
+                    self.scaling_rndm = np.clip(cos_proj_rndm / scaling_penalty, 0, 1)
                     self.delta_embedding_random = self.delta_embedding_random * self.scaling_rndm[:, None]
         else:
             # NOTE should implement a version with cython
@@ -2094,7 +2099,7 @@ class VelocytoLoom:
         _scatter_kwargs = dict(c="0.8", alpha=0.4, s=10, edgecolor=(0, 0, 0, 1), lw=0.3)
         _scatter_kwargs.update(scatter_kwargs)
         if new_fig:
-            if plot_random:
+            if plot_random and hasattr(self, delta_embedding_random):
                 plt.figure(figsize=(22, 12))
             else:
                 plt.figure(figsize=(14, 14))
@@ -2124,7 +2129,7 @@ class VelocytoLoom:
         _quiver_kwargs.update({"color": colorandum})
         _quiver_kwargs.update(quiver_kwargs)
 
-        if plot_random:
+        if plot_random and hasattr(self, delta_embedding_random):
             plt.subplot(122)
             plt.title("Randomized")
             if plot_scatter:
