@@ -97,9 +97,6 @@ def run_dropest(bamfile: str, gtffile: str, bcfile: str, logic: str, outputfolde
     if "correct" not in bamfile:
         logging.warning("The file you are using does not start with the prefix ``correct_`` so it might not be the output of ``velocyto tools dropest_bc_correct``.")
         logging.info("The program will run despite the warning but be aware of the possible consequences of not correcting the barcodes")
-    # Warning that is the `corrected` bam
-    # cehck also the barcode list file
-    # velocyto run --logic Permissive10X -u chr -b BARCODES.tab -o OUTPUTPATH -m MASK.gtf BAMFILE.tagged.bam GENES.gtf
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=None, repmask=repmask, onefilepercell=False,
                 logic=logic, without_umi=False, umi_extension="chr",
