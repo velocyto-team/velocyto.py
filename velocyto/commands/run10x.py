@@ -4,8 +4,6 @@ import glob
 import re
 import gzip
 import click
-import array
-import loompy
 import numpy as np
 import csv
 from collections import defaultdict

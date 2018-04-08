@@ -2,15 +2,10 @@ import sys
 import os
 import glob
 import re
-import gzip
 import click
-import array
-import loompy
 import numpy as np
 import random
 import string
-import csv
-from collections import defaultdict
 import logging
 from typing import *
 import velocyto as vcy

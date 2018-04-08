@@ -1637,7 +1637,7 @@ class VelocytoLoom:
         sigma_corr: float, default=0.05
             the kernel scaling
         expression_scaling: bool, default=True
-            rescale arrow intensity penalizing arrows that explain very small amount of expression differences 
+            rescale arrow intensity penalizing arrows that explain very small amount of expression differences
         scaling_penalty: float, default=1
             Higher values correspond to a stronger penalty
         

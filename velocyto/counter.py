@@ -744,7 +744,6 @@ class ExInCounter:
             logging.warn(f"No gene is compatible with the observation in {(100*counter[2] / len(molitems)):.1f} cases")
             logging.warn(f"Situation that were not described by the logic in the {(100*counter[3] / len(molitems)):.1f} of the caes")
 
-
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
             if self.kind_of_report == "p":
                 import pickle

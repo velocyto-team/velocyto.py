@@ -7,7 +7,7 @@ try:
     import rpy2.robjects as ro
     from rpy2.robjects import numpy2ri
 
-    def convert_r_obj(v: Any, obj_to_obj: bool=True, verbose=True) -> Any:
+    def convert_r_obj(v: Any, obj_to_obj: bool=True, verbose: bool=True) -> Any:
         """Function with manually specified conversion from a r-object to a python object
         """
         if type(v) == ro.rinterface.RNULLType:

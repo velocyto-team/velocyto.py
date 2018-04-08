@@ -4,7 +4,6 @@ import glob
 import re
 import gzip
 import click
-import array
 import loompy
 import numpy as np
 import random

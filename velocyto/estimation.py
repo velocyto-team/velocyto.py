@@ -297,7 +297,7 @@ def fit_slope_offset(Y: np.ndarray, X: np.ndarray, fixperc_q: bool=False) -> Tup
     return slopes, offsets
 
 
-def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, return_R2: bool=False, limit_gamma:bool=False, bounds: Tuple[float, float]=(0, 20)) -> np.ndarray:
+def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, return_R2: bool=False, limit_gamma: bool=False, bounds: Tuple[float, float]=(0, 20)) -> np.ndarray:
     """Loop through the genes and fits the slope
 
     Y: np.ndarray, shape=(genes, cells)
@@ -308,7 +308,7 @@ def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, return_R2: b
         the weights that will scale the square residuals
     """
     # NOTE this could be easily parallelized
-    #slopes = np.fromiter((_fit1_slope_weighted(Y[i, :], X[i, :], W[i, :], bounds=bounds) for i in range(Y.shape[0])),
+    # slopes = np.fromiter((_fit1_slope_weighted(Y[i, :], X[i, :], W[i, :], bounds=bounds) for i in range(Y.shape[0])),
     #                     dtype="float32",
     #                     count=Y.shape[0])
 

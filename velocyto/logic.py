@@ -48,7 +48,7 @@ class Logic(metaclass=abc.ABCMeta):
 
         """
         # NOTE I need to generalize this to any set of layers
-        return
+        return None
 
 
 class Permissive10X(Logic):
@@ -218,7 +218,6 @@ class Permissive10X(Logic):
                             ambiguous[gene_ix, cell_bcidx] += 1
         return 3
                     
-
 
 class Intermediate10X(Logic):
     """ValidatedIntrons logic for 10X Genomics chemistry
