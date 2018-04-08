@@ -30,7 +30,9 @@ processes = []
 command_list = [("velocyto", "velocyto --help"),
                 ("run", "velocyto run --help"),
                 ("run10x", "velocyto run10x --help"),
-                ("run_smartseq2", "velocyto run_smartseq2 --help")]
+                ("run_smartseq2", "velocyto run_smartseq2 --help"),
+                ("run_dropest", "velocyto run_dropest --help"),
+                ("dropest_bc_correct", "velocyto tools dropest_bc_correct --help")]
 
 for filename, command in command_list:
     processes.append((filename, subprocess.Popen(command.split(), stdout=subprocess.PIPE)))

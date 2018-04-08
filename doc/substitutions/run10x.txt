@@ -1,0 +1,21 @@
+::
+
+	Usage: velocyto run10x [OPTIONS] SAMPLEFOLDER GTFFILE
+		
+		  Runs the velocity analysis for a Chromium 10X Sample
+		
+		  10XSAMPLEFOLDER specifies the cellranger sample folder
+		
+		  GTFFILE genome annotation file
+		
+		Options:
+		  -s, --metadatatable PATH        Table containing metadata of the various samples (csv fortmated rows are samples and cols are entries)
+		  -m, --mask PATH                 .gtf file containing intervals to mask
+		  -l, --logic TEXT                The logic to use for the filtering (default: Default)
+		  -M, --multimap                  Consider not unique mappings (not reccomended)
+		  -@, --samtools-threads INTEGER  The number of threads to use to sort the bam by cellID file using samtools
+		  --samtools-memory INTEGER       The number of MB used for every thread by samtools to sort the bam file
+		  -d, --dump TEXT                 For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)
+		  -v, --verbose                   Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)
+		  --help                          Show this message and exit.
+		

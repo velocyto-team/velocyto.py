@@ -1,0 +1,18 @@
+::
+
+	Usage: velocyto run_smartseq2 [OPTIONS] BAMFILES... GTFFILE
+		
+		  Runs the velocity analysis on SmartSeq2 data (independent bam file per cell)
+		
+		  [BAMFILES, ...] a sequence of bam files to be analyzed (e.g. use a wild-card expansion)
+		
+		  GTFFILE genome annotation file
+		
+		Options:
+		  -o, --outputfolder PATH  Output folder, if it does not exist it will be created.
+		  -e, --sampleid PATH      The sample name that will be used as a the filename of the output.
+		  -m, --repmask PATH       .gtf file containing intervals to mask
+		  -d, --dump TEXT          For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)
+		  -v, --verbose            Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)
+		  --help                   Show this message and exit.
+		

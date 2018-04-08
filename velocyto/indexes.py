@@ -213,7 +213,7 @@ class FeatureIndex:
         into two segments and  the Read attribute `is_spliced == True`.
         - Notice that the name of the function might be confousing. if there is a non valid overallapping an empty mappign record will be return
         - Also notice that returning an empty mapping record will cause the suppression of the counting of the molecule
-
+        
         """
 
         mapping_record: Dict[vcy.TranscriptModel, List[vcy.SegmentMatch]] = defaultdict(list)

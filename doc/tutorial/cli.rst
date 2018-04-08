@@ -7,12 +7,12 @@ Introduction
 ------------
 
 After you have velocyto correctly installed on your machine (see :ref:`installation tutorial <install>`) the ``velocyto`` command will become available in the terminal.
-``velocyto`` is a command line tool with subcomands. You can get info on all the available commands typing ``velocyto --help``. You will get the following output:
+``velocyto`` is a command line tool with subcomands. You can get quick info on all the available commands typing ``velocyto --help``. You will get the following output:
 
 .. include:: ../substitutions/velocyto.txt
 
 
-But more useful information is found in the ``--help`` of each subcommand. You can further query for information on each subcommand by typing ``velocyto COMMANDNAME --help``.
+More detailed information can be obtained using ``--help`` for each subcommand (by typing ``velocyto COMMANDNAME --help``).
 
 Alternatively you can visit the online :ref:`api description page <cliapi>` that includes usage information for all the subcommands.
 
@@ -36,15 +36,89 @@ To do so you would need to download an appropriate expressed repeat annotation (
 Running ``velocyto``
 --------------------
 
-The general purpose command to start the pipeline for read counting is ``velocyto run``.
-However, for some of the most commonly used scRNA-seq chemistry and analysis pipelines, we provide a set of ready-to-use subcommands.
-These subcommands are just wrappers of ``velocyto run`` that take care to passing the right option and that expect, and better check that the correct combinations of inputs for each technique is provided.
+The general purpose command to run the read counting pipeline is ``velocyto run``.
+However, for some of the most commonly used scRNA-seq chemistries, we provide a set of ready-to-use subcommands.
+The currently available are: ``run10x``, ``run_smartseq2``, ``run_dropest``
+These subcommands are just wrappers of the main command ``velocyto run``. They take care of passing the appropriate options for each technology; furthermore they performa a minimal check the inputs provided make sense and some of them infer the path of some of the input files.
 
-Please regard these subcommands are tested, and they are the recommended way to use velocyto if you are unsure of all the options to pass to ``velocyto run``.
-For more flexibility ``velocyto run`` can be used directly. For custom techniuqes the user may want to consider modification of the counting pipeline allowed by the :ref:`Logic interface <logicapi>`.
+Please regard these subcommands as the recommended and easiest way to run `velocyto`, especially if you are unsure of all the options to pass to ``velocyto run``.
+For more flexibility and advanced usage, ``velocyto run`` should be used directly.
+Furthermore, to adapt velocyto to custom/new techniques the user may want to consider modification of the counting pipeline, this does not require deep rewrite of the internals but just the creation of a new `logic`, for more information consult the section about the :ref:`Logic interface API <logicapi>`.
+
+We will now describe the use of the technique specific subcommands.
+If you are interested in running velocyto with only one technique you can directly jump to that section without loss of information (this also means that some of the information will be repeated).
+
+``run10x`` - Run on 10X Chromium samples
+----------------------------------------
+
+``velocyto`` supports a shortcut to run the counting directly on one or more `cellranger` output folders (e.g. this is the folder containing the subfolder: ``outs``, ``outs/analys`` and ``outs/filtered_gene_bc_matrices``).
+
+The full signature of the command is:
+
+.. include:: ../substitutions/run10x.txt
+
+For example if we want to run the pipeline on the `cellranger` output folder ``mypath/sample01``. We would do:
+
+::
+
+    velocyto run10x -m repeat_msk.gtf mypath/sample01 somepath/mm10/genes.gtf
+
+Where ``genes.gtf`` is the genome annotation file provided with the cellranger pipeline.
+``repeat_msk.gtf`` is the repeat masker file described in the `Preparation` section above.
+
+.. note::
+    Execution time is ~3h for a typical sample but might vary significantly by sequencing depth and cpu power. 
 
 
-The ``run`` defaults are appropriate for the analysis of both 10X Genomics v1/v2 and InDrops 3' chemistry.
+``run_smartseq2`` - Run on SmartSeq2 samples
+--------------------------------------------
+
+``velocyto`` supports a shortcut to perform the read counting for UMI-less, not stranded, full-length techniques such as SmartSeq2.
+
+The full signature of the command is:
+
+.. include:: ../substitutions/run_smartseq2.txt
+
+Typically SmartSeq2 bam files are generated and organized by well/cell in a folder structure similar to the following
+
+::
+
+    plateX/A01/A01.bam
+    plateX/A02/A02.bam
+    plateX/A03/A03.bam
+    ...
+
+For this reason, ``run_smartseq2`` command accepts multiple inputs so that all the files can be analyzed in one run and all output stored in a single `.loom` file. 
+For example if we want to run the pipeline on a SmartSeq2 plate whose folder structure is organized as above we would just use wild-card (glob) expansion as follows.
+
+::
+
+    velocyto run_smartseq2 -o OUTPUT -m repeat_msk.gtf -e MyTissue plateX/*/*.bam mm10_annotation.gtf
+
+Where ``mm10_annotation.gtf`` and ``repeat_msk.gtf`` are the genome annotation and repeat masker files described in the `Preparation` section above.
+Finally note that the output `.loom` file in that case will have an extra layer "spanning".
+
+.. note::
+    The input bam files need to be sorted by position, if this is not already the case, this is simply achieved running `samtools sort A01.bam -o sorted_A01.bam`. 
+
+.. note::
+    Execution time might vary significantly by sequencing depth and cpu power but usually does not exceed the 6h for a typical sample 
+
+
+``run_dropest`` - Run on DropSeq, InDrops and other samples
+-----------------------------------------------------------
+
+``velocyto`` supports a shortcut to perform molecule counting on all the techniques supported by DropEst, this includes different versions of DropSeq and InDrops.
+This is particularly convenient since the output from the pipeline is similar for different techniques allowing the use of a single command
+
+.. note::
+    If you prefer using another pipeline note that you can still use the core command ``velocyto run`` but no shortcut is provided yet.
+    We are eager to work with implement such shortcut for other pipelines and techniques (please contact us if you are the developer or can help us integrate velocyto seamlessly in other pipelines).
+
+
+
+``velocyto run`` - Advanced use
+-------------------------------
 
 A typical use of ``run`` is:
 
@@ -67,8 +141,8 @@ The general signature for the ``run`` subcommand is:
    Running velocyto without specifying a filtered barcode set (:code:`-b/--bcfile` option) is not recommended, do it at your own risk. In this way, the counter will use all the cell barcodes it encounters. It might result in long runtimes, large memory allocations and big output matrix.
 
 
-Notes on ``velocyto run``
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Notes on first runtime and parallelization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As one of its first steps ``velocyto run`` will try to create a copy of the input .bam files sorted by cell-barcode. The sorted .bam file will be placed in the same directory as the original file and it will be named ``cellsorted_[ORIGINALBAMNAME]``.
 The sorting procedure uses ``samtools sort`` and it is expected to be time consumning, because of this, the procedurre is perfomed in parellel by default. It is possible to control this parallelization using the parameters ``--samtools-threads`` and  ``--samtools-memory``.
@@ -89,8 +163,8 @@ The rules used to call spliced, unspliced and ambiguous molecules from the reads
 The behavior of the counter can be modified using one of the different logics supported.
 Every logic has a different sensitivity. The currently available are:
 
-- Permissive10X
-- ValidatedIntrons10X (*Default)
+- *Default*
+- ValidatedIntrons10X 
 - Stricter10X
 - ObservedSpanning10X
 
@@ -98,21 +172,6 @@ Despite the name (that designates their original design for the 10X platform) th
 
 .. hint::
     Custom logics supporting peculiarities of other chemistries can be implemented simply by creating a class that inherits from :ref:`Logic <logicapi>`.
-
-Run on a single or multiple 10X Chromium samples
-------------------------------------------------
-
-``velocyto`` supports a shortcut to run directly on one or more `cellranger` output folders (e.g. this is the folder containing the subfolder: ``outs``, ``outs/analys`` and ``outs/filtered_gene_bc_matrices``).
-
-For example if we want to run the pipeline on the folder ``mypath/sample01``. We would do:
-
-::
-
-    velocyto run10x -m repeat_msk_srt.gtf mypath/sample01 mm10_annotation.gtf
-
-The full signature of the command is:
-
-.. include:: ../substitutions/run10x.txt
 
 
 About the output .loom file
@@ -124,6 +183,7 @@ A valid .loom file is simply an HDF5 file that contains specific groups represen
 Because of this, .loom files can be created and read by any language that supports HDF5. 
 
 .loom files can be easily handled using the `loompy package <http://loompy.org>`_.
+
 
 Get started with the analysis
 -----------------------------

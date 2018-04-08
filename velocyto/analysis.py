@@ -1948,8 +1948,8 @@ class VelocytoLoom:
             If "auto" the scale is selected using the randomized (negative) control (even if `plot_random`=False)
             If a float is provided the interpretation of the value depends on the parameter `scale_type`, see below.
             NOTE: In the situation where "auto" is resulting in very small or big velocities, pass a float to this parameter
-                  The float will be interpreted as a scaling, importantly both the data and the control will be scaled
-                  in this way you can rescale the velocity arbitrarily without the risk of observing just an overfit of the noise
+            The float will be interpreted as a scaling, importantly both the data and the control will be scaled
+            in this way you can rescale the velocity arbitrarily without the risk of observing just an overfit of the noise
         scale_type: str, default="relative"
             How to interpret `quiver_scale`:
             If "relative" (default) the value will be used as a scaling factor and multiplied by the value from "auto"
@@ -2053,8 +2053,8 @@ class VelocytoLoom:
             If "auto" the scale is selected using the randomized (negative) control (even if `plot_random`=False)
             If a float is provided the interpretation of the value depends on the parameter `scale_type`, see below.
             NOTE: Despite a similar option than plot_grid_arrows, here there is no strong motivation to calculate the scale relative to the randomized control
-                  This is because the randomized doesn't have to have smaller velocity cell-wise, there might be for example
-                  scattered cells that will have strong velocity but they will, correctly just average out when calculating the average velocity field.
+            This is because the randomized doesn't have to have smaller velocity cell-wise, there might be for example
+            scattered cells that will have strong velocity but they will, correctly just average out when calculating the average velocity field.
         scale_type: str, default="relative"
             How to interpret `quiver_scale`:
             If "relative" (default) the value will be used as a scaling factor and multiplied by the value from "auto"

@@ -26,7 +26,7 @@ For example normalization and log transformation can be performed by calling the
     vlm.normalize("S", size=True, log=True)
     vlm.S_norm  # contains log normalized
 
-The :ref:`docstring <_analysisapi>` of every function specifies which attributes will be generated or modified at each method call.
+The :ref:`docstring <analysisapi>` of every function specifies which attributes will be generated or modified at each method call.
 
 "VelocytoLoom" object supports some ready-made plotting functions.
 For example, one of the first checks is spliced/unspliced fractions of the dataset can be done by calling:
