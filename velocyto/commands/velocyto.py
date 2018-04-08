@@ -6,6 +6,7 @@ from collections import OrderedDict
 from .run import run
 from .run10x import run10x
 from .run_smartseq2 import run_smartseq2
+from .run_dropest import run_dropest
 from .dropest_bc_correct import dropest_bc_correct
 import velocyto._version
 
@@ -46,5 +47,6 @@ def tools() -> None:
 tools.add_command(dropest_bc_correct)
 cli.add_command(run)
 cli.add_command(run10x)
+cli.add_command(run_dropest)
 cli.add_command(run_smartseq2)
 cli.add_command(tools)

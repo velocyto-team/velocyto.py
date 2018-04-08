@@ -5,9 +5,11 @@ Changelog
 =========
 
 * :release:`0.17.0 <2018-04-08>`
-* :feature:`-` Add the set of subcommands `veloctyo tools` to bridge velocyto with other software (for know DropEst)
+* :feature:`-` Add subcommand ``run_dropest`` as a shortcut to run dropEst preprocessed data (including Indrops and DropSeq) 
+* :support:`-` Deprecation warning on `default` functions: they were being misused by the users.
+* :feature:`-` Add the set of subcommands ``veloctyo tools`` to bridge velocyto with other software (for now DropEst)
 * :feature:`-` Add cosine projection penalty
-* :feature:`-` change behavior in no-barcode-list mode: use a very permissive heuristic of < 80 molecules per cell as the threshold to thrash empty droplets / no-cell events
+* :feature:`-` Change behavior in no-barcode-list mode: use a very permissive heuristic of < 80 molecules per cell as the threshold to thrash empty droplets / no-cell events
 * :bug:`-` Fix a skip repeat error with SmartSeq2 pipeline
 * :feature:`-` run automatically randomized (negative) control for the velocity. Added plotting options for the randomized control visualization
 * :bug:`-` Fix colormap bug with matplotlib 2.2.0

@@ -30,22 +30,7 @@ class VelocytoLoom:
 
     Examples
     --------
-    >>> import velocyto as vcy
-    >>> vlm = vcy.VelocytoLoom("foo.loom")
-    >>> vlm.normalize("S", size=True, log=True)
-    >>> vlm.default_filter_and_norm()
-    >>> vlm.default_fit_preparation()
-    >>> vlm.fit_gammas()
-    >>> vlm.predict_U()
-    >>> vlm.calculate_velocity()
-    >>> vlm.calculate_shift(assumption="constant_velocity")
-    >>> vlm.extrapolate_cell_at_t(delta_t=1)
-    >>> vlm.perform_TSNE()
-    >>> vlm.estimate_transition_prob(hidim="Sx_sz", embed="ts")
-    >>> vlm.calculate_embedding_shift(sigma_corr = 0.05)
-    >>> vlm.calculate_grid_arrows(smooth=0.8, steps=(40, 40), n_neighbors=300)
-    >>> vlm.plot_grid_arrows(scatter_kwargs_dict={"alpha":0.35, "lw":0.35, "edgecolor":"0.4", "s":38, "rasterized":True}, min_mass=24, angles='xy', scale_units='xy',
-                             headaxislength=2.75, headlength=5, headwidth=4.8, quiver_scale=0.47)
+    For usage examples consult the documentation
 
     Attributes
     ----------
@@ -1867,6 +1852,7 @@ class VelocytoLoom:
         min_avg_S: float, default=None
             if cluster have been specified beforehand (using the function set_clusters) then this is the minimum average spliced molecules per cluster
         """
+        logging.warning("DEPRECATION WARNING - the current function is deprecated. Please refer to documetation for default parameters usage")
         if min_expr_counts is None:
             min_expr_counts = max(20, min(100, self.S.shape[1] * 2.25e-3))
         if min_cells_express is None:
@@ -1912,6 +1898,7 @@ class VelocytoLoom:
         n_comps: int, default=None
             numbed of components in pca
         """
+        logging.warning("DEPRECATION WARNING - the current function is deprecated. Please refer to documetation for default parameters usage")
         self.perform_PCA()
         # Choose the number of components to use for the kNN graph
         if n_comps is None:
