@@ -12,7 +12,7 @@ After you have velocyto correctly installed on your machine (see :ref:`installat
 .. include:: ../substitutions/velocyto.txt
 
 
-You can further query for information on each subcommand by typing ``velocyto COMMANDNAME --help``.
+But more useful information is found in the ``--help`` of each subcommand. You can further query for information on each subcommand by typing ``velocyto COMMANDNAME --help``.
 
 Alternatively you can visit the online :ref:`api description page <cliapi>` that includes usage information for all the subcommands.
 
@@ -25,7 +25,7 @@ Download genome annotation file
 Download a genome annotation (.gtf file) for example from `GENCODE <http://www.gencodegenes.org/>`_ or `Ensembl <http://www.ensembl.org/info/data/ftp/index.html>`_. If you use the  ``cellranger`` pipeline, you should download the gtf that comes prepackaged with it `here <https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/advanced/references>`_.
 
 Download expressed repeats annotation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. note::
    This step is optional.
 
@@ -37,6 +37,13 @@ Running ``velocyto``
 --------------------
 
 The general purpose command to start the pipeline for read counting is ``velocyto run``.
+However, for some of the most commonly used scRNA-seq chemistry and analysis pipelines, we provide a set of ready-to-use subcommands.
+These subcommands are just wrappers of ``velocyto run`` that take care to passing the right option and that expect, and better check that the correct combinations of inputs for each technique is provided.
+
+Please regard these subcommands are tested, and they are the recommended way to use velocyto if you are unsure of all the options to pass to ``velocyto run``.
+For more flexibility ``velocyto run`` can be used directly. For custom techniuqes the user may want to consider modification of the counting pipeline allowed by the :ref:`Logic interface <logicapi>`.
+
+
 The ``run`` defaults are appropriate for the analysis of both 10X Genomics v1/v2 and InDrops 3' chemistry.
 
 A typical use of ``run`` is:

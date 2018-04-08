@@ -75,3 +75,16 @@ Install using conda
 
 .. note::
    This installation method is not currently available. Our plan is make it available upon the 1.0 release.
+
+
+Extra requirements
+------------------
+
+If you want to use velocyto in combination with DropEst you will have to install some extra requirements: ``R`` and ``rpy2``.
+We suggest to this with ``conda``:
+
+::
+
+    conda install R rpy2
+
+
