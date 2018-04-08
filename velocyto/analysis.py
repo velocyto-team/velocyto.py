@@ -2099,7 +2099,7 @@ class VelocytoLoom:
         _scatter_kwargs = dict(c="0.8", alpha=0.4, s=10, edgecolor=(0, 0, 0, 1), lw=0.3)
         _scatter_kwargs.update(scatter_kwargs)
         if new_fig:
-            if plot_random and hasattr(self, delta_embedding_random):
+            if plot_random and hasattr(self, "delta_embedding_random"):
                 plt.figure(figsize=(22, 12))
             else:
                 plt.figure(figsize=(14, 14))
@@ -2129,7 +2129,7 @@ class VelocytoLoom:
         _quiver_kwargs.update({"color": colorandum})
         _quiver_kwargs.update(quiver_kwargs)
 
-        if plot_random and hasattr(self, delta_embedding_random):
+        if plot_random and hasattr(self, "delta_embedding_random"):
             plt.subplot(122)
             plt.title("Randomized")
             if plot_scatter:
