@@ -35,7 +35,6 @@ For example, one of the first checks is spliced/unspliced fractions of the datas
 
     vlm.plot_fractions()
 
-
 You can save the results of your analysis in a serialized object at any time by running:
 
 .. code-block:: python
@@ -56,51 +55,65 @@ Notice that the size on disk of the serialized file can change depending on the 
     We suggest calling these functions in the order shown in this tutorial or in the :ref:`example notebooks <notebooks>`. 
 
 
-Note on Default Shortcuts
-~~~~~~~~~~~~~~~~~~~~~~~~~
-In `velocyto`, the methods starting with the prefix ``default_*`` are implemented as a quick-and-dirty shortcut to get the new user started.
+Start a new analysis - Preliminary Filtering
+--------------------------------------------
 
-These methods are aggregators that call several `velocyto` functions using some simple heuristics to set the thresholds and parameters to reasonable values.
-However, those methods are far from perfect and in some datasets they could even lead to runtime errors.
-
-We meant those as reference to the new user and we recommend to inspect the `source <http://velocyto.org/velocyto.py/_modules/velocyto/analysis.html#VelocytoLoom.default_filter_and_norm>`_ of these functions and adapt the parameters to the specific dataset.
-
-
-Preliminary Filtering
----------------------
-At this point we can perform feature selection and normalization of the data.
-
-In order to obtain better results the preliminary filtering is usually adapted for each dataset.
-
-For the purpose of this tutorial we will be using the shortcut :ref:`default_filter_and_norm <analysisapi>` .
-
+A good first stem is to clean up the data a bit. 
+Let's remove the cells with extremelly low unspliced detection
 
 .. code-block:: python
 
-    vlm.default_filter_and_norm()
+    vlm.filter_cells(bool_array=vlm.initial_Ucell_size > np.percentile(vlm.initial_Ucell_size, 0.5))
 
-Notice that the method supports limited options in comparison to the full API. For a finer tuning of filtering parameters inspect the source code of the method in the `API page <http://velocyto.org/velocyto.py/_modules/velocyto/analysis.html#VelocytoLoom.default_filter_and_norm>`_
-normalization and filtering function can be called at any step of the analysis
-Furthermore, it is important to notice that the function starting 
+Let's try now to select relevant features for the downstream analysis.
+Let's make velocyto aware of the clusters annotation, if we have some
+
+.. code-block:: python
+
+    vlm.set_clusters(vlm.ca["ClusterName"])
+
+Now using the clustering annotation select the genes that are expressed above a threshold of total number of molecules in any of the clusters.
+
+.. code-block:: python
+
+    vlm.score_detection_levels(min_expr_counts=40, min_cells_express=30)
+    vlm.filter_genes(by_detection_levels=True)
+
+We can perform feature selection.
+
+.. code-block:: python
+    vlm.score_cv_vs_mean(3000, plot=True, max_expr_avg=35)
+    vlm.filter_genes(by_cv_vs_mean=True)
+
+Finally we can normalize our data by `size` (total molecule count)
+
+.. code-block:: python
+    vlm._normalize_S(relative_size=vlm.S.sum(0),
+                 target_size=vlm.S.sum(0).mean())
+    vlm._normalize_U(relative_size=vlm.U.sum(0),
+                 target_size=vlm.U.sum(0).mean())
+
+For a better understend how to fine tune parameters please consult the `API page <http://velocyto.org/velocyto.py/_modules/velocyto/analysis.html#VelocytoLoom.default_filter_and_norm>`_ or just inspect the docstring of each function.
 
 Preparation for gamma fit
 -------------------------
 For the preparation of the gamma fit we smooth the data using a kNN neighbors pooling approach.
 kNN neighbors can be calculated directly in gene expression space or reduced PCA space, using either correlation distance or euclidean distance.
-The default procedure kNN graph pooling/smoothing is implemented `default_fit_preparation`, finer control can be achieved explicitly calling the `knn_imputation <http://velocyto.org/velocyto.py/fullapi/api_analysis.html#velocyto.analysis.VelocytoLoom.knn_imputation>`_ method.
+One example of set of parameters is provided below.
 
 .. code-block:: python
-
-    vlm.default_fit_preparation()
+    vlm.perform_PCA()
+    vlm.knn_imputation(n_pca_dims=20, k=500, balanced=True, b_sight=3000, b_maxl=1500, n_jobs=16)
 
 
 Gamma fit and extrapolation
 ---------------------------
-To fit gamma to every gene that survived the filtering step we can just call
+To fit gamma to every gene that survived the filtering step run:
 
 .. code-block:: python
 
-    vlm.fit_gammas()
+    vlm.fit_gammas(limit_gamma=False, fit_offset=False)
+
 
 The fit can be visualized by calling `plot_phase_portraits` and listing the gene names:
 
@@ -108,14 +121,21 @@ The fit can be visualized by calling `plot_phase_portraits` and listing the gene
 
     vlm.plot_phase_portraits(["Igfbpl1", "Pdgfra"])
 
-The extrapolation can be obtained as follows:
+The calcualte velocity and extrapolate the future state of the cells:
 
 .. code-block:: python
 
     vlm.predict_U()
     vlm.calculate_velocity()
     vlm.calculate_shift(assumption="constant_velocity")
-    vlm.extrapolate_cell_at_t(delta_t=1)
+    vlm.extrapolate_cell_at_t(delta_t=1.)
+
+In alternative extrapolation can be performed using the constant unspliced assumption (for more information consult our `preprint <citing>`)
+
+.. code-block:: python
+
+    vlm.calculate_shift(assumption="constant_unspliced", delta_t=10)
+    vlm.extrapolate_cell_at_t(delta_t=1.)
 
 Projection of velocity onto embeddings
 --------------------------------------
@@ -137,16 +157,25 @@ Now we can project on `vlm.ts` by calling `estimate_transition_prob`.
 
 ::
 
-    vlm.estimate_transition_prob(hidim="Sx_sz", embed="ts")
-    vlm.calculate_embedding_shift(sigma_corr = 0.05)
+    vlm.estimate_transition_prob(hidim="Sx_sz", embed="ts", transform="sqrt", psc=1,
+                                 n_neighbors=3500, knn_random=True, sampled_fraction=0.5)
+    vlm.calculate_embedding_shift(sigma_corr = 0.05, expression_scaling=True)
 
 In case of very big dataset visualizations a good way to summarize the velocity is to visualize it as velocity field calculated on a grid.
 
 ::
 
     vlm.calculate_grid_arrows(smooth=0.8, steps=(40, 40), n_neighbors=300)
-    vlm.plot_grid_arrows(scatter_kwargs_dict={"alpha":0.35, "lw":0.35, "edgecolor":"0.4", "s":38, "rasterized":True}, min_mass=24, angles='xy', scale_units='xy',
-                         headaxislength=2.75, headlength=5, headwidth=4.8, quiver_scale=0.47)
+    plt.figure(None,(20,10))
+    vlm.plot_grid_arrows(quiver_scale=0.6,
+                        scatter_kwargs_dict={"alpha":0.35, "lw":0.35, "edgecolor":"0.4", "s":38, "rasterized":True}, min_mass=24, angles='xy', scale_units='xy',
+                        headaxislength=2.75, headlength=5, headwidth=4.8, minlength=1.5,
+                        plot_random=True, scale_type="absolute")
+
+
+
+
+
 
 
 

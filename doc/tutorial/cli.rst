@@ -51,7 +51,7 @@ If you are interested in running velocyto with only one technique you can direct
 ``run10x`` - Run on 10X Chromium samples
 ----------------------------------------
 
-``velocyto`` supports a shortcut to run the counting directly on one or more `cellranger` output folders (e.g. this is the folder containing the subfolder: ``outs``, ``outs/analys`` and ``outs/filtered_gene_bc_matrices``).
+``velocyto`` includes a shortcut to run the counting directly on one or more `cellranger` output folders (e.g. this is the folder containing the subfolder: ``outs``, ``outs/analys`` and ``outs/filtered_gene_bc_matrices``).
 
 The full signature of the command is:
 
@@ -61,7 +61,7 @@ For example if we want to run the pipeline on the `cellranger` output folder ``m
 
 ::
 
-    velocyto run10x -m repeat_msk.gtf mypath/sample01 somepath/mm10/genes.gtf
+    velocyto run10x -m repeat_msk.gtf mypath/sample01 somepath/refdata-cellranger-mm10-1.2.0/genes/genes.gtf
 
 Where ``genes.gtf`` is the genome annotation file provided with the cellranger pipeline.
 ``repeat_msk.gtf`` is the repeat masker file described in the `Preparation` section above.
@@ -73,7 +73,7 @@ Where ``genes.gtf`` is the genome annotation file provided with the cellranger p
 ``run_smartseq2`` - Run on SmartSeq2 samples
 --------------------------------------------
 
-``velocyto`` supports a shortcut to perform the read counting for UMI-less, not stranded, full-length techniques such as SmartSeq2.
+``velocyto`` includes a shortcut to perform the read counting for UMI-less, not stranded, full-length techniques such as SmartSeq2.
 
 The full signature of the command is:
 
@@ -105,20 +105,89 @@ Finally note that the output `.loom` file in that case will have an extra layer 
     Execution time might vary significantly by sequencing depth and cpu power but usually does not exceed the 6h for a typical sample 
 
 
-``run_dropest`` - Run on DropSeq, InDrops and other samples
------------------------------------------------------------
+``run_dropest`` - Run on DropSeq, InDrops and other techniques
+--------------------------------------------------------------
 
-``velocyto`` supports a shortcut to perform molecule counting on all the techniques supported by DropEst, this includes different versions of DropSeq and InDrops.
-This is particularly convenient since the output from the pipeline is similar for different techniques allowing the use of a single command
+``velocyto`` includes a shortcut to perform molecule counting on all the techniques supported by the DropEst pipeline, this includes different versions of DropSeq and InDrops.
+This is particularly convenient since the output from the pipeline is similar for different techniques allowing the use of a single command.
 
 .. note::
-    If you prefer using another pipeline note that you can still use the core command ``velocyto run`` but no shortcut is provided yet.
-    We are eager to work with implement such shortcut for other pipelines and techniques (please contact us if you are the developer or can help us integrate velocyto seamlessly in other pipelines).
+    If you prefer using another pipeline or technique not supported by DropEst, note that you can still use the core command ``velocyto run`` but no shortcut is provided yet.
+    We are eager to work with implement more shortcut for other pipelines and techniques (please contact us if you are the developer or can help us integrate velocyto seamlessly in other pipelines).
+
+The full signature of the command is:
+
+.. include:: ../substitutions/run_dropest.txt
+
+Let's start with a full example including the steps to run DropEst correctly.
+Explaining how to run DropEst is outside the scope of this documentation. For more information on installation and usage of DropEst refer to its documentation.
+I will assume I am analyzing an InDrops sample downloaded from SRA.
+
+First of all set 10 as minimum barcode quality. Then I start by calling the `droptag` command as follows:
+
+::
+
+    ./droptag -c ./configs/indrop_v1_2.xml ~/mydata/SRR5945694_2.fastq.gz ~/mydata/SRR5945694_1.fastq.gz
+
+The 
+
+::
+
+    STAR --genomeDir ~/cellranger/refdata-cellranger-mm10-1.2.0/star/ \
+           --readFilesIn SRR5945695_1.fastq.gz.tagged.1.fastq.gz,SRR5945695_1.fastq.gz.tagged.2.fastq.gz,SRR5945695_1.fastq.gz.tagged.3.fastq.gz,SRR5945695_1.fastq.gz.tagged.4.fastq.gz,SRR5945695_1.fastq.gz.tagged.5.fastq.gz,SRR5945695_1.fastq.gz.tagged.6.fastq.gz,SRR5945695_1.fastq.gz.tagged.7.fastq.gz,SRR5945695_1.fastq.gz.tagged.8.fastq.gz \
+           --outSAMmultNmax 1 \
+           --runThreadN 6 \
+           --readNameSeparator space \
+           --outSAMunmapped Within \
+           --outSAMtype BAM SortedByCoordinate \
+           --outFileNamePrefix SRR5945695_1 \
+           --readFilesCommand gunzip -c
+
+Note the -m option will read the config_desc.xml file that should have the barcodes_file option correctly selected.
+For InDrops for example this would be as following:
+
+.. code-block:: xml
+    
+    <barcodes_file>[YOURPATH]/dropEst/data/barcodes/indrop_v1_2</barcodes_file>
+
+And then I run DropEst core command:
+
+::
+
+    dropest -m -V -b \
+              -o ~/mydata/SRR5945695/SRR5945695_dropEst \
+              -g ~/cellranger/refdata-cellranger-mm10-1.2.0/genes/genes.gtf \
+              -L eiEIBA \
+              -c ~/mysource/dropEst/configs/config_desc.xml \
+              ~/mydata/SRR5945695_1/SRR5945695_1Aligned.sortedByCoord.out.bam
+
+Then I run ``velocyto tools dropest_bc_correct`` with the bamfile as the only argument. This will:
+(1) Make a new bam with the barcodes substituted with the corrected ones, taking this info from the dropEst R dump
+(2) Generate the required file containing the allowed barcodes
+
+The bam file outputed by dropEst does not contain error-corrected but raw cell barcodes so we will have to make a new corrected bam file using the infromation otuputed.
+(Future version of DropEst will output the error-corrected barcodes).
+
+To do that run:
+
+::
+
+    velocyto tools dropest_bc_correct ~/mydata/SRR5945695_1/SRR5945695_1Aligned.sortedByCoord.out.tagged.bam
+
+Finally I run velocyto:
+
+::
+
+    velocyto run_dropest -o ~/mydata/SRR5945695_results -m rep_mask.gtf ~/mydata/SRR5945695_1/correct_SRR5945695_1Aligned.sortedByCoord.out.tagged.bam mm10_annotation.gtf
 
 
+``run`` - Run on any technique (Advanced use)
+---------------------------------------------
 
-``velocyto run`` - Advanced use
--------------------------------
+The general signature for the ``run`` subcommand is:
+
+.. include:: ../substitutions/run.txt
+
 
 A typical use of ``run`` is:
 
@@ -127,9 +196,6 @@ A typical use of ``run`` is:
     velocyto run -b filtered_barcodes.tsv -o output_path -m repeat_msk_srt.gtf possorted_genome_bam.bam mm10_annotation.gtf
 
 
-The general signature for the ``run`` subcommand is:
-
-.. include:: ../substitutions/run.txt
 
 .. note::
     The input bam file needs to be sorted by position, this can be achieved running `samtools sort mybam.bam -o sorted_bam.bam`. In cellranger generated bamfiles are already sorted this way. 
