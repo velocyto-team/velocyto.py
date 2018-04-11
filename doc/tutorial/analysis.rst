@@ -104,6 +104,7 @@ kNN neighbors can be calculated directly in gene expression space or reduced PCA
 One example of set of parameters is provided below.
 
 .. code-block:: python
+
     vlm.perform_PCA()
     vlm.knn_imputation(n_pca_dims=20, k=500, balanced=True, b_sight=3000, b_maxl=1500, n_jobs=16)
 
@@ -114,7 +115,7 @@ To fit gamma to every gene that survived the filtering step run:
 
 .. code-block:: python
 
-    vlm.fit_gammas(limit_gamma=False, fit_offset=False)
+    vlm.fit_gammas()
 
 
 The fit can be visualized by calling `plot_phase_portraits` and listing the gene names:
@@ -132,7 +133,7 @@ The calcualte velocity and extrapolate the future state of the cells:
     vlm.calculate_shift(assumption="constant_velocity")
     vlm.extrapolate_cell_at_t(delta_t=1.)
 
-In alternative extrapolation can be performed using the constant unspliced assumption (for more information consult our `preprint <citing>`)
+In alternative extrapolation can be performed using the constant unspliced assumption (for more information consult our `preprint <citing>`_)
 
 .. code-block:: python
 
