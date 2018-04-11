@@ -14,7 +14,7 @@ velocyto\.counter module
     :show-inheritance:
 
 velocyto\.transcript_model module
----------------------
+---------------------------------
 
 .. automodule:: velocyto.transcript_model
     :members:
@@ -22,7 +22,7 @@ velocyto\.transcript_model module
     :show-inheritance:
 
 velocyto\.segment_match module
----------------------
+------------------------------
 
 .. automodule:: velocyto.segment_match
     :members:
@@ -54,7 +54,7 @@ velocyto\.molitem module
     :show-inheritance:
 
 velocyto\.gene_info module
-----------------------
+--------------------------
 
 .. automodule:: velocyto.gene_info
     :members:

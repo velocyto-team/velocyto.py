@@ -3,6 +3,29 @@
 =========
 Changelog
 =========
+
+* :release:`0.17.0 <2018-04-08>`
+* :feature:`-` Add subcommand ``run_dropest`` as a shortcut to run dropEst preprocessed data (including Indrops and DropSeq) 
+* :support:`-` Deprecation warning on `default` functions: they were being misused by the users.
+* :feature:`-` Add the set of subcommands ``veloctyo tools`` to bridge velocyto with other software (for now DropEst)
+* :feature:`-` Add cosine projection penalty
+* :feature:`-` Change behavior in no-barcode-list mode: use a very permissive heuristic of < 80 molecules per cell as the threshold to thrash empty droplets / no-cell events
+* :bug:`-` Fix a skip repeat error with SmartSeq2 pipeline
+* :feature:`-` run automatically randomized (negative) control for the velocity. Added plotting options for the randomized control visualization
+* :bug:`-` Fix colormap bug with matplotlib 2.2.0
+* :feature:`-` Add feature selection for the unspliced
+* :feature:`-` Add size factor normalization option
+* :feature:`-` Add possibility to constraint knn averaging: when turned on avoids to set edges between cells of specified groups
+* :bug:`-` Fix an error in filter_cells: colors array is now filtered as well
+* :feature:`-` Improve the debug molecular report option to support hdf5
+* :feature:`-` It supports SmartSeq2 and has a new run_smartseq2 command
+* :feature:`-` It supports multiple bam files input, it can interpret it both as one-file-one-cell or just as batches to be analyzed together. IMPORTANT: a cell cannot be distributed over different bamfiles!
+* :feature:`-` Generalized logic to include more layers than just Spliced, Unspliced, Ambiguous
+* :feature:`-` ``--without-umi`` option allows analyzing UMI-less data such as SmartSeq2
+* :feature:`-` support different verbosity levels with the ``-v`` flag
+* :support:`-` ``--multimap`` option was removed because it could have yield incorrect results depending on the output format chosen for the aligner
+* :feature:`-` Support barcodes of different length
+* :feature:`-` Improved compatibility with InDrops and STRT through the ``--umi-extentions``. It allows the same pipeline to be applied to methods with short molecular barcode that cannot be used call a unique molecule without the gene mapping information.
 * :release:`0.13.5 <2018-02-07>`
 * :bug:`-` Fix a bug that caused extremely slow runtimes when the input bam was not position sorted. Now `velocyto` will raise an error and ask the user to sort the file using samtools.
 * :support:`-` Improve the changelog structure
@@ -39,7 +62,7 @@ Changelog
 * :feature:`-` Changelog added to the doc
 * :support:`-` Update the documentation for the new  :ref:`CLI <cli>`
 * :feature:`-` Support different Logic levels
-* :feature:`-` Pipeline now consider all the possible transcript models that could be supported by a set of reads individually and then decides on the spliced/unspliced/ambigous count.
+* :feature:`-` Pipeline now consider all the possible transcript models that could be supported by a set of reads individually and then decides on the spliced/unspliced/ambiguous count.
 * :release:`0.11.0 <2017-12-01>`
 * :bug:`- major` fix a bug with ambiguous molecules counting and version bump
 * :release:`0.10.3 <2017-11-23>`

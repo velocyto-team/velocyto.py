@@ -2,11 +2,15 @@ import re
 import sys
 import gzip
 import logging
+import random
+import string
 from typing import *
 from collections import defaultdict
 from itertools import chain
 from collections import OrderedDict
+from collections import Counter
 import velocyto as vcy
+import h5py
 import pysam
 import numpy as np
 import os
@@ -15,10 +19,12 @@ import sys
 
 class ExInCounter:
     """ Main class to do the counting of introns and exons """
-    def __init__(self, logic: vcy.Logic, valid_bcset: Set[str]=None) -> None:
-        """ valid_bcs2idx is a dict mapping valid cell barcodes to unique arbitrary numeric indexes used in the output arrays """
+    def __init__(self, sampleid: str, logic: vcy.Logic, valid_bcset: Set[str]=None,
+                 umi_extension: str="no", onefilepercell: bool=False, dump_option: str="0", outputfolder: str="./") -> None:
+        self.outputfolder = outputfolder
+        self.sampleid = sampleid
         self.logic = logic()
-        # NOTE: maybe there shoulb be a self.logic.validate() step at the end of init
+        # NOTE: maybe there shoulb be a self.logic.verify_inputs(args) step at the end of init
         if valid_bcset is None:
             self.valid_bcset: Set[str] = set()
             self.filter_mode = False
@@ -30,15 +36,49 @@ class ExInCounter:
         self.mask_ivls_by_chromstrand = defaultdict(list)  # type: Dict[str, List]
         self.geneid2ix: Dict[str, int] = {}
         self.genes: Dict[str, vcy.GeneInfo] = {}
+        if umi_extension.lower() == "no":
+            self.umi_extract = self._no_extension
+        elif umi_extension.lower() == "chr":
+            self.umi_extract = self._extension_chr
+        elif umi_extension.lower() == "gene" or umi_extension.lower() == "gx":
+            self.umi_extract = self._extension_Gene
+        elif umi_extension[-2:] == "bp":
+            self.umi_bp = int(umi_extension[:-2])
+            self.umi_extract = self._extension_Nbp
+        elif umi_extension.lower() == "without_umi":
+            self.umi_extract = self._placeolder_umi
+        else:
+            raise ValueError(f"umi_extension {umi_extension} is not allowed. Use `no`, `Gene` or `[N]bp`")
+        if onefilepercell:
+            self.cell_barcode_get = self._bam_id_barcode
+        else:
+            self.cell_barcode_get = self._normal_cell_barcode_get
+        if self.logic.stranded:
+            if self.logic.accept_discordant:
+                self.count_cell_batch = self._count_cell_batch_stranded_discordant
+            else:
+                self.count_cell_batch = self._count_cell_batch_stranded
+        else:
+            self.count_cell_batch = self._count_cell_batch_non_stranded
         # NOTE: by using a default dict and not logging access to keys that do not exist, we might miss bugs!!!
         self.test_flag = None
-
-    @property
-    def bclen(self) -> int:
-        try:
-            return len(next(iter(self.valid_bcset)))
-        except StopIteration:
-            return None
+        if dump_option[0] == "p":
+            self.kind_of_report = "p"
+            self.report_state = 0
+            self.every_n_report = int(dump_option[1:])
+        else:
+            self.kind_of_report = "h"
+            self.report_state = 0
+            self.every_n_report = int(dump_option)
+        self.cellbarcode_str = "NULL_BC"  # This value should never be used this is just to initialize it and detect if there are bugs downstream
+        self.umibarcode_str = "NULL_UB"  # This value should never be used this is just to initialize it and detect if there are bugs downstream
+    # NOTE: not supported anymore because now we support variable length barcodes
+    # @property
+    # def bclen(self) -> int:
+    #     try:
+    #         return len(next(iter(self.valid_bcset)))
+    #     except StopIteration:
+    #         return None
     
     @staticmethod
     def parse_cigar_tuple(cigartuples: List[Tuple], pos: int) -> Tuple[List[Tuple[int, int]], bool, int, int]:
@@ -78,11 +118,11 @@ class ExInCounter:
 
         return segments, ref_skip, clip5, clip3
 
-    def peek(self, samfile: str, lines: int=30) -> None:
+    def peek(self, bamfile: str, lines: int=30) -> None:
         """Peeks into the samfile to determine if it is a cellranger or dropseq file
         """
-        logging.debug(f"Peeking into {samfile}")
-        fin = pysam.AlignmentFile(samfile)  # type: pysam.AlignmentFile
+        logging.debug(f"Peeking into {bamfile}")
+        fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
         cellranger: int = 0
         dropseq: int = 0
         failed: int = 0
@@ -105,20 +145,44 @@ class ExInCounter:
                 self.umibarcode_str = "XM"
                 break
             elif failed > 5 * lines:
-                raise IOError("The bam file does not contain cell and umi barcodes appropriatelly formatted")
+                raise IOError("The bam file does not contain cell and umi barcodes appropriatelly formatted. If you are runnin UMI-less data you should use the -U flag.")
             else:
                 pass
         fin.close()
 
-    def iter_alignments(self, samfile: str, unique: bool=True, yield_line: bool=False) -> Iterable:
+    def _no_extension(self, read: pysam.AlignedSegment) -> str:
+        return read.get_tag(self.umibarcode_str)
+
+    def _extension_Nbp(self, read: pysam.AlignedSegment) -> str:
+        return read.get_tag(self.umibarcode_str) + read.query_alignment_sequence[:self.umi_bp]
+
+    def _extension_Gene(self, read: pysam.AlignedSegment) -> str:
+        try:
+            return read.get_tag(self.umibarcode_str) + "_" + read.get_tag("GX")  # catch the error
+        except KeyError:
+            return read.get_tag(self.umibarcode_str) + "_withoutGX"
+
+    def _placeolder_umi(self, read: pysam.AlignedSegment) -> str:
+        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(vcy.PLACEHOLDER_UMI_LEN))
+
+    def _extension_chr(self, read: pysam.AlignedSegment) -> str:
+        return read.get_tag(self.umibarcode_str) + f"_{read.rname}:{read.reference_start // 10000000}"  # catch the error
+
+    def _normal_cell_barcode_get(self, read: pysam.AlignedSegment) -> str:
+        return read.get_tag(self.cellbarcode_str).split("-")[0]
+
+    def _bam_id_barcode(self, read: pysam.AlignedSegment) -> str:
+        return f"{self._current_bamfile}"
+        
+    def iter_alignments(self, bamfiles: Tuple[str], unique: bool=True, yield_line: bool=False) -> Iterable:
         """Iterates over the bam/sam file and yield Read objects
 
         Arguments
         ---------
-        samfile: str
-            path to the sam file
+        bamfiles: Tuple[str]
+            path to the bam files
         unique: bool
-            yield only unique allignments
+            yield only unique alignments
         yield_line: bool
             whether to yield the raw sam line
 
@@ -126,56 +190,80 @@ class ExInCounter:
         -------
         yields vcy.Read for each valid line of the bam file
         or a Tuple (vcy.Read, sam_line) if ``yield_line==True``
+        NOTE: At the file change it yields a `None`
         """
         # No peeking here, this will happen a layer above, and only once  on the not sorted file! before it was self.peek(samfile, lines=10)
-        logging.debug(f"Reading {samfile}")
-        fin = pysam.AlignmentFile(samfile)  # type: pysam.AlignmentFile
-        for i, read in enumerate(fin):
-            if i % 10000000 == 0:
-                logging.debug(f"Read first {i // 1000000} million reads")
-            if read.is_unmapped:
-                continue
-            # If unique parameter is set to True, skip not unique allignments
-            if unique and read.get_tag("NH") != 1:
-                continue
-            try:
-                bc = read.get_tag(self.cellbarcode_str).split("-")[0]  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
-                umi = read.get_tag(self.umibarcode_str)
-            except KeyError:
-                continue  # NOTE: Here errors could go unnoticed
-            if bc not in self.valid_bcset:
-                if self.filter_mode:
-                    continue
-                else:
-                    self.valid_bcset.add(bc)
-            strand = '-' if read.is_reverse else '+'
-            chrom = fin.get_reference_name(read.rname)  # this is return a string otherwise read.rname for the integer
-            if chrom.startswith('chr'):
-                # I have to deal with incongruences with the .gft (what is cellranger doing???)
-                # NOTE Why this happens?
-                if "_" in chrom:
-                    chrom = chrom.split("_")[1]
-                else:
-                    chrom = chrom[3:]
-                    if chrom == "M":
-                        chrom = "MT"
-            pos = read.reference_start + 1  # reads in pysam are always 0-based, but 1-based is more convenient to wor with in bioinformatics
-            segments, ref_skipped, clip5, clip3 = self.parse_cigar_tuple(read.cigartuples, pos)
-            if segments == []:
-                logging.debug("No segments in read:%s" % read.qname)
-
-            read_object = vcy.Read(bc, umi, chrom, strand, pos, segments, clip5, clip3, ref_skipped)
-            if yield_line:
-                if read_object.span > 3000000:  # Longest locus existing
-                    logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
-                else:
-                    yield read_object, read.tostring(fin)
+        
+        bamfile_name_seen: Set[str] = set()
+        counter_skipped_no_barcode = 0
+        if Counter(bamfiles).most_common(1)[0][1] != 1:
+            logging.warning("The bamfiles names are not unique. The full path to them will be used as unique identifier")
+            use_basename = False
+        else:
+            use_basename = True
+        for bamfile in bamfiles:
+            if use_basename:
+                self._current_bamfile = os.path.basename(bamfile)
             else:
-                if read_object.span > 3000000:  # Longest locus existing
-                    logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
+                self._current_bamfile = str(bamfile)
+            logging.debug(f"Reading {bamfile}")
+
+            fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
+            for i, read in enumerate(fin):
+                if i % 10000000 == 0:
+                    logging.debug(f"Read first {i // 1000000} million reads")
+                if read.is_unmapped:
+                    continue
+                # If unique parameter is set to True, skip not unique alignments
+                if unique and read.get_tag("NH") != 1:
+                    continue
+                try:
+                    bc = self.cell_barcode_get(read)  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
+                    umi = self.umi_extract(read)  # read.get_tag(self.umibarcode_str)
+                except KeyError:
+                    if read.has_tag(self.cellbarcode_str) and read.has_tag(self.umibarcode_str):
+                        raise KeyError(f"Some errors in parsing the cell barcode has occurred {self.cellbarcode_str}, {self.umibarcode_str}\n{read}")
+                    counter_skipped_no_barcode += 1
+                    continue  # NOTE: Here errors could go unnoticed
+                if bc not in self.valid_bcset:
+                    if self.filter_mode:
+                        continue
+                    else:
+                        self.valid_bcset.add(bc)
+                strand = '-' if read.is_reverse else '+'
+                chrom = fin.get_reference_name(read.rname)  # this is return a string otherwise read.rname for the integer
+                if chrom.startswith('chr'):
+                    # I have to deal with incongruences with the .gft (what is cellranger doing???)
+                    # NOTE Why this happens?
+                    if "_" in chrom:
+                        chrom = chrom.split("_")[1]
+                    else:
+                        chrom = chrom[3:]
+                        if chrom == "M":
+                            chrom = "MT"
+                pos = read.reference_start + 1  # reads in pysam are always 0-based, but 1-based is more convenient to wor with in bioinformatics
+                segments, ref_skipped, clip5, clip3 = self.parse_cigar_tuple(read.cigartuples, pos)
+                if segments == []:
+                    logging.debug("No segments in read:%s" % read.qname)
+
+                read_object = vcy.Read(bc, umi, chrom, strand, pos, segments, clip5, clip3, ref_skipped)
+                if yield_line:
+                    if read_object.span > 3000000:  # Longest locus existing
+                        logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
+                    else:
+                        yield read_object, read.tostring(fin)
                 else:
-                    yield read_object
-        fin.close()
+                    if read_object.span > 3000000:  # Longest locus existing
+                        logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
+                    else:
+                        yield read_object
+            fin.close()
+            # NOTE Yielding None counts as a flag that the file read has been changed
+            if yield_line:
+                yield None, None
+            else:
+                yield None
+        logging.debug(f"{counter_skipped_no_barcode} reads were skipped because no apropiate cell or umi barcode was found")
 
     def read_repeats(self, gtf_file: str, tolerance: int=5) -> Dict[str, List[vcy.Feature]]:
         """Read repeats and merge close ones into highly repetitive areas
@@ -203,7 +291,7 @@ class ExInCounter:
         #                         stdout=f)
             
         # Parse arguments
-        logging.debug(f'Reading {gtf_file}, the file is the file will be sorted in memory')
+        logging.debug(f'Reading {gtf_file}, the file will be sorted in memory')
         
         # Read up skipping headers up to the first valid entry
         repeat_ivls_list: List[vcy.Feature] = []
@@ -292,7 +380,7 @@ class ExInCounter:
         return self.mask_ivls_by_chromstrand
 
     def assign_indexes_to_genes(self, features: Dict[str, vcy.TranscriptModel]) -> None:
-        """Assign to each newly encoutered genes an unique indexes corresponding to the output matrix column ix
+        """Assign to each newly encoutered gene an unique index corresponding to the output matrix column ix
         """
         logging.debug("Assigning indexes to genes")
         for name, trmodel in features.items():
@@ -327,7 +415,7 @@ class ExInCounter:
         regex_trname = re.compile('transcript_name "([^"]+)"')
         regex_geneid = re.compile('gene_id "([^"]+)"')
         regex_genename = re.compile('gene_name "([^"]+)"')
-        regex_exonno = re.compile('exon_number "([^"]+)"')
+        regex_exonno = re.compile('exon_number "*?([\w]+)')  # re.compile('exon_number "([^"]+)"')
 
         # Initialize containers
         # headerlines: List[str] = []
@@ -379,7 +467,11 @@ class ExInCounter:
                 trname = regex_trname.search(tags).group(1)
                 geneid = regex_geneid.search(tags).group(1)
                 genename = regex_genename.search(tags).group(1)
-                exonno = regex_exonno.search(tags).group(1)
+                try:
+                    exonno = regex_exonno.search(tags).group(1)
+                except AttributeError:
+                    # NOTE: Don't try to release this constraint, velocyto relies on it for safe calculations! Rather make a utility script that does putative annotation separatelly.
+                    raise IOError("The genome annotation .gtf file provided does not contain exon_number. `exon_number` is described as a mandatory field by GENCODE gtf file specification and we rely on it for easier processing")
                 start = int(start_str)
                 end = int(end_str)
                 chromstrand = chrom + strand
@@ -409,13 +501,13 @@ class ExInCounter:
 
         return self.annotations_by_chrm_strand
 
-    def mark_up_introns(self, bamfile: str, multimap: bool) -> None:
+    def mark_up_introns(self, bamfile: Tuple[str], multimap: bool) -> None:
         """ Mark up introns that have reads across exon-intron junctions
         
         Arguments
         ---------
-        bamfile: str
-            path to the bam or sam file to markup
+        bamfile: Tuple[str]
+            path to the bam files to markup
         logic: vcy.Logic
             The logic object to use, changes in different techniques / levels of strictness
             NOTE: Right now it is not used
@@ -429,62 +521,78 @@ class ExInCounter:
         Situations not considered:
         # If an the exon is so short that is possible to get both exonA-exonB junction and exonB-intronB boundary in the same read
         """
+        
+        if not self.logic.perform_validation_markup:
+            return
+        else:
+            # Since I support multiple files (Smart seq2 it makes sense here to load the feature indexes into memory)
+            # NOTE this means that maybe I could do this once at a level above
+            # NOTE if this is not done in count then I need to bring it before the if/else statement
+            self.feature_indexes: DefaultDict[str, vcy.FeatureIndex] = defaultdict(vcy.FeatureIndex)
+            for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
+                self.feature_indexes[chromstrand_key] = vcy.FeatureIndex(sorted(chain.from_iterable(annotions_ordered_dict.values())))
 
-        # VERBOSE: dump_list = []
-        # Read the file
-        currchrom = ""
-        set_chromosomes_seen: Set[str] = set()
-        for r in self.iter_alignments(bamfile, unique=not multimap):
-            # Don't consider spliced reads (exonic) in this step
-            # NOTE Can the exon be so short that we get splicing and exon-intron boundary
-            if r.is_spliced:
-                continue
+            # VERBOSE: dump_list = []
+            # Read the file
+            currchrom = ""
+            set_chromosomes_seen: Set[str] = set()
+            for r in self.iter_alignments(bamfile, unique=not multimap):
+                # Don't consider spliced reads (exonic) in this step
+                # NOTE Can the exon be so short that we get splicing and exon-intron boundary
+                if r is None:
+                    # This happens only when there is a change of file
+                    currchrom = ""
+                    set_chromosomes_seen = set()
+                    # I need to reset indexes in position before the next file is restarted
+                    # NOTE this is far from optimal for lots of cells
+                    logging.debug("End of file. Reset index: start scanning from initial position.")
+                    for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
+                        self.feature_indexes[chromstrand_key].reset()
+                    continue
+                if r.is_spliced:
+                    continue
 
-            # When the chromosome mapping of the read changes, change interval index.
-            if r.chrom != currchrom:
-                if r.chrom in set_chromosomes_seen:
-                    raise IOError(f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)")
-                set_chromosomes_seen.add(r.chrom)
-                logging.debug(f"Marking up chromosome {r.chrom}")
-                currchrom = r.chrom
-                if currchrom + '+' not in self.annotations_by_chrm_strand:
-                    logging.warn(f"The .bam file refers to a chromosome '{currchrom}+' not present in the annotation (.gtf) file")
-                    sorted_features_f: List[vcy.Feature] = []
-                else:
-                    sorted_features_f = sorted(chain.from_iterable(self.annotations_by_chrm_strand[currchrom + '+'].values()))
-                if currchrom + '-' not in self.annotations_by_chrm_strand:
-                    logging.warn(f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file")
-                    sorted_features_r: List[vcy.Feature] = []
-                else:
-                    sorted_features_r = sorted(chain.from_iterable(self.annotations_by_chrm_strand[currchrom + '-'].values()))
-                iif = vcy.FeatureIndex(sorted_features_f)
-                iir = vcy.FeatureIndex(sorted_features_r)
-            
-            # Consider the correct strand
-            ii = iif if r.strand == '+' else iir
+                # When the chromosome mapping of the read changes, change interval index.
+                if r.chrom != currchrom:
+                    if r.chrom in set_chromosomes_seen:
+                        raise IOError(f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)")
+                    set_chromosomes_seen.add(r.chrom)
+                    logging.debug(f"Marking up chromosome {r.chrom}")
+                    currchrom = r.chrom
+                    if currchrom + '+' not in self.annotations_by_chrm_strand:
+                        logging.warn(f"The .bam file refers to a chromosome '{currchrom}+' not present in the annotation (.gtf) file")
+                        iif = vcy.FeatureIndex([])
+                    else:
+                        iif = self.feature_indexes[currchrom + '+']
+                    if currchrom + '-' not in self.annotations_by_chrm_strand:
+                        logging.warn(f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file")
+                        iir = vcy.FeatureIndex([])
+                    else:
+                        iir = self.feature_indexes[currchrom + '-']
+                
+                # Consider the correct strand
+                ii = iif if r.strand == '+' else iir
 
-            # VERBOSE: # Look for overlap between the intervals and the read
-            # VERBOSE: dump_list += ii.mark_overlapping_ivls(r)
-            ii.mark_overlapping_ivls(r)
+                # VERBOSE: # Look for overlap between the intervals and the read
+                # VERBOSE: dump_list += ii.mark_overlapping_ivls(r)
+                ii.mark_overlapping_ivls(r)
 
-        # VERBOSE: import pickle
-        # VERBOSE: pickle.dump(dump_list, open("dump_mark_overlapping_ivls.pickle", "wb"))
+            # VERBOSE: import pickle
+            # VERBOSE: pickle.dump(dump_list, open("dump_mark_overlapping_ivls.pickle", "wb"))
 
-    def count(self, samfile: str, multimap: bool, cell_batch_size: int=100, molecules_report: bool=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
+    def count(self, bamfile: Tuple[str], multimap: bool, cell_batch_size: int=100, molecules_report: bool=False) -> Tuple[Dict[str, List[np.ndarray]], List[str]]:
         """ Do the counting of molecules
         
         Arguments
         ---------
-        samfile: str
-            path to the bam or sam file to markup
+        bamfile: str
+            path to the bam files to markup
         cell_batch_size: int, default = 50
             it defines whether to require or not exon-intron spanning read to consider an intron valid.
-        molecules_report: bool, default=False
-            whether to output a file that reports the intervals hit for each molecule counted
         
         Returns
         -------
-        list_spliced_arrays, list_unspliced_arrays, list_ambiguous_arrays, cell_bcs_order
+        dict_list_arrays, cell_bcs_order
 
         Note
         ----
@@ -497,6 +605,7 @@ class ExInCounter:
         self.reads_to_count: List[vcy.Read] = []
         # self.cells_since_last_count = 0
         # Analysis is cell wise so the Feature Index swapping is happening often and it is worth to preload everything in memory
+        # NOTE: for the features this was already done at markup time, maybe I should just reset them
         self.feature_indexes: DefaultDict[str, vcy.FeatureIndex] = defaultdict(vcy.FeatureIndex)
         for chromstrand_key, annotions_ordered_dict in self.annotations_by_chrm_strand.items():
             self.feature_indexes[chromstrand_key] = vcy.FeatureIndex(sorted(chain.from_iterable(annotions_ordered_dict.values())))
@@ -504,6 +613,9 @@ class ExInCounter:
         self.mask_indexes: DefaultDict[str, vcy.FeatureIndex] = defaultdict(vcy.FeatureIndex)
         for chromstrand_key, annotions_list in self.mask_ivls_by_chromstrand.items():
             self.mask_indexes[chromstrand_key] = vcy.FeatureIndex(annotions_list)  # This suould be sorted
+
+        logging.debug(f"Features available for chromosomes : {list(self.feature_indexes.keys())}")
+        logging.debug(f"Mask available for chromosomes : {list(self.mask_indexes.keys())}")
 
         # Before counting, report how many features where validated
         logging.debug(f"Summarizing the results of intron validation.")
@@ -520,21 +632,30 @@ class ExInCounter:
         logging.debug(f"Validated {n_is_intron_valid} introns (of which unique intervals {len(unique_valid)}) out of {n_is_intron} total possible introns (considering each possible transcript models).")
 
         cell_bcs_order: List[str] = []
-        list_spliced_arrays: List[np.ndarray] = []
-        list_unspliced_arrays: List[np.ndarray] = []
-        list_ambiguous_arrays: List[np.ndarray] = []
+        dict_list_arrays: Dict[str, List[np.ndarray]] = {layer_name: [] for layer_name in self.logic.layers}
         nth = 0
-        # Loop through the aligment of the samfile
-        for r in self.iter_alignments(samfile, unique=not multimap):
-            if len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch:
+        # Loop through the aligment of the bamfile
+        for r in self.iter_alignments(bamfile, unique=not multimap):
+            if (r is None) or (len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch):
                 # Perfrom the molecule counting
                 nth += 1
                 logging.debug(f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads")
-                spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch(molecules_report and (nth % 10 == 0))
-                cell_bcs_order += list_bcs
-                list_spliced_arrays.append(spliced)
-                list_unspliced_arrays.append(unspliced)
-                list_ambiguous_arrays.append(ambiguous)
+                dict_layer_columns, list_bcs = self.count_cell_batch()
+                
+                # This is to avoid crazy big matrix output if the barcode selection is not chosen
+                if not self.filter_mode:
+                    logging.warning("The barcode selection mode is off, no cell events will be identified by <80 counts")
+                    tot_mol = dict_layer_columns["spliced"].sum(0) + dict_layer_columns["unspliced"].sum(0)
+                    cell_bcs_order += list(np.array(list_bcs)[tot_mol > 80])
+                    for layer_name, layer_columns in dict_layer_columns.items():
+                        dict_list_arrays[layer_name].append(layer_columns[:, tot_mol > 80])
+                    logging.warning(f"{np.sum(tot_mol < 80)} of the barcodes where without cell")
+                else:
+                    # The normal case
+                    cell_bcs_order += list_bcs
+                    for layer_name, layer_columns in dict_layer_columns.items():
+                        dict_list_arrays[layer_name].append(layer_columns)
+
                 self.cell_batch = set()
                 # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
                 self.reads_to_count = []
@@ -542,33 +663,37 @@ class ExInCounter:
                     self.feature_indexes[chromstrand_key].reset()
                 for chromstrand_key, annotions_list in self.mask_ivls_by_chromstrand.items():
                     self.mask_indexes[chromstrand_key].reset()
-
-            self.cell_batch.add(r.bc)
-            self.reads_to_count.append(r)
-        logging.debug(f"Counting molecule for last batch of {len(self.cell_batch)}, total reads {len(self.reads_to_count)}")
-        spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch()
-        cell_bcs_order += list_bcs
-        list_spliced_arrays.append(spliced)
-        list_unspliced_arrays.append(unspliced)
-        list_ambiguous_arrays.append(ambiguous)
-        self.cell_batch = set()
-        self.reads_to_count = []
+            
+            if r is not None:
+                self.cell_batch.add(r.bc)
+                self.reads_to_count.append(r)
+        # NOTE: Since iter_allignments is yielding None at each file change (even when only one bamfile) I do not need the following
+        # logging.debug(f"Counting molecule for last batch of {len(self.cell_batch)}, total reads {len(self.reads_to_count)}")
+        # spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch()
+        # cell_bcs_order += list_bcs
+        # list_spliced_arrays.append(spliced)
+        # list_unspliced_arrays.append(unspliced)
+        # list_ambiguous_arrays.append(ambiguous)
+        # self.cell_batch = set()
+        # self.reads_to_count = []
         logging.debug(f"Counting done!")
-        return list_spliced_arrays, list_unspliced_arrays, list_ambiguous_arrays, cell_bcs_order
+        return dict_list_arrays, cell_bcs_order
 
-    def count_cell_batch(self, molecules_report: bool=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
-        """It performs molecule counting for the current batch of cells
+    def _count_cell_batch_stranded(self) -> Tuple[Dict[str, np.ndarray], List[str]]:
+        """It performs molecule counting for the current batch of cells in the case of stranded method
 
         Returns
         -------
-        spliced: np.ndarray
-        unspliced: np.ndarray
-        ambiguous: np.ndarray
+        dict_layers_columns: Dict[str, np.ndarray]
+            name_layer->np.ndarray of the batch
         idx2bc: List[str]
             list of barcodes
+
+        NOTE This duplications of method is bad for code mantainance
         """
         molitems: DefaultDict[str, vcy.Molitem] = defaultdict(vcy.Molitem)
         # Sort similarly to what the sort linux command would do. (implemented using Read.__lt__)
+        # NOTE NOTE!!!! Here I changed the way to sort because it was using the strand causing to skip a lot of reads in SmartSeq2
         self.reads_to_count.sort()
         # NOTE: I could start by sorting the reads by chromosome, strand, position but for now let's see if it is fast without doing do
 
@@ -578,7 +703,7 @@ class ExInCounter:
             ii = self.feature_indexes[r.chrom + r.strand]
             iim = self.mask_indexes[r.chrom + r.strand]
 
-            # Check if read is fully inside a repeat, in that case skip it
+            # Check if read is fully inside a masked region, in that case skip it
             if iim.has_ivls_enclosing(r):
                 repeats_reads_count += 1  # VERBOSE
                 continue
@@ -587,7 +712,7 @@ class ExInCounter:
             mappings_record = ii.find_overlapping_ivls(r)
             if len(mappings_record):
                 # logging.debug("IN: Non empty mapping record")
-                bcumi = r.bc + r.umi
+                bcumi = f"{r.bc}${r.umi}"
                 molitems[bcumi].add_mappings_record(mappings_record)
                 # if len(molitems[bcumi].mappings_record):
                 #     logging.debug("OUT: Non empty")
@@ -596,30 +721,418 @@ class ExInCounter:
         logging.debug(f"{repeats_reads_count} reads not considered because fully enclosed in repeat masked regions")  # VERBOSE
         # initialize np.ndarray
         shape = (len(self.geneid2ix), len(self.cell_batch))
-        spliced = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE)
-        unspliced = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE)
-        ambiguous = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE)
+
+        dict_layers_columns: Dict[str, np.ndarray] = {}
+        for layer_name in self.logic.layers:
+            dict_layers_columns[layer_name] = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE, order="C")
+
         bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
-
         # After the whole file has been read, do the actual counting
+        failures = 0
+        counter: Counter = Counter()
         for bcumi, molitem in molitems.items():
-            bc = bcumi[:self.bclen]  # extract the bc part from the bc+umi
+            bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
             bcidx = bc2idx[bc]
-            self.logic.count(molitem, bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
-            # NOTE I need to generalize this to any set of layers
+            rcode = self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
+            if rcode:
+                failures += 1
+                counter[rcode] += 1
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
+        if failures > (0.25 * len(molitems)):
+            logging.warn(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed, of those:")
+            logging.warn(f"A situation where many genes were compatible with the observation in {(100*counter[1] / len(molitems)):.1f} cases")
+            logging.warn(f"No gene is compatible with the observation in {(100*counter[2] / len(molitems)):.1f} cases")
+            logging.warn(f"Situation that were not described by the logic in the {(100*counter[3] / len(molitems)):.1f} of the caes")
 
-        if molecules_report:
-            import pickle
-            first_cell_batch = next(iter(molitems.keys()))[:self.bclen]
-            if not os.path.exists("pickle_dump"):
-                os.makedirs("pickle_dump")
-            pickle.dump(molitems, open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"))
-            pickle.dump(self.reads_to_count, open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"))
+        if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
+            if self.kind_of_report == "p":
+                import pickle
+                first_cell_batch = next(iter(molitems.keys())).split("$")[0]
+                if not os.path.exists("pickle_dump"):
+                    os.makedirs("pickle_dump")
+                pickle.dump(molitems, open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"))
+                pickle.dump(self.reads_to_count, open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"))
+            else:
+                if not os.path.exists(os.path.join(self.outputfolder, "dump")):
+                    os.makedirs(os.path.join(self.outputfolder, "dump"))
+                f = h5py.File(os.path.join(self.outputfolder, f"dump/{self.sampleid}.hdf5"))  # From the docs: Read/write if exists, create otherwise (default)
 
+                if "info/tr_id" not in f:
+                    logging.warning("The hdf5 report is less accurate in reporting exactly all the information than the pickle.")
+                    info_tr_id = []
+                    info_features_gene = []
+                    info_is_last3prime = []
+                    info_is_intron = []
+                    info_start_end = []
+                    info_exino = []
+                    info_strandplus = []
+                    info_chrm = []
+                    for k, v_dict_tm in self.annotations_by_chrm_strand.items():
+                        for v1_tm in v_dict_tm.values():
+                            for v2_ivl in v1_tm:
+                                info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,
+                                info_features_gene.append(v2_ivl.transcript_model.genename)  # “info/ivls/features_gene“,
+                                info_is_last3prime.append(v2_ivl.is_last_3prime)  # “info/ivls/is_last3prime“
+                                info_is_intron.append(v2_ivl.kind == 105)  # “info/ivls/is_intron“,
+                                info_start_end.append((v2_ivl.start, v2_ivl.end))  # “info/ivls/feture_start_end“
+                                info_exino.append(v2_ivl.exin_no)  # “info/ivls/exino“
+                                info_strandplus.append(v2_ivl.transcript_model.chromstrand[-1:] == "+")  # “info/ivls/strandplus“
+                                info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
+
+                    self.inv_tridstart2ix: Dict[str, int] = {}
+                    for i in range(len(info_tr_id)):
+                        self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
+                    f.create_dataset("info/tr_id", data=np.array(info_tr_id, dtype="S24"),
+                                     maxshape=(len(info_tr_id), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/features_gene", data=np.array(info_features_gene, dtype="S15"),
+                                     maxshape=(len(info_features_gene), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/is_last3prime", data=np.array(info_is_last3prime, dtype=bool),
+                                     maxshape=(len(info_is_last3prime), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/is_intron", data=np.array(info_is_intron, dtype=bool),
+                                     maxshape=(len(info_is_intron), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/start_end", data=np.array(info_start_end, dtype=np.int64),
+                                     maxshape=(len(info_start_end), 2), chunks=(500, 2), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/exino", data=np.array(info_exino, dtype=np.uint8),
+                                     maxshape=(len(info_exino), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
+                                     maxshape=(len(info_strandplus), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/chrm", data=np.array(info_chrm, dtype="S6"),
+                                     maxshape=(len(info_chrm), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    
+                # cell_name = next(iter(molitems.keys())).split("$")[0]
+                pos: DefaultDict[str, List[Tuple[int, int]]] = defaultdict(list)
+                mol: DefaultDict[str, List[int]] = defaultdict(list)
+                ixs: DefaultDict[str, List[int]] = defaultdict(list)
+                count_i: int = 0
+                for mol_bc, molitem in molitems.items():
+                    cell_name = mol_bc.split("$")[0]
+                    try:
+                        for match in next(iter(molitem.mappings_record.items()))[1]:
+                            mol[cell_name].append(count_i)
+                            pos[cell_name].append(match.segment)
+                            ixs[cell_name].append(self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"])
+                        count_i += 1
+                    except StopIteration:
+                        pass  # An empty or chimeric molitem ?
+                # Do the last cell and close the file
+                for cell_name in mol.keys():
+                    posA = np.array(pos[cell_name], dtype=np.int32)
+                    ixsA = np.array(ixs[cell_name], dtype=np.intp)
+                    molA = np.array(mol[cell_name], dtype=np.uint32)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/pos', data=posA, maxshape=posA.shape, chunks=(min(500, posA.shape[0]), 2), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/ixs', data=ixsA, maxshape=ixsA.shape, chunks=(min(500, ixsA.shape[0]),), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/mol', data=molA, maxshape=molA.shape, chunks=(min(500, molA.shape[0]),), compression="gzip", shuffle=False, compression_opts=4)
+                f.close()
+
+        self.report_state += 1
         idx2bc = {v: k for k, v in bc2idx.items()}
         
-        return spliced, unspliced, ambiguous, [idx2bc[i] for i in range(len(idx2bc))]
+        return dict_layers_columns, [idx2bc[i] for i in range(len(idx2bc))]
+
+    def _count_cell_batch_stranded_discordant(self) -> Tuple[Dict[str, np.ndarray], List[str]]:
+        """It performs molecule counting for the current batch of cells in the case of stranded method with discordant masking
+
+        Returns
+        -------
+        dict_layers_columns: Dict[str, np.ndarray]
+            name_layer->np.ndarray of the batch
+        idx2bc: List[str]
+            list of barcodes
+
+        NOTE This duplications of method is bad for code mantainance
+        """
+        molitems: DefaultDict[str, vcy.Molitem] = defaultdict(vcy.Molitem)
+        # Sort similarly to what the sort linux command would do. (implemented using Read.__lt__)
+        self.reads_to_count.sort()
+        # NOTE: I could start by sorting the reads by chromosome, strand, position but for now let's see if it is fast without doing do
+
+        repeats_reads_count = 0
+        for r in self.reads_to_count:
+            # Consider the correct strand
+            ii = self.feature_indexes[f"{r.chrom}{r.strand}"]
+            iir = self.feature_indexes[f"{r.chrom}{reverse(r.strand)}"]
+            iim = self.mask_indexes[f"{r.chrom}{r.strand}"]
+            iimr = self.mask_indexes[f"{r.chrom}{reverse(r.strand)}"]
+
+            # Check if read is fully inside a masked region, in that case check if it is allowed in the reverse
+            if iim.has_ivls_enclosing(r):
+                repeats_reads_count += 1  # VERBOSE
+                if not iimr.has_ivls_enclosing(r):
+                    mappings_record = iir.find_overlapping_ivls(r)
+                else:
+                    continue
+            else:
+                # Look for overlap between the intervals and the read
+                mappings_record = ii.find_overlapping_ivls(r)
+
+            if len(mappings_record):
+                # logging.debug("IN: Non empty mapping record")
+                bcumi = f"{r.bc}${r.umi}"
+                molitems[bcumi].add_mappings_record(mappings_record)
+                # if len(molitems[bcumi].mappings_record):
+                #     logging.debug("OUT: Non empty")
+                # else:
+                #     logging.debug("OUT: Empty")
+        logging.debug(f"{repeats_reads_count} reads not considered because fully enclosed in repeat masked regions")  # VERBOSE
+        # initialize np.ndarray
+        shape = (len(self.geneid2ix), len(self.cell_batch))
+
+        dict_layers_columns: Dict[str, np.ndarray] = {}
+        for layer_name in self.logic.layers:
+            dict_layers_columns[layer_name] = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE, order="C")
+
+        bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
+        # After the whole file has been read, do the actual counting
+        for bcumi, molitem in molitems.items():
+            bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
+            bcidx = bc2idx[bc]
+            self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
+            # NOTE I need to generalize this to any set of layers
+            # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
+        
+        if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
+            if self.kind_of_report == "p":
+                import pickle
+                first_cell_batch = next(iter(molitems.keys())).split("$")[0]
+                if not os.path.exists("pickle_dump"):
+                    os.makedirs("pickle_dump")
+                pickle.dump(molitems, open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"))
+                pickle.dump(self.reads_to_count, open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"))
+            else:
+                if not os.path.exists(os.path.join(self.outputfolder, "dump")):
+                    os.makedirs(os.path.join(self.outputfolder, "dump"))
+                f = h5py.File(os.path.join(self.outputfolder, f"dump/{self.sampleid}.hdf5"))  # From the docs: Read/write if exists, create otherwise (default)
+
+                if "info/tr_id" not in f:
+                    logging.warning("The hdf5 report is less accurate in reporting exactly all the information than the pickle.")
+                    info_tr_id = []
+                    info_features_gene = []
+                    info_is_last3prime = []
+                    info_is_intron = []
+                    info_start_end = []
+                    info_exino = []
+                    info_strandplus = []
+                    info_chrm = []
+                    for k, v_dict_tm in self.annotations_by_chrm_strand.items():
+                        for v1_tm in v_dict_tm.values():
+                            for v2_ivl in v1_tm:
+                                info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,
+                                info_features_gene.append(v2_ivl.transcript_model.genename)  # “info/ivls/features_gene“,
+                                info_is_last3prime.append(v2_ivl.is_last_3prime)  # “info/ivls/is_last3prime“
+                                info_is_intron.append(v2_ivl.kind == 105)  # “info/ivls/is_intron“,
+                                info_start_end.append((v2_ivl.start, v2_ivl.end))  # “info/ivls/feture_start_end“
+                                info_exino.append(v2_ivl.exin_no)  # “info/ivls/exino“
+                                info_strandplus.append(v2_ivl.transcript_model.chromstrand[-1:] == "+")  # “info/ivls/strandplus“
+                                info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
+
+                    self.inv_tridstart2ix: Dict[str, int] = {}
+                    for i in range(len(info_tr_id)):
+                        self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
+                    f.create_dataset("info/tr_id", data=np.array(info_tr_id, dtype="S24"),
+                                     maxshape=(len(info_tr_id), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/features_gene", data=np.array(info_features_gene, dtype="S15"),
+                                     maxshape=(len(info_features_gene), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/is_last3prime", data=np.array(info_is_last3prime, dtype=bool),
+                                     maxshape=(len(info_is_last3prime), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/is_intron", data=np.array(info_is_intron, dtype=bool),
+                                     maxshape=(len(info_is_intron), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/start_end", data=np.array(info_start_end, dtype=np.int64),
+                                     maxshape=(len(info_start_end), 2), chunks=(500, 2), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/exino", data=np.array(info_exino, dtype=np.uint8),
+                                     maxshape=(len(info_exino), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
+                                     maxshape=(len(info_strandplus), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/chrm", data=np.array(info_chrm, dtype="S6"),
+                                     maxshape=(len(info_chrm), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    
+                # cell_name = next(iter(molitems.keys())).split("$")[0]
+                pos: DefaultDict[str, List[Tuple[int, int]]] = defaultdict(list)
+                mol: DefaultDict[str, List[int]] = defaultdict(list)
+                ixs: DefaultDict[str, List[int]] = defaultdict(list)
+                count_i: int = 0
+                for mol_bc, molitem in molitems.items():
+                    cell_name = mol_bc.split("$")[0]
+                    try:
+                        for match in next(iter(molitem.mappings_record.items()))[1]:
+                            mol[cell_name].append(count_i)
+                            pos[cell_name].append(match.segment)
+                            ixs[cell_name].append(self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"])
+                        count_i += 1
+                    except StopIteration:
+                        pass  # An empty or chimeric molitem ?
+                # Do the last cell and close the file
+                for cell_name in mol.keys():
+                    posA = np.array(pos[cell_name], dtype=np.int32)
+                    ixsA = np.array(ixs[cell_name], dtype=np.intp)
+                    molA = np.array(mol[cell_name], dtype=np.uint32)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/pos', data=posA, maxshape=posA.shape, chunks=(min(500, posA.shape[0]), 2), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/ixs', data=ixsA, maxshape=ixsA.shape, chunks=(min(500, ixsA.shape[0]),), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/mol', data=molA, maxshape=molA.shape, chunks=(min(500, molA.shape[0]),), compression="gzip", shuffle=False, compression_opts=4)
+                f.close()
+
+        self.report_state += 1
+        idx2bc = {v: k for k, v in bc2idx.items()}
+        
+        return dict_layers_columns, [idx2bc[i] for i in range(len(idx2bc))]
+
+    def _count_cell_batch_non_stranded(self) -> Tuple[Dict[str, np.ndarray], List[str]]:
+        """It performs molecule counting for the current batch of cells in the case of non stranded method
+
+        Returns
+        -------
+        dict_layers_columns: Dict[str, np.ndarray]
+            name_layer->np.ndarray of the batch
+        idx2bc: List[str]
+            list of barcodes
+        """
+        molitems: DefaultDict[str, vcy.Molitem] = defaultdict(vcy.Molitem)
+        # Sort similarly to what the sort linux command would do. (implemented using Read.__lt__)
+        # NOTE NOTE!!!! Here I changed the way to sort because it was using the strand causing to skip a lot of reads in SmartSeq2
+        self.reads_to_count.sort()
+        # NOTE: I could start by sorting the reads by chromosome, strand, position but for now let's see if it is fast without doing do
+
+        repeats_reads_count = 0
+        plus_reads_count = 0
+        minus_reads_count = 0
+        both_reads_count = 0
+        for r in self.reads_to_count:
+            # Consider the correct strand
+            ii = self.feature_indexes[f"{r.chrom}{r.strand}"]
+            iir = self.feature_indexes[f"{r.chrom}{reverse(r.strand)}"]
+            iim = self.mask_indexes[f"{r.chrom}{r.strand}"]
+            iimr = self.mask_indexes[f"{r.chrom}{reverse(r.strand)}"]
+
+            # Check if read is fully inside a masked region, in that case skip it
+            if iim.has_ivls_enclosing(r) or iimr.has_ivls_enclosing(r):
+                repeats_reads_count += 1  # VERBOSE
+                continue
+
+            # Look for overlap between the intervals and the read
+            mappings_record = ii.find_overlapping_ivls(r)
+            if len(mappings_record):
+                bcumi = f"{r.bc}${r.umi}"
+                molitems[bcumi].add_mappings_record(mappings_record)
+                if r.strand == "+":
+                    plus_reads_count += 1
+                else:
+                    minus_reads_count += 1
+
+            mappings_record_r = iir.find_overlapping_ivls(r)
+            if len(mappings_record_r):
+                bcumi = f"{r.bc}${r.umi}"
+                molitems[bcumi].add_mappings_record(mappings_record_r)
+                if r.strand == "-":
+                    plus_reads_count += 1
+                else:
+                    minus_reads_count += 1
+
+            if len(mappings_record) and len(mappings_record_r):
+                both_reads_count += 1
+
+        logging.debug(f"{repeats_reads_count} reads in repeat masked regions")  # VERBOSE
+        logging.debug(f"{plus_reads_count} reads overlapping with features on plus strand")  # VERBOSE
+        logging.debug(f"{minus_reads_count} reads overlapping with features on minus strand")  # VERBOSE
+        logging.debug(f"{both_reads_count} reads overlapping with features on both strands")  # VERBOSE
+        # initialize np.ndarray
+        shape = (len(self.geneid2ix), len(self.cell_batch))
+
+        dict_layers_columns: Dict[str, np.ndarray] = {}
+        for layer_name in self.logic.layers:
+            dict_layers_columns[layer_name] = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE, order="C")
+
+        bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
+        # After the whole file has been read, do the actual counting
+        for bcumi, molitem in molitems.items():
+            bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
+            bcidx = bc2idx[bc]
+            self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
+            # NOTE I need to generalize this to any set of layers
+            # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
+        
+        if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
+            if self.kind_of_report == "p":
+                import pickle
+                first_cell_batch = next(iter(molitems.keys())).split("$")[0]
+                if not os.path.exists("pickle_dump"):
+                    os.makedirs("pickle_dump")
+                pickle.dump(molitems, open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"))
+                pickle.dump(self.reads_to_count, open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"))
+            else:
+                if not os.path.exists(os.path.join(self.outputfolder, "dump")):
+                    os.makedirs(os.path.join(self.outputfolder, "dump"))
+                f = h5py.File(os.path.join(self.outputfolder, f"dump/{self.sampleid}.hdf5"))  # From the docs: Read/write if exists, create otherwise (default)
+
+                if "info/tr_id" not in f:
+                    logging.warning("The hdf5 report is less accurate than the pickle in the completeness of the info it is reporting.")
+                    info_tr_id = []
+                    info_features_gene = []
+                    info_is_last3prime = []
+                    info_is_intron = []
+                    info_start_end = []
+                    info_exino = []
+                    info_strandplus = []
+                    info_chrm = []
+                    for k, v_dict_tm in self.annotations_by_chrm_strand.items():
+                        for v1_tm in v_dict_tm.values():
+                            for v2_ivl in v1_tm:
+                                info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,
+                                info_features_gene.append(v2_ivl.transcript_model.genename)  # “info/ivls/features_gene“,
+                                info_is_last3prime.append(v2_ivl.is_last_3prime)  # “info/ivls/is_last3prime“
+                                info_is_intron.append(v2_ivl.kind == 105)  # “info/ivls/is_intron“,
+                                info_start_end.append((v2_ivl.start, v2_ivl.end))  # “info/ivls/feture_start_end“
+                                info_exino.append(v2_ivl.exin_no)  # “info/ivls/exino“
+                                info_strandplus.append(v2_ivl.transcript_model.chromstrand[-1:] == "+")  # “info/ivls/strandplus“
+                                info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
+
+                    self.inv_tridstart2ix: Dict[str, int] = {}
+                    for i in range(len(info_tr_id)):
+                        self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
+                    f.create_dataset("info/tr_id", data=np.array(info_tr_id, dtype="S24"),
+                                     maxshape=(len(info_tr_id), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/features_gene", data=np.array(info_features_gene, dtype="S15"),
+                                     maxshape=(len(info_features_gene), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/is_last3prime", data=np.array(info_is_last3prime, dtype=bool),
+                                     maxshape=(len(info_is_last3prime), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/is_intron", data=np.array(info_is_intron, dtype=bool),
+                                     maxshape=(len(info_is_intron), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/start_end", data=np.array(info_start_end, dtype=np.int64),
+                                     maxshape=(len(info_start_end), 2), chunks=(500, 2), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/exino", data=np.array(info_exino, dtype=np.uint8),
+                                     maxshape=(len(info_exino), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/strandplus", data=np.array(info_strandplus, dtype=np.bool),
+                                     maxshape=(len(info_strandplus), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset("info/chrm", data=np.array(info_chrm, dtype="S6"),
+                                     maxshape=(len(info_chrm), ), chunks=(500,), compression="gzip", shuffle=False, compression_opts=4)
+                    
+                # cell_name = next(iter(molitems.keys())).split("$")[0]
+                pos: DefaultDict[str, List[Tuple[int, int]]] = defaultdict(list)
+                mol: DefaultDict[str, List[int]] = defaultdict(list)
+                ixs: DefaultDict[str, List[int]] = defaultdict(list)
+                count_i: int = 0
+                for mol_bc, molitem in molitems.items():
+                    cell_name = mol_bc.split("$")[0]
+                    try:
+                        for match in next(iter(molitem.mappings_record.items()))[1]:
+                            mol[cell_name].append(count_i)
+                            pos[cell_name].append(match.segment)
+                            ixs[cell_name].append(self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"])
+                        count_i += 1
+                    except StopIteration:
+                        pass  # An empty or chimeric molitem ?
+                # Do the last cell and close the file
+                for cell_name in mol.keys():
+                    posA = np.array(pos[cell_name], dtype=np.int32)
+                    ixsA = np.array(ixs[cell_name], dtype=np.intp)
+                    molA = np.array(mol[cell_name], dtype=np.uint32)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/pos', data=posA, maxshape=posA.shape, chunks=(min(500, posA.shape[0]), 2), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/ixs', data=ixsA, maxshape=ixsA.shape, chunks=(min(500, ixsA.shape[0]),), compression="gzip", shuffle=False, compression_opts=4)
+                    f.create_dataset(f'cells/{self.sampleid}_{cell_name}/mol', data=molA, maxshape=molA.shape, chunks=(min(500, molA.shape[0]),), compression="gzip", shuffle=False, compression_opts=4)
+                f.close()
+
+        self.report_state += 1
+        idx2bc = {v: k for k, v in bc2idx.items()}
+        
+        return dict_layers_columns, [idx2bc[i] for i in range(len(idx2bc))]
 
     def pcount(self, samfile: str, cell_batch_size: int=50, molecules_report: bool=False, n_processes: int=4) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
         """ Do the counting of molecules in parallel using multiprocessing
@@ -631,3 +1144,12 @@ class ExInCounter:
         """It performs molecule counting for the current batch of cells
         """
         raise NotImplementedError("This will be a used by .pcount")
+
+
+def reverse(strand: str) -> str:
+    if strand == "+":
+        return "-"
+    elif strand == "-":
+        return "+"
+    else:
+        raise ValueError(f"Unknown strand {strand}")

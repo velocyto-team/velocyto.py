@@ -26,6 +26,8 @@ OTHER_INTRON = 32
 COMPETING_INTRON = ALT_INTRON | OTHER_INTRON
 COMPETING_EXON = ALT_EXON | OTHER_EXON
 
+PLACEHOLDER_UMI_LEN = 12  # the length of the placeholder random umi added if -U is set (complexity is 36 per unit length)
+
 CIGAR = {0: "BAM_CMATCH",
          1: "BAM_CINS",
          2: "BAM_CDEL",

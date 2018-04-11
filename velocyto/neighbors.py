@@ -72,7 +72,75 @@ def balance_knn_loop(dsi: np.ndarray, dist: np.ndarray, lsi: np.ndarray, maxl: i
     return dist_new, dsi_new, l
 
 
-def knn_balance(dsi: np.ndarray, dist: np.ndarray=None, maxl: int=200, k: int=60) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+@jit(signature_or_function="Tuple((float64[:,:], int64[:,:], int64[:]))(int64[:,:], float64[:, :], int64[:], int64[:], int64, int64, boolean)",
+     nopython=True)
+def balance_knn_loop_constrained(dsi: np.ndarray, dist: np.ndarray, lsi: np.ndarray, groups: np.ndarray, maxl: int, k: int, return_distance: bool) -> Tuple:
+    """Fast and greedy algorythm to balance a K-NN graph so that no node is the NN to more than maxl other nodes
+
+        Arguments
+        ---------
+        dsi : np.ndarray  (samples, K)
+            distance sorted indexes (as returned by sklearn NN)
+        dist : np.ndarray  (samples, K)
+            the actual distance corresponding to the sorted indexes
+        lsi : np.ndarray (samples,)
+            degree of connectivity (l) sorted indexes
+        groups: np.ndarray (samples,)
+            labels of the samples that constrain the connectivity
+        maxl : int
+            max degree of connectivity (from others to self) allowed
+        k : int
+            number of neighbours in the final graph
+        return_distance : bool
+            whether to return distance
+
+        Returns
+        -------
+        dsi_new : np.ndarray (samples, k+1)
+            indexes of the NN, first column is the sample itself
+        dist_new : np.ndarray (samples, k+1)
+            distances to the NN
+        l: np.ndarray (samples)
+            l[i] is the number of connections from other samples to the sample i
+
+    """
+    assert dsi.shape[1] >= k, "sight needs to be bigger than k"
+    # numba signature "Tuple((int64[:,:], float32[:, :], int64[:]))(int64[:,:], int64[:], int64, int64, bool)"
+    dsi_new = -1 * np.ones((dsi.shape[0], k + 1), np.int64)  # maybe d.shape[0]
+    l = np.zeros(dsi.shape[0], np.int64)
+    if return_distance:
+        dist_new = np.zeros(dsi_new.shape, np.float64)
+    for i in range(dsi.shape[0]):  # For every node
+        el = lsi[i]
+        p = 0
+        j = 0
+        for j in range(dsi.shape[1]):  # For every other node it is connected (sight)
+            if p >= k:  # if k-nn were found
+                break
+            m = dsi[el, j]
+            if el == m:
+                dsi_new[el, 0] = el
+                continue
+            if groups[el] != groups[m]:  # This is the constraint!
+                continue
+            if l[m] >= maxl:
+                continue
+            dsi_new[el, p + 1] = m
+            l[m] = l[m] + 1
+            if return_distance:
+                dist_new[el, p + 1] = dist[el, j]
+            p += 1
+        if (j == dsi.shape[1] - 1) and (p < k):
+            while p < k:
+                dsi_new[el, p + 1] = el
+                dist_new[el, p + 1] = dist[el, 0]
+                p += 1
+    if not return_distance:
+        dist_new = np.ones_like(dsi_new, np.float64)
+    return dist_new, dsi_new, l
+
+
+def knn_balance(dsi: np.ndarray, dist: np.ndarray=None, maxl: int=200, k: int=60, constraint: np.ndarray=None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Balance a K-NN graph so that no node is the NN to more than maxl other nodes
 
         Arguments
@@ -85,6 +153,8 @@ def knn_balance(dsi: np.ndarray, dist: np.ndarray=None, maxl: int=200, k: int=60
             max degree of connectivity allowed
         k : int
             number of neighbours in the final graph
+        constraint: np.ndarray (samples,)
+            labels of the samples that constrain the connectivity
 
         Returns
         -------
@@ -102,9 +172,15 @@ def knn_balance(dsi: np.ndarray, dist: np.ndarray=None, maxl: int=200, k: int=60
     if dist is None:
         dist = np.ones(dsi.shape, dtype="float64")
         dist[:, 0] = 0
-        return balance_knn_loop(dsi, dist, lsi, maxl, k, return_distance=False)
+        if constraint is not None:
+            return balance_knn_loop_constrained(dsi, dist, lsi, constraint.astype("int64"), maxl, k, return_distance=False)
+        else:
+            return balance_knn_loop(dsi, dist, lsi, maxl, k, return_distance=False)
     else:
-        return balance_knn_loop(dsi, dist, lsi, maxl, k, return_distance=True)
+        if constraint is not None:
+            return balance_knn_loop_constrained(dsi, dist, lsi, constraint.astype("int64"), maxl, k, return_distance=True)
+        else:
+            return balance_knn_loop(dsi, dist, lsi, maxl, k, return_distance=True)
 
 
 class BalancedKNN:
@@ -124,12 +200,15 @@ class BalancedKNN:
     maxl : int  (default=200)
          max degree of connectivity allowed. Avoids the presence of hubs in the graph, it is the
          maximum number of neighbours that are allowed to contact a node before the node is blocked
+    constraint: np.ndarray (default=None)
+        a numpy array defining the dirrent groups within wich connectivity is allowed
+        if "clusters" it uses the clusters as in self.clusters_ix
     mode : str (default="connectivity")
         decide wich kind of utput "distance" or "connectivity"
     n_jobs : int  (default=4)
         parallelization of the standard KNN search preformed at initialization
     """
-    def __init__(self, k: int=50, sight_k: int=100, maxl: int=200, mode: str="distance", metric: str="euclidean", n_jobs: int=4) -> None:
+    def __init__(self, k: int=50, sight_k: int=100, maxl: int=200, constraint: np.ndarray=None, mode: str="distance", metric: str="euclidean", n_jobs: int=4) -> None:
         self.k = k
         self.sight_k = sight_k
         self.maxl = maxl
@@ -138,6 +217,7 @@ class BalancedKNN:
         self.n_jobs = n_jobs
         self.dist_new = self.dsi_new = self.l = None  # type: np.ndarray
         self.bknn = None  # type: sparse.csr_matrix
+        self.constraint = constraint
 
     @property
     def n_samples(self) -> int:
@@ -205,7 +285,7 @@ class BalancedKNN:
             self.dist = np.ones_like(self.dsi)
             self.dist[:, 0] = 0
         logging.debug(f"Using the initialization network to find a {self.k}-NN graph with maximum connectivity of {self.maxl}")
-        self.dist_new, self.dsi_new, self.l = knn_balance(self.dsi, self.dist, maxl=self.maxl, k=self.k)
+        self.dist_new, self.dsi_new, self.l = knn_balance(self.dsi, self.dist, maxl=self.maxl, k=self.k, constraint=self.constraint)
         return self.dist_new, self.dsi_new, self.l
 
     def kneighbors_graph(self, X: np.ndarray=None, maxl: int=None, mode: str="distance") -> sparse.csr_matrix:

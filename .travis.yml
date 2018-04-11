@@ -13,13 +13,14 @@ install:
   - conda install --yes python="3.6" numpy scipy cython numba matplotlib scikit-learn
     h5py click
   - pip install loompy
+  - pip install sphinx
   - pip install sphinx_click
   - pip install sphinx_rtd_theme
   - pip install releases
   - git clone https://github.com/velocyto-team/velocyto.py.git
   - cd velocyto.py; pip install .;cd ..
-  - git clone https://github.com/sphinx-doc/sphinx.git
-  - cd sphinx; pip install .;cd ..
+#  - git clone https://github.com/sphinx-doc/sphinx.git
+#  - cd sphinx; pip install .;cd ..
 # - pip install ghp-import
 
 script:

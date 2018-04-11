@@ -1,4 +1,5 @@
 from typing import *
+import numpy as np
 import velocyto as vcy
 
 
@@ -94,7 +95,7 @@ def spliced_iter(segments_list: List[vcy.SegmentMatch], read_len: int=99) -> Ite
         A list of segment matches objects
 
     read_len: int, default=99
-        The lenght of a illumin read in the given technology
+        The length of a illumin read in the given technology
 
     Returns
     -------

@@ -213,7 +213,7 @@ class FeatureIndex:
         into two segments and  the Read attribute `is_spliced == True`.
         - Notice that the name of the function might be confousing. if there is a non valid overallapping an empty mappign record will be return
         - Also notice that returning an empty mapping record will cause the suppression of the counting of the molecule
-
+        
         """
 
         mapping_record: Dict[vcy.TranscriptModel, List[vcy.SegmentMatch]] = defaultdict(list)
@@ -244,8 +244,8 @@ class FeatureIndex:
                 i += 1
                 feature = self.ivls[i]
 
-        # NOTE: Removing first the one with less mathc and then requiring a splicing matching the transcript model is very stringent
-        # It could be that for short ~10bp SKIP sequences the mapper has made a mitake and this might kill the whole molecules
+        # NOTE: Removing first the one with less match and then requiring a splicing matching the transcript model is very stringent
+        # It could be that for short ~10bp SKIP sequences the alligner has made a mistake and this might kill the whole molecule
         # NOTE: the code below is not very efficient
         if len(mapping_record) != 0:
             # Remove transcript models that are suboptimal match
@@ -256,9 +256,9 @@ class FeatureIndex:
                     del mapping_record[tm]
 
         # NOTE: the code below is not very efficient, would be nice to avoid for loops
-        # NOTE: potentailly bad effects: it coul kill a lot of molecules if transcript models are not annotated correctly or missing
+        # NOTE: potentailly bad effects: it could kill a lot of molecules if transcript models are not annotated correctly or missing
         if len(mapping_record) != 0:
-            # A SKIP mapping needs to be explenaible by some kind of exon-exon exon-intron junction!
+            # A SKIP mapping needs to be explainaible by some kind of exon-exon exon-intron junction!
             # So if it falls internally, the TM needs to be removed from the mapping record
             for tm, segmatch_list in list(mapping_record.items()):
                 for sm in segmatch_list:

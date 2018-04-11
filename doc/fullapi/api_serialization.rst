@@ -1,5 +1,5 @@
 velocyto\.serialization module
-=========================
+==============================
 
 .. _serializationapi:
 

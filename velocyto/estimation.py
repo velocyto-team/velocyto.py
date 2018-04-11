@@ -56,7 +56,9 @@ def colDeltaCorpartial(emat: np.ndarray, dmat: np.ndarray, ixs: np.ndarray, thre
     else:
         num_threads = max(threads, multiprocessing.cpu_count())
     out = np.zeros((emat.shape[1], emat.shape[1]))
-    _colDeltaCorpartial(emat, dmat, out, ixs.astype("int32"), num_threads)
+    emat = np.require(emat, requirements="C")
+    ixs = np.require(ixs, requirements="C").astype(np.intp)
+    _colDeltaCorpartial(emat, dmat, out, ixs, num_threads)
     return out
 
 
@@ -186,7 +188,7 @@ def _fit1_slope(y: np.ndarray, x: np.ndarray) -> float:
     return m
 
 
-def _fit1_slope_weighted(y: np.ndarray, x: np.ndarray, w: np.ndarray, bounds: Tuple[float, float]=(0, 3)) -> float:
+def _fit1_slope_weighted(y: np.ndarray, x: np.ndarray, w: np.ndarray, limit_gamma: bool=False, bounds: Tuple[float, float]=(0, 20)) -> float:
     """Simple function that fit a weighted linear regression model without intercept
     """
     if not np.any(x):
@@ -194,7 +196,16 @@ def _fit1_slope_weighted(y: np.ndarray, x: np.ndarray, w: np.ndarray, bounds: Tu
     elif not np.any(y):
         m = 0
     else:
-        m = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y)**2), bounds=(0, 3), method="bounded").x
+        if limit_gamma:
+            if np.median(y) > np.median(x):
+                high_x = x > np.percentile(x, 90)
+                up_gamma = np.percentile(y[high_x], 10) / np.median(x[high_x])
+                up_gamma = np.maximum(1.5, up_gamma)
+            else:
+                up_gamma = 1.5  # Just a bit more than 1
+            m = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y)**2), bounds=(1e-8, up_gamma), method="bounded").x
+        else:
+            m = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y)**2), bounds=bounds, method="bounded").x
     return m
 
 
@@ -209,7 +220,7 @@ def _fit1_slope_weighted_offset(y: np.ndarray, x: np.ndarray, w: np.ndarray, fix
     else:
         if fixperc_q:
             m1 = np.percentile(y[x <= np.percentile(x, 1)], 50)
-            m0 = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y + m1)**2), bounds=(0, 3), method="bounded").x
+            m0 = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y + m1)**2), bounds=(0, 20), method="bounded").x
             m = (m0, m1)
         else:
             # m, _ = scipy.optimize.leastsq(lambda m: np.sqrt(w) * (-y + x * m[0] + m[1]), x0=(0, 0))  # This is probably faster but it can have negative slope
@@ -222,7 +233,7 @@ def _fit1_slope_weighted_offset(y: np.ndarray, x: np.ndarray, w: np.ndarray, fix
                 else:
                     up_gamma = 1.5  # Just a bit more than 1
             else:
-                up_gamma = 30
+                up_gamma = 20
             up_q = 2 * np.sum(y * w) / np.sum(w)
             m = scipy.optimize.minimize(lambda m: np.sum(w * (-y + x * m[0] + m[1])**2),
                                         x0=(0.1, 1e-16), method="L-BFGS-B",
@@ -242,7 +253,7 @@ def _fit1_slope_offset(y: np.ndarray, x: np.ndarray, fixperc_q: bool=False) -> T
         # m = result[0]
         if fixperc_q:
             m1 = np.percentile(y[x <= np.percentile(x, 1)], 50)
-            m0 = scipy.optimize.minimize_scalar(lambda m: np.sum((x * m - y + m1)**2), bounds=(0, 3), method="bounded").x
+            m0 = scipy.optimize.minimize_scalar(lambda m: np.sum((x * m - y + m1)**2), bounds=(0, 20), method="bounded").x
             m = (m0, m1)
         else:
             m, _ = scipy.optimize.leastsq(lambda m: -y + x * m[0] + m[1], x0=(0, 0))
@@ -286,7 +297,7 @@ def fit_slope_offset(Y: np.ndarray, X: np.ndarray, fixperc_q: bool=False) -> Tup
     return slopes, offsets
 
 
-def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, bounds: Tuple[float, float]=(0, 3)) -> np.ndarray:
+def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, return_R2: bool=False, limit_gamma: bool=False, bounds: Tuple[float, float]=(0, 20)) -> np.ndarray:
     """Loop through the genes and fits the slope
 
     Y: np.ndarray, shape=(genes, cells)
@@ -297,9 +308,29 @@ def fit_slope_weighted(Y: np.ndarray, X: np.ndarray, W: np.ndarray, bounds: Tupl
         the weights that will scale the square residuals
     """
     # NOTE this could be easily parallelized
-    slopes = np.fromiter((_fit1_slope_weighted(Y[i, :], X[i, :], W[i, :], bounds=bounds) for i in range(Y.shape[0])),
-                         dtype="float32",
-                         count=Y.shape[0])
+    # slopes = np.fromiter((_fit1_slope_weighted(Y[i, :], X[i, :], W[i, :], bounds=bounds) for i in range(Y.shape[0])),
+    #                     dtype="float32",
+    #                     count=Y.shape[0])
+
+    slopes = np.zeros(Y.shape[0], dtype="float32")
+    offsets = np.zeros(Y.shape[0], dtype="float32")
+    if return_R2:
+        R2 = np.zeros(Y.shape[0], dtype="float32")
+    for i in range(Y.shape[0]):
+        m = _fit1_slope_weighted(Y[i, :], X[i, :], W[i, :], limit_gamma)
+        slopes[i] = m
+        if return_R2:
+            # NOTE: the coefficient of determination is not weighted but the fit is
+            with np.errstate(divide='ignore', invalid='ignore'):
+                SSres = np.sum((m * X[i, :] - Y[i, :])**2)
+                SStot = np.sum((Y[i, :].mean() - Y[i, :])**2)
+                _R2 = 1 - (SSres / SStot)
+            if np.isfinite(_R2):
+                R2[i] = _R2
+            else:
+                R2[i] = -1e16
+    if return_R2:
+        return slopes, R2
     return slopes
 
 
@@ -322,9 +353,14 @@ def fit_slope_weighted_offset(Y: np.ndarray, X: np.ndarray, W: np.ndarray, fixpe
         offsets[i] = q
         if return_R2:
             # NOTE: the coefficient of determination is not weighted but the fit is
-            SSres = np.sum((m * X[i, :] + q - Y[i, :])**2)
-            SStot = np.sum((Y[i, :].mean() - Y[i, :])**2)
-            R2[i] = 1 - (SSres / SStot)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                SSres = np.sum((m * X[i, :] + q - Y[i, :])**2)
+                SStot = np.sum((Y[i, :].mean() - Y[i, :])**2)
+                _R2 = 1 - (SSres / SStot)
+            if np.isfinite(_R2):
+                R2[i] = _R2
+            else:
+                R2[i] = -1e16
     if return_R2:
         return slopes, offsets, R2
     return slopes, offsets
