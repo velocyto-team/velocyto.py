@@ -1,0 +1,22 @@
+::
+
+	Usage: velocyto run_dropest [OPTIONS] BAMFILE GTFFILE
+		
+		  Runs the velocity analysis on DropEst preprocessed data
+		
+		  BAMFILE  bam files to be analyzed
+		
+		  GTFFILE genome annotation file
+		
+		Options:
+		  -b, --bcfile PATH               Valid barcodes file, to filter the bam. If --bcfile is not specified the file will be searched in the default position outputed by ``velocyto tools dropest_bc_correct``. Otherwise an error will be thrown
+		  -l, --logic TEXT                The logic to use for the filtering (default: Default)
+		  -o, --outputfolder PATH         Output folder, if it does not exist it will be created.
+		  -e, --sampleid PATH             The sample name that will be used as a the filename of the output.
+		  -m, --repmask PATH              .gtf file containing intervals to mask (Optional)
+		  -@, --samtools-threads INTEGER  The number of threads to use to sort the bam by cellID file using samtools
+		  --samtools-memory INTEGER       The number of MB used for every thread by samtools to sort the bam file
+		  -d, --dump TEXT                 For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)
+		  -v, --verbose                   Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)
+		  --help                          Show this message and exit.
+		

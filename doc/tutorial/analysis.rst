@@ -82,12 +82,14 @@ Now using the clustering annotation select the genes that are expressed above a 
 We can perform feature selection.
 
 .. code-block:: python
+
     vlm.score_cv_vs_mean(3000, plot=True, max_expr_avg=35)
     vlm.filter_genes(by_cv_vs_mean=True)
 
 Finally we can normalize our data by `size` (total molecule count)
 
 .. code-block:: python
+
     vlm._normalize_S(relative_size=vlm.S.sum(0),
                  target_size=vlm.S.sum(0).mean())
     vlm._normalize_U(relative_size=vlm.U.sum(0),
