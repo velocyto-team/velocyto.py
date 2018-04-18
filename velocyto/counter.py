@@ -464,7 +464,11 @@ class ExInCounter:
                 
             if feature_type in ("exon"):
                 trid = regex_trid.search(tags).group(1)
-                trname = regex_trname.search(tags).group(1)
+                _trname_search = regex_trname.search(tags)
+                if _trname_search is None:
+                    trname = trid
+                else:
+                    trname = _trname_search.group(1)
                 geneid = regex_geneid.search(tags).group(1)
                 genename = regex_genename.search(tags).group(1)
                 try:
