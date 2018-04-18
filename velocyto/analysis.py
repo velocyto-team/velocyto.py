@@ -1498,7 +1498,7 @@ class VelocytoLoom:
             self.embedding = embedding
             logging.debug("Calculate KNN in the embedding space")
             nn = NearestNeighbors(n_neighbors=n_neighbors + 1, n_jobs=n_jobs)
-            nn.fit(embedding)
+            nn.fit(embedding)  # NOTE should support knn in high dimensions
             self.embedding_knn = nn.kneighbors_graph(mode="connectivity")
 
             # Pick random neighbours and prune the rest

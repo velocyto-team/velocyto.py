@@ -149,7 +149,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     compression = vcy.BAM_COMPRESSION
 
     # I need to peek into the bam file to know wich cell barcode flag should be used
-    if multi and onefilepercell:
+    if onefilepercell:
         logging.debug("The multi input option ")
         tagname = "NOTAG"
     else:

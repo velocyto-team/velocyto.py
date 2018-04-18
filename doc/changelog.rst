@@ -4,6 +4,8 @@
 Changelog
 =========
 
+* :release:`0.17.2 <2018-04-08>`
+* :bug:`-` Fix an error when aligners report consecutive insertion/deletion instead of mismatch 
 * :release:`0.17.0 <2018-04-08>`
 * :feature:`-` Add subcommand ``run_dropest`` as a shortcut to run dropEst preprocessed data (including Indrops and DropSeq) 
 * :support:`-` Deprecation warning on `default` functions: they were being misused by the users.

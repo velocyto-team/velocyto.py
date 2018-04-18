@@ -87,7 +87,7 @@ class ExInCounter:
         ref_skip = False
         clip5 = clip3 = 0
         p = pos
-        for operation_id, length in cigartuples:
+        for i, (operation_id, length) in enumerate(cigartuples):
             if operation_id == 0:  # vcy.CIGAR[operation_id] == "BAM_CMATCH"
                 segments.append((p, p + length - 1))
                 p += length
@@ -96,7 +96,11 @@ class ExInCounter:
                 p += length
             elif operation_id == 2:  # A deletion || cy.CIGAR[operation_id] == 'BAM_CDEL'
                 if length <= vcy.PATCH_INDELS:
-                    hole_to_remove.append(len(segments) - 1)
+                    try:
+                        if cigartuples[i+1][0] == 0 and cigartuples[i-1][0] == 0:
+                            hole_to_remove.add(len(segments) - 1)
+                    except IndexError:
+                        pass
                 p += length
             elif operation_id == 4:  # bases at 5' or 3' are NOT part of the alignment || vcy.CIGAR[operation_id] == 'BAM_CSOFT_CLIP'
                 if p == pos:
@@ -106,7 +110,11 @@ class ExInCounter:
                 p += length
             elif operation_id == 1:  # An insertion BAM_CINS
                 if length <= vcy.PATCH_INDELS:
-                    hole_to_remove.append(len(segments) - 1)
+                    try:
+                        if cigartuples[i+1][0] == 0 and cigartuples[i-1][0] == 0:
+                            hole_to_remove.add(len(segments) - 1)
+                    except IndexError:
+                        pass
                 # else do nothing
                 # NOTE: maybe we should make so that the reads get discarded
             elif operation_id == 5:  # BAM_CHARD_CLIP
@@ -430,6 +438,7 @@ class ExInCounter:
             return (x[0], x[6] == "+", int(x[3]), entry)  # The last element of the touple corresponds to the `last resort comparison`
         
         gtf_lines = sorted(gtf_lines, key=sorting_key)
+        gtf_lines = self.peek_and_correct(gtf_lines)
         # Loop throug gtf file (assumes it is ordered)
         for nth_line, line in enumerate(gtf_lines):
             # Deal with headers
@@ -464,7 +473,11 @@ class ExInCounter:
                 
             if feature_type in ("exon"):
                 trid = regex_trid.search(tags).group(1)
-                trname = regex_trname.search(tags).group(1)
+                _trname_search = regex_trname.search(tags)
+                if _trname_search is None:
+                    trname = trid
+                else:
+                    trname = _trname_search.group(1)
                 geneid = regex_geneid.search(tags).group(1)
                 genename = regex_genename.search(tags).group(1)
                 try:
@@ -500,6 +513,54 @@ class ExInCounter:
             self.annotations_by_chrm_strand[chromstrand] = tmp
 
         return self.annotations_by_chrm_strand
+
+    def peek_and_correct(self, gtf_lines: List[str]) -> List[str]:
+        """Look at the first 20 instances of a list of lines of a gtf file to dermine if exon number is specified as it should.
+        If econ number is not contained it will infer the exon number sorting the list by lexicographic ordering tr_id, start, end
+
+        Arguments
+        ---------
+        gtf_lines:
+            a list of the lines of a gtf file
+
+        Returns
+        -------
+        gtf_lines:
+            the same list or the lsit corrected with added a exon number
+        """
+        regex_exonno = re.compile('exon_number "*?([\w]+)')
+        flag = False
+        for i in gtf_lines[:20]:
+            chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = i.split("\t")
+            exonno = regex_exonno.search(tags)
+            if exonno is None:
+                flag = True
+
+        if flag == True:
+            regex_trid = re.compile('transcript_id "([^"]+)"')
+            min_info_lines: List[List] = []
+            for i in gtf_lines:
+                chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = i.split("\t")
+
+                trid = regex_trid.search(tags).group(1)
+                min_info_lines.append([trid,
+                                       -1 * (strand == "-") * int(start_str),
+                                       -1 * (strand == "-") * int(end_str),
+                                       i])
+
+            current_trid: Any = "None"
+            exon_n = 1
+            modified_lines = []
+            for j in min_info_lines:
+                if current_trid != j[0]:
+                    current_trid = j[0]
+                    exon_n = 1
+                else:
+                    exon_n += 1
+                modified_lines.append(f'{j[3][:-1]} exon_number "{exon_n}";\n')
+            return modified_lines
+        else:
+            return gtf_lines
 
     def mark_up_introns(self, bamfile: Tuple[str], multimap: bool) -> None:
         """ Mark up introns that have reads across exon-intron junctions
