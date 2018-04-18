@@ -87,7 +87,7 @@ class ExInCounter:
         ref_skip = False
         clip5 = clip3 = 0
         p = pos
-        for operation_id, length in cigartuples:
+        for i, (operation_id, length) in enumerate(cigartuples):
             if operation_id == 0:  # vcy.CIGAR[operation_id] == "BAM_CMATCH"
                 segments.append((p, p + length - 1))
                 p += length
@@ -96,7 +96,11 @@ class ExInCounter:
                 p += length
             elif operation_id == 2:  # A deletion || cy.CIGAR[operation_id] == 'BAM_CDEL'
                 if length <= vcy.PATCH_INDELS:
-                    hole_to_remove.append(len(segments) - 1)
+                    try:
+                        if cigartuples[i+1][0] == 0 and cigartuples[i-1][0] == 0:
+                            hole_to_remove.add(len(segments) - 1)
+                    except IndexError:
+                        pass
                 p += length
             elif operation_id == 4:  # bases at 5' or 3' are NOT part of the alignment || vcy.CIGAR[operation_id] == 'BAM_CSOFT_CLIP'
                 if p == pos:
@@ -106,7 +110,11 @@ class ExInCounter:
                 p += length
             elif operation_id == 1:  # An insertion BAM_CINS
                 if length <= vcy.PATCH_INDELS:
-                    hole_to_remove.append(len(segments) - 1)
+                    try:
+                        if cigartuples[i+1][0] == 0 and cigartuples[i-1][0] == 0:
+                            hole_to_remove.add(len(segments) - 1)
+                    except IndexError:
+                        pass
                 # else do nothing
                 # NOTE: maybe we should make so that the reads get discarded
             elif operation_id == 5:  # BAM_CHARD_CLIP
