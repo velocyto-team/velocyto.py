@@ -83,7 +83,7 @@ class ExInCounter:
     @staticmethod
     def parse_cigar_tuple(cigartuples: List[Tuple], pos: int) -> Tuple[List[Tuple[int, int]], bool, int, int]:
         segments = []
-        hole_to_remove = []
+        hole_to_remove = set()
         ref_skip = False
         clip5 = clip3 = 0
         p = pos
@@ -121,7 +121,7 @@ class ExInCounter:
                 logging.warn("Hard clip was encountered! All mapping are assumed soft clipped")
 
         # Merge segments separated by small insertions and deletions
-        for a, b in enumerate(hole_to_remove):
+        for a, b in enumerate(sorted(hole_to_remove)):  # NOTE maybe sorted is not required realy
             segments[b - a] = (segments.pop(b - a)[0], segments[b - a][1])
 
         return segments, ref_skip, clip5, clip3
