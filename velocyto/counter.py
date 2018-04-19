@@ -532,8 +532,8 @@ class ExInCounter:
         regex_exonno = re.compile('exon_number "*?([\w]+)')
         flag = False
         # Scan the first 500 lines for an occurrence of exon
-        for i in gtf_lines[:500]:
-            chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = i.split("\t")
+        for lin in gtf_lines[:500]:
+            chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = lin.split("\t")
             if feature_type == "exon":
                 exonno = regex_exonno.search(tags)
                 if exonno is None:
@@ -542,26 +542,35 @@ class ExInCounter:
         # If at least one exon was missing the exon number create the entry for all the others
         if flag:
             regex_trid = re.compile('transcript_id "([^"]+)"')
-            min_info_lines: List[List] = []
-            for i in gtf_lines:
-                chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = i.split("\t")
+            min_info_lines_minus: List[List] = []
+            min_info_lines_plus: List[List] = []
+            for lin in gtf_lines:
+                chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = lin.split("\t")
                 if feature_type == "exon":
                     trid = regex_trid.search(tags).group(1)
-                    min_info_lines.append([trid,
-                                           -1 * (strand == "-") * int(start_str),
-                                           -1 * (strand == "-") * int(end_str),
-                                           i])
+                    if strand == "-":
+                        min_info_lines_minus.append([trid, int(start_str), int(end_str), lin])
+                    else:
+                        min_info_lines_plus.append([trid, int(start_str), int(end_str), lin])
 
-            current_trid: Any = "None"
+            current_trid = "None"
             exon_n = 1
             modified_lines = []
-            for j in min_info_lines:
-                if current_trid != j[0]:
-                    current_trid = j[0]
+            for i in min_info_lines_plus:
+                if current_trid != i[0]:
+                    current_trid = i[0]
                     exon_n = 1
                 else:
                     exon_n += 1
-                modified_lines.append(f'{j[3][:-1]} exon_number "{exon_n}";\n')
+                modified_lines.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
+            for i in min_info_lines_minus[::-1]:
+                if current_trid != i[0]:
+                    current_trid = i[0]
+                    exon_n = 1
+                else:
+                    exon_n += 1
+                modified_lines.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
+                
             return modified_lines
         else:
             return gtf_lines
