@@ -437,8 +437,9 @@ class ExInCounter:
             x = entry.split("\t")
             return (x[0], x[6] == "+", int(x[3]), entry)  # The last element of the touple corresponds to the `last resort comparison`
         
-        gtf_lines = sorted(gtf_lines, key=sorting_key)
         gtf_lines = self.peek_and_correct(gtf_lines)
+        gtf_lines = sorted(gtf_lines, key=sorting_key)
+        
         # Loop throug gtf file (assumes it is ordered)
         for nth_line, line in enumerate(gtf_lines):
             # Deal with headers
@@ -526,27 +527,30 @@ class ExInCounter:
         Returns
         -------
         gtf_lines:
-            the same list or the lsit corrected with added a exon number
+            the same list or the list corrected with added a exon number (filtered to contain only exons)
         """
         regex_exonno = re.compile('exon_number "*?([\w]+)')
         flag = False
-        for i in gtf_lines[:20]:
+        # Scan the first 500 lines for an occurrence of exon
+        for i in gtf_lines[:500]:
             chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = i.split("\t")
-            exonno = regex_exonno.search(tags)
-            if exonno is None:
-                flag = True
+            if feature_type == "exon":
+                exonno = regex_exonno.search(tags)
+                if exonno is None:
+                    flag = True
 
-        if flag == True:
+        # If at least one exon was missing the exon number create the entry for all the others
+        if flag:
             regex_trid = re.compile('transcript_id "([^"]+)"')
             min_info_lines: List[List] = []
             for i in gtf_lines:
                 chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = i.split("\t")
-
-                trid = regex_trid.search(tags).group(1)
-                min_info_lines.append([trid,
-                                       -1 * (strand == "-") * int(start_str),
-                                       -1 * (strand == "-") * int(end_str),
-                                       i])
+                if feature_type == "exon":
+                    trid = regex_trid.search(tags).group(1)
+                    min_info_lines.append([trid,
+                                           -1 * (strand == "-") * int(start_str),
+                                           -1 * (strand == "-") * int(end_str),
+                                           i])
 
             current_trid: Any = "None"
             exon_n = 1
