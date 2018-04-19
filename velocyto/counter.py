@@ -555,23 +555,25 @@ class ExInCounter:
 
             current_trid = "None"
             exon_n = 1
-            modified_lines = []
+            modified_lines_plus: List[str] = []
             for i in min_info_lines_plus:
                 if current_trid != i[0]:
                     current_trid = i[0]
                     exon_n = 1
                 else:
                     exon_n += 1
-                modified_lines.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
+                modified_lines_plus.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
+            exon_n = 1
+            modified_lines_minus: List[str] = []
             for i in min_info_lines_minus[::-1]:
                 if current_trid != i[0]:
                     current_trid = i[0]
                     exon_n = 1
                 else:
                     exon_n += 1
-                modified_lines.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
+                modified_lines_plus.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
                 
-            return modified_lines
+            return modified_lines_plus + modified_lines_minus
         else:
             return gtf_lines
 
