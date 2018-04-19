@@ -97,7 +97,7 @@ class ExInCounter:
             elif operation_id == 2:  # A deletion || cy.CIGAR[operation_id] == 'BAM_CDEL'
                 if length <= vcy.PATCH_INDELS:
                     try:
-                        if cigartuples[i+1][0] == 0 and cigartuples[i-1][0] == 0:
+                        if cigartuples[i + 1][0] == 0 and cigartuples[i - 1][0] == 0:
                             hole_to_remove.add(len(segments) - 1)
                     except IndexError:
                         pass
@@ -111,7 +111,7 @@ class ExInCounter:
             elif operation_id == 1:  # An insertion BAM_CINS
                 if length <= vcy.PATCH_INDELS:
                     try:
-                        if cigartuples[i+1][0] == 0 and cigartuples[i-1][0] == 0:
+                        if cigartuples[i + 1][0] == 0 and cigartuples[i - 1][0] == 0:
                             hole_to_remove.add(len(segments) - 1)
                     except IndexError:
                         pass
@@ -427,9 +427,7 @@ class ExInCounter:
 
         # Initialize containers
         # headerlines: List[str] = []
-        curr_chromstrand = None
-        features: Dict[str, vcy.TranscriptModel] = OrderedDict()
-
+        
         gtf_lines = [line for line in open(gtf_file) if not line.startswith('#')]
 
         def sorting_key(entry: str) -> Tuple[str, bool, int, str]:
@@ -440,6 +438,8 @@ class ExInCounter:
         gtf_lines = self.peek_and_correct(gtf_lines)
         gtf_lines = sorted(gtf_lines, key=sorting_key)
         
+        curr_chromstrand = None
+        features: Dict[str, vcy.TranscriptModel] = OrderedDict()
         # Loop throug gtf file (assumes it is ordered)
         for nth_line, line in enumerate(gtf_lines):
             # Deal with headers
@@ -552,7 +552,9 @@ class ExInCounter:
                         min_info_lines_minus.append([trid, int(start_str), int(end_str), lin])
                     else:
                         min_info_lines_plus.append([trid, int(start_str), int(end_str), lin])
-
+            
+            min_info_lines_minus = sorted(min_info_lines_minus)
+            min_info_lines_plus = sorted(min_info_lines_plus)
             current_trid = "None"
             exon_n = 1
             modified_lines_plus: List[str] = []
