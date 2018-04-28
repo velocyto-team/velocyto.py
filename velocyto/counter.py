@@ -541,13 +541,17 @@ class ExInCounter:
 
         # If at least one exon was missing the exon number create the entry for all the others
         if flag:
+            logging.warning("The entry exon_number was not present in the gtf file. It will be infferred from the position.")
             regex_trid = re.compile('transcript_id "([^"]+)"')
             min_info_lines_minus: List[List] = []
             min_info_lines_plus: List[List] = []
             for lin in gtf_lines:
                 chrom, feature_class, feature_type, start_str, end_str, junk, strand, junk, tags = lin.split("\t")
                 if feature_type == "exon":
-                    trid = regex_trid.search(tags).group(1)
+                    try:
+                        trid = regex_trid.search(tags).group(1)
+                    except AttributeError:
+                        raise AttributeError(f"transcript_id entry not found in line: {lin}")
                     if strand == "-":
                         min_info_lines_minus.append([trid, int(start_str), int(end_str), lin])
                     else:
