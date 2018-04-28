@@ -1241,9 +1241,11 @@ class VelocytoLoom:
                                                        fixperc_q=True)
         else:
             if weighted:
-                self.gammas = fit_slope_weighted(tmpU[:, self.steady_state],
-                                                 tmpS[:, self.steady_state],
-                                                 W, limit_gamma=limit_gamma)
+                self.gammas, self.R2 = fit_slope_weighted(tmpU[:, self.steady_state],
+                                                          tmpS[:, self.steady_state],
+                                                          W, 
+                                                          return_R2=True,
+                                                          limit_gamma=limit_gamma)
                 self.q = np.zeros_like(self.gammas)
             else:
                 if limit_gamma:
