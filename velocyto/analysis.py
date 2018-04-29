@@ -1258,14 +1258,21 @@ class VelocytoLoom:
         self.gammas[~np.isfinite(self.gammas)] = 0
 
     def filter_genes_good_fit(self, minR: float=0.1, min_gamma: float=0.01) -> None:
+        """For backwards compatibility a wrapper around filter_genes_by_phase_portrait
+        """
+        return self.filter_genes_by_phase_portrait(minR2=minR, min_gamma=min_gamma, minCorr=None)
+
+    def filter_genes_by_phase_portrait(self, minR2: float=0.1, min_gamma: float=0.01, minCorr: float=0.1) -> None:
         """Use the coefficient of determination to filter away genes that have an irregular/complex phase portrait
 
         Arguments
         ---------
-        minR: float, default=0.1
-            Minimum coefficient of determination allowed
+        minR2: float, default=0.1
+            Filter away low coefficient of determination fits. If None this filtering will be skipped
         min_gamma: float, default=0.01
-            Filter away low gammas as a secondary filter
+            Filter away low gammas. If None this filtering will be skipped
+        minCorr: flaot, default=0.2
+            Filter away low spliced-usnpliced correlation. If None this filtering will be skipped
 
         Returns
         -------
@@ -1273,10 +1280,31 @@ class VelocytoLoom:
         This affects: "U", "U_sz", "U_norm", "Ux", "Ux_sz", "Ux_norm", "S", "S_sz", "S_norm", "Sx", "Sx_sz", "Sx_norm", "gammas", "q", "R2"
         """
 
-        # NOTE Should be: tmp_filter = np.sqrt(self.R2) > minR but since the fit is weighted and constrained R2 can be negative
-        R_corrected = np.sqrt(np.abs(self.R2)) * np.sign(self.R2)
-        tmp_filter = R_corrected > minR
-        tmp_filter = tmp_filter & (self.gammas > min_gamma)
+        def paired_correlation_rows(A: np.array, B: np.array) -> np.array:
+            A_m = A - A.mean(1)[:, None]
+            B_m = B - B.mean(1)[:, None]
+            return (A_m * B_m).sum(1) / (np.linalg.norm(A_m, 2, 1) * np.linalg.norm(B_m, 2, 1))
+
+        # @numba.njit()
+        # def paired_correlation_rows(A, B):
+        #     res = np.zeros(A.shape[0])
+        #     for i in range(A.shape[0]):
+        #         a = A[i,:] - np.sum(A[i,:]) / A.shape[1]
+        #         b = B[i,:] - np.sum(B[i,:]) / B.shape[1]
+        #         res[i] = np.sum(a * b) / (np.sqrt(np.sum(a*a)) * np.sqrt(np.sum(b*b)))
+        #     return res 
+
+        tmp_filter = np.ones(self.gammas.shape, dtype=bool)
+        if minR2 is not None:
+            # NOTE Should be: tmp_filter = np.sqrt(self.R2) > minR but since the fit is weighted and constrained R2 can be negative
+            R2_corrected = np.sqrt(np.abs(self.R2)) * np.sign(self.R2)
+            tmp_filter = tmp_filter & (R2_corrected > minR2)
+        if min_gamma is not None:
+            tmp_filter = tmp_filter & (self.gammas > min_gamma)
+        if minCorr is not None:
+            Corr = paired_correlation_rows(self.Sx_sz, self.Ux_sz)
+            tmp_filter = tmp_filter & (Corr > minCorr)
+        # Perform the filtering
         self.ra = {k: v[tmp_filter] for k, v in self.ra.items()}
         matrixes2filter = ["U", "U_sz", "U_norm", "Ux", "Ux_sz", "Ux_norm",
                            "S", "S_sz", "S_norm", "Sx", "Sx_sz", "Sx_norm"]
