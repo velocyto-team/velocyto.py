@@ -4,6 +4,8 @@
 Changelog
 =========
 
+* :release:`0.17.5 <2018-04-19>`
+* :feature:`-` Add `filter_genes_by_phase_portrait` as the main api to filter genes supporting versatile set of conditions
 * :release:`0.17.2 <2018-04-08>`
 * :bug:`-` Fix an error when aligners report consecutive insertion/deletion instead of mismatch 
 * :release:`0.17.0 <2018-04-08>`

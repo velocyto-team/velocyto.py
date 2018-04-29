@@ -1448,11 +1448,11 @@ class VelocytoLoom:
         self.ts = bh_tsne.fit_transform(self.pcs[:, :n_pca_dim])
 
     def estimate_transition_prob(self, hidim: str="Sx_sz", embed: str="ts", transform: str="sqrt",
-                                 ndims: int=None, n_neighbors: int=None, psc: float=None,
+                                 ndims: int=None, n_sight: int=None, psc: float=None,
                                  knn_random: bool=False, sampled_fraction: float=0.3,
                                  sampling_probs: Tuple[float, float]=(0.5, 0.1), max_dist_embed: float=None,
                                  n_jobs: int=4, threads: int=None, calculate_randomized: bool=True,
-                                 random_seed: int=15071990) -> None:
+                                 random_seed: int=15071990, **kwargs) -> None:
         """Use correlation to estimate transition probabilities for every cells to its embedding neighborhood
         
         Arguments
@@ -1469,8 +1469,8 @@ class VelocytoLoom:
         ndims: int, default=None
             The number of dimensions of the high dimensional space to work with. If None all will be considered
             It makes sense only when using principal components
-        n_neighbors: int, default=None
-            The number of neighbors to take into account
+        n_sight: int, default=None (also n_sight)
+            The number of neighbors to take into account when performing the projection
         psc: float, default=None
             pseudocount added in variance normalizing transform
             If None, 1 would be used for log, 0 otherwise
@@ -1499,8 +1499,21 @@ class VelocytoLoom:
         numba_random_seed(random_seed)
         self.which_hidim = hidim
 
-        if n_neighbors is None:
+        if "n_neighbors" in kwargs:
+            n_neighbors = kwargs.pop("n_neighbors")
+            if len(kwargs) > 0:
+                logging.warning(f"keyword arguments were passed but could not be interpreted {kwargs}")
+        else:
+            n_neighbors = None
+
+        if n_sight is None and n_neighbors is None:
             n_neighbors = int(self.S.shape[1] / 5)
+
+        if (n_sight is not None) and (n_neighbors is not None) and n_neighbors != n_sight:
+            raise ValueError("n_sight and n_neighbors are different names for the same parameter, they cannot be set differently")
+
+        if n_sight is not None and n_neighbors is None:
+            n_neighbors = n_sight
 
         if psc is None:
             if transform == "log" or transform == "logratio":
