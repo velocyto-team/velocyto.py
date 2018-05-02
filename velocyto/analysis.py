@@ -1104,7 +1104,7 @@ class VelocytoLoom:
             self.gknn = bknn.kneighbors_graph(mode="distance")
         else:
             self.gknn = knn_distance_matrix(space, metric=metric, k=k, mode="distance", n_jobs=n_jobs)
-        connectivity = (self.knn > 0).atype(float)
+        connectivity = (self.knn > 0).astype(float)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             connectivity.setdiag(diag)
