@@ -4,6 +4,9 @@
 Changelog
 =========
 
+* :release:`0.17.6 <2018-05-03>`
+* :feature:`-` Be more forgiving on the requirements of the gtf file: `gene_name`, `transcipt_name` and `exon_number` are not required fields anymore
+* :support:`-` Add section of the docs, explaining better what the bam and gtf files are expected to contain
 * :release:`0.17.5 <2018-04-19>`
 * :feature:`-` Add `filter_genes_by_phase_portrait` as the main api to filter genes supporting versatile set of conditions
 * :release:`0.17.2 <2018-04-08>`
@@ -17,13 +20,13 @@ Changelog
 * :bug:`-` Fix a skip repeat error with SmartSeq2 pipeline
 * :feature:`-` run automatically randomized (negative) control for the velocity. Added plotting options for the randomized control visualization
 * :bug:`-` Fix colormap bug with matplotlib 2.2.0
-* :feature:`-` Add feature selection for the unspliced
+* :feature:`-` Add optional feature selection for the unspliced
 * :feature:`-` Add size factor normalization option
-* :feature:`-` Add possibility to constraint knn averaging: when turned on avoids to set edges between cells of specified groups
+* :feature:`-` Add possibility to constraint knn averaging: when turned on avoids edges between cells of specified groups
 * :bug:`-` Fix an error in filter_cells: colors array is now filtered as well
 * :feature:`-` Improve the debug molecular report option to support hdf5
 * :feature:`-` It supports SmartSeq2 and has a new run_smartseq2 command
-* :feature:`-` It supports multiple bam files input, it can interpret it both as one-file-one-cell or just as batches to be analyzed together. IMPORTANT: a cell cannot be distributed over different bamfiles!
+* :feature:`-` It supports multiple bam files input, it can interpret the file(s) as either as one-file-one-cell or just as batches to be analyzed together. IMPORTANT: a cell cannot be distributed over different bamfiles!
 * :feature:`-` Generalized logic to include more layers than just Spliced, Unspliced, Ambiguous
 * :feature:`-` ``--without-umi`` option allows analyzing UMI-less data such as SmartSeq2
 * :feature:`-` support different verbosity levels with the ``-v`` flag

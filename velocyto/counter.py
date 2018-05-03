@@ -480,7 +480,11 @@ class ExInCounter:
                 else:
                     trname = _trname_search.group(1)
                 geneid = regex_geneid.search(tags).group(1)
-                genename = regex_genename.search(tags).group(1)
+                _genename_search = regex_genename.search(tags)
+                if _genename_search is None:
+                    genename = geneid
+                else:
+                    genename = _genename_search.group(1)
                 try:
                     exonno = regex_exonno.search(tags).group(1)
                 except AttributeError:

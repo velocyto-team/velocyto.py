@@ -221,7 +221,6 @@ The sorting procedure uses ``samtools sort`` and it is expected to be time consu
     However, because of the above mentioned multithreaded call to ``samtools sort``, running several instances of ``veloctyo run`` might end up using the memory and cpu of your system and possbily result in runtime errors.
     Therefore for batch jobs we suggest to first call :code:`samtools sort -t CB -O BAM -o cellsorted_possorted_genome_bam.bam possorted_genome_bam.bam` sequentially and only then running ``velocyto`` 
 
-
 Run with different logics
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -230,14 +229,45 @@ The behavior of the counter can be modified using one of the different logics su
 Every logic has a different sensitivity. The currently available are:
 
 - *Default*
+- SmartSeq2
 - ValidatedIntrons10X 
 - Stricter10X
 - ObservedSpanning10X
 
-Despite the name (that designates their original design for the 10X platform) the logics generalize well to similar chemistries (e.g. Drop-seq).
+Despite some of the names (that is kept for backwards compatibility and designates their original design for the 10X platform) the logics are tested and work for similar chemistries (e.g. InDrops).
 
 .. hint::
     Custom logics supporting peculiarities of other chemistries can be implemented simply by creating a class that inherits from :ref:`Logic <logicapi>`.
+
+
+Requirements on the input files
+-------------------------------
+
+velocyto assumes that the ``bam`` file that is passed to the CLI contains a set of information and that some upstream analysis was performed on them already.
+In particular the ``bam`` file will have to:
+
+1. Be sorted by mapping position.
+2. Represents either a single sample (multiple cells prepared using a certain barcode set in a single experiment) or single cell.
+3. Contain an `error corrected` cell barcodes as a TAG named ``CB`` or ``XC``.
+4. Contain an `error corrected` molecular barcodes as a TAG named ``UB`` or ``XM``.
+
+.. note::
+    For SmartSeq2 bam files (3) and (4) are not required because it consists of one bam file per cell and no umi are present.
+
+
+velocyto assumes that the ``gtf`` file follows the `GENCODE gtf format description <https://www.gencodegenes.org/gencodeformat.html>`_.
+Hoever some mandatory field are relaxed to extend compatibility to a wider set of gtf files.
+In particular the ``gtf`` file will have to:
+
+1. Contain the 3rd column entry ``feature-type``. Note that only the `exon` entry of the gtf file marked as `exon`in this column will be considered and therefore the requirements below only apply to the ``exon`` labeled lines.
+2. Contain, in the 9th column, the key-value pair ``transcript_id``, containing an unique identified for the transcript model. 
+3. Contain, in the 9th column, the key-value pair ``transcript_name`` (Optional, if not present it will be set to the value of `transcript_id`)
+4. Contain, in the 9th column, the key-value pair ``gene_id``, containing an unique identified for the gene. 
+5. Contain, in the 9th column, the key-value pair ``gene_name`` (Optional, if not present it will be set to the value of `gene_id`)
+6. Contain, in the 9th column, the key-value pair ``exon_number`` (Reccomended but optional, if not provided velocyto will sort exons in memory and number them)
+
+.. warning::
+    Annotation of artificial chromosomes such as the ones generated to count ERCC spikes or transgenes (GFP, Tomato, etc.) need also to contain the information above.
 
 
 About the output .loom file
@@ -250,6 +280,27 @@ Because of this, .loom files can be created and read by any language that suppor
 
 .loom files can be easily handled using the `loompy package <http://loompy.org>`_.
 
+Merging multiple samples/lanes in a single file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The merging of different samples/lanes in the same loom file can be performed simply using the ``loompy`` library.
+This is usually just a single line:
+
+
+.. code-block:: python
+
+    loompy.combine(files, output_filename, key="Accession")
+
+or if you want more control on the exact memory that is allocated or subset your data before merging you can do something like:
+
+.. code-block:: python
+
+    
+    files = ["file1.loom","file2.loom","file3.loom","file4.loom"]
+    # on the command line do: cp file1.loom merged.loom 
+    ds = loompy.connect("merged.loom")
+    for fn in files[1:]:
+        ds.add_loom(fn, batch_size=1000)
 
 Get started with the analysis
 -----------------------------
