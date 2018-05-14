@@ -203,9 +203,9 @@ class Permissive10X(Logic):
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return 0
                         if has_onlyintron_model and not has_onlyexo_model and has_mixed_model:
-                            # Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous
+                            # Very rare, at least in 10X.
                             gene_ix = geneid2ix[transcript_model.geneid]
-                            ambiguous[gene_ix, cell_bcidx] += 1
+                            unspliced[gene_ix, cell_bcidx] += 1  # this was ambiguous in a previous version
                             return 0
                         if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous

@@ -1195,9 +1195,11 @@ class VelocytoLoom:
                 W = ((tmpS <= down[:, None]) | (tmpS >= up[:, None])).astype(float)
             elif weights == "maxmin_diag":
                 denom_Sx = np.percentile(self.Sx, 99.9, 1)
-                denom_Sx[denom_Sx == 0] = np.maximum(np.max(self.Sx[denom_Sx == 0, :], 1), 0.001)
+                if np.sum(denom_Sx == 0):
+                    denom_Sx[denom_Sx == 0] = np.maximum(np.max(self.Sx[denom_Sx == 0, :], 1), 0.001)
                 denom_Ux = np.percentile(self.Ux, 99.9, 1)
-                denom_Ux[denom_Ux == 0] = np.maximum(np.max(self.Ux[denom_Ux == 0, :], 1), 0.001)
+                if np.sum(denom_Ux == 0):
+                    denom_Ux[denom_Ux == 0] = np.maximum(np.max(self.Ux[denom_Ux == 0, :], 1), 0.001)
                 Sx_maxnorm = self.Sx / denom_Sx[:, None]
                 Ux_maxnorm = self.Ux / denom_Ux[:, None]
                 X = Sx_maxnorm + Ux_maxnorm
@@ -1469,7 +1471,7 @@ class VelocytoLoom:
         ndims: int, default=None
             The number of dimensions of the high dimensional space to work with. If None all will be considered
             It makes sense only when using principal components
-        n_sight: int, default=None (also n_sight)
+        n_sight: int, default=None (also n_neighbors)
             The number of neighbors to take into account when performing the projection
         psc: float, default=None
             pseudocount added in variance normalizing transform
