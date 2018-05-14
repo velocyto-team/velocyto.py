@@ -1451,7 +1451,7 @@ class VelocytoLoom:
 
     def estimate_transition_prob(self, hidim: str="Sx_sz", embed: str="ts", transform: str="sqrt",
                                  ndims: int=None, n_sight: int=None, psc: float=None,
-                                 knn_random: bool=False, sampled_fraction: float=0.3,
+                                 knn_random: bool=True, sampled_fraction: float=0.3,
                                  sampling_probs: Tuple[float, float]=(0.5, 0.1), max_dist_embed: float=None,
                                  n_jobs: int=4, threads: int=None, calculate_randomized: bool=True,
                                  random_seed: int=15071990, **kwargs) -> None:
@@ -1520,8 +1520,10 @@ class VelocytoLoom:
         if psc is None:
             if transform == "log" or transform == "logratio":
                 psc = 1.
-            elif transform == "sqrt" or transform == "linear":
-                psc = 0.
+            elif transform == "sqrt":
+                psc = 1e-10  # for numerical stablity
+            else:  # transform == "linear":
+                psc = 0
 
         if knn_random:
             np.random.seed(random_seed)
@@ -1615,8 +1617,14 @@ class VelocytoLoom:
                 hi_dim = np.array(getattr(self, hidim).T[:, :ndims], order="C")
                 hi_dim_t = np.array(getattr(self, hidim + "_t").T[:, :ndims], order="C")
             else:
-                hi_dim = getattr(self, hidim)[:, :ndims]
-                hi_dim_t = getattr(self, hidim + "_t")[:, :ndims]
+                if ndims is not None:
+                    raise ValueError(f"ndims was set to {ndims} but hidim != 'pcs'. Set ndims = None for hidim='{hidim}'")
+                hi_dim = getattr(self, hidim)  # [:, :ndims]
+                hi_dim_t = hi_dim + self.used_delta_t * self.delta_S  # [:, :ndims] [:, :ndims]
+                if calculate_randomized:
+                    self.delta_S_rndm = np.copy(self.delta_S)
+                    permute_rows_nsign(self.delta_S_rndm)
+                    hi_dim_t_rndm = hi_dim + self.used_delta_t * self.delta_S_rndm
                 
             embedding = getattr(self, embed)
             self.embedding = embedding
