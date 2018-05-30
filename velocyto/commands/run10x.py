@@ -74,8 +74,10 @@ def run10x(samplefolder: str, gtffile: str,
     """
 
     # Check that the 10X analysis was run successfully
-    if "Pipestance completed successfully!" not in open(os.path.join(samplefolder, "_log")).read():
-        raise IOError("The outputs are not ready")
+    if not os.path.isfile(os.path.join(samplefolder, "_log")):
+        logging.error("This is an older version of cellranger, cannot check if the output are ready, make sure of this yourself")
+    elif "Pipestance completed successfully!" not in open(os.path.join(samplefolder, "_log")).read():
+        logging.error("The outputs are not ready")
     bamfile = os.path.join(samplefolder, "outs", "possorted_genome_bam.bam")
     bcfile = glob.glob(os.path.join(samplefolder,
                        os.path.normcase("outs/filtered_gene_bc_matrices/*/barcodes.tsv")))[0]

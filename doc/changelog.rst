@@ -4,6 +4,8 @@
 Changelog
 =========
 
+* :release:`0.17.8 <2018-05-30>`
+* :bug:`-` Avoids an error with an older versions of cellranger not outputting the _log file
 * :release:`0.17.6 <2018-05-03>`
 * :feature:`-` Be more forgiving on the requirements of the gtf file: `gene_name`, `transcipt_name` and `exon_number` are not required fields anymore
 * :support:`-` Add section of the docs, explaining better what the bam and gtf files are expected to contain

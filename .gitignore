@@ -57,6 +57,7 @@ velocyto/commands/__pycache__/_run.cpython-36.pyc
 velocyto/commands/__pycache__/extract_intervals.cpython-36.pyc
 velocyto/commands/__pycache__/*
 velocyto/commands/__pycache__
+.mypy_cache
 
 built/*
 built
