@@ -126,7 +126,7 @@ class ExInCounter:
 
         return segments, ref_skip, clip5, clip3
 
-    def peek(self, bamfile: str, lines: int=30) -> None:
+    def peek(self, bamfile: str, lines: int=1000) -> None:
         """Peeks into the samfile to determine if it is a cellranger or dropseq file
         """
         logging.debug(f"Peeking into {bamfile}")
