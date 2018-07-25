@@ -158,6 +158,36 @@ class ExInCounter:
                 pass
         fin.close()
 
+    def peek_umi_only(self, bamfile: str, lines: int=30) -> None:
+        """Peeks for umi into the samfile to determine if it is a cellranger or dropseq file
+        """
+        logging.debug(f"Peeking into {bamfile}")
+        fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
+        cellranger: int = 0
+        dropseq: int = 0
+        failed: int = 0
+        for i, read in enumerate(fin):
+            if read.is_unmapped:
+                continue
+            if read.has_tag("UB"):
+                cellranger += 1
+            elif read.has_tag("XM"):
+                dropseq += 1
+            else:
+                logging.warn(f"Not found cell and umi barcode in entry {i} of the bam file")
+                failed += 1
+            if cellranger > lines:
+                self.umibarcode_str = "UB"
+                break
+            elif dropseq > lines:
+                self.umibarcode_str = "XM"
+                break
+            elif failed > 5 * lines:
+                raise IOError("The bam file does not contain umi barcodes appropriatelly formatted. If you are runnin UMI-less data you should use the -U flag.")
+            else:
+                pass
+        fin.close()
+
     def _no_extension(self, read: pysam.AlignedSegment) -> str:
         return read.get_tag(self.umibarcode_str)
 

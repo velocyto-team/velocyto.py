@@ -152,6 +152,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     if onefilepercell:
         logging.debug("The multi input option ")
         tagname = "NOTAG"
+        exincounter.peek_umi_only(bamfile[0])
     else:
         exincounter.peek(bamfile[0])
         tagname = exincounter.cellbarcode_str

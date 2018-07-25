@@ -85,7 +85,7 @@ def dump_hdf5(obj: object, filename: str,
 
 
 def load_hdf5(filename: str, obj_class: Type[object]) -> object:
-    """Dump all attribute of a python object to hdf5
+    """Load all attributes from a hdf5 encoded python object
     
     Arguments
     ---------
