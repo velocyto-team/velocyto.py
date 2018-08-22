@@ -149,7 +149,9 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     compression = vcy.BAM_COMPRESSION
 
     # I need to peek into the bam file to know wich cell barcode flag should be used
-    if onefilepercell:
+    if onefilepercell and without_umi:
+        tagname = "NOTAG"
+    elif onefilepercell:
         logging.debug("The multi input option ")
         tagname = "NOTAG"
         exincounter.peek_umi_only(bamfile[0])
@@ -159,6 +161,8 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     
     if multi and onefilepercell:
         bamfile_cellsorted = list(bamfile)
+    elif onefilepercell:
+        bamfile_cellsorted = [bamfile[0]]
     else:
         bamfile_cellsorted = [f"{os.path.join(os.path.dirname(bmf), 'cellsorted_' + os.path.basename(bmf))}" for bmf in bamfile]
 
@@ -167,6 +171,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         # Start a subprocess that sorts the bam file
         command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
         if os.path.exists(bmf_cellsorted):
+            # This should skip sorting in smartseq2
             logging.warning(f"The file {bmf_cellsorted} already exists. The sorting step will be skipped and the existing file will be used.")
             check_end_process = False
         else:
