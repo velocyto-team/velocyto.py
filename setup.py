@@ -48,7 +48,8 @@ setup(
                       'h5py',
                       'loompy',
                       'pysam',
-                      'Click'],
+                      'Click',
+                      'pandas'],
     # command
     entry_points='''
         [console_scripts]
