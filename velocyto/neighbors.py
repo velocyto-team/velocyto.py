@@ -278,14 +278,14 @@ class BalancedKNN:
             self.data = X
         if maxl is not None:
             self.maxl = maxl
-        if mode == "distance":
-            self.dist, self.dsi = self.nn.kneighbors(self.data, return_distance=True)
-        else:
-            self.dsi = self.nn.kneighbors(self.data, return_distance=False)
-            self.dist = np.ones_like(self.dsi)
-            self.dist[:, 0] = 0
+        
+        self.dist, self.dsi = self.nn.kneighbors(self.data, return_distance=True)
         logging.debug(f"Using the initialization network to find a {self.k}-NN graph with maximum connectivity of {self.maxl}")
         self.dist_new, self.dsi_new, self.l = knn_balance(self.dsi, self.dist, maxl=self.maxl, k=self.k, constraint=self.constraint)
+
+        if mode == "connectivity":
+            self.dist = np.ones_like(self.dsi)
+            self.dist[:, 0] = 0
         return self.dist_new, self.dsi_new, self.l
 
     def kneighbors_graph(self, X: np.ndarray=None, maxl: int=None, mode: str="distance") -> sparse.csr_matrix:
