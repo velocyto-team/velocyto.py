@@ -216,6 +216,7 @@ class Permissive10X(Logic):
                             # Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
+                            return 0
         return 3
                     
 
