@@ -217,7 +217,9 @@ class Permissive10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return 0
-        return 3
+                return 4
+            else:
+                return 3
                     
 
 class Intermediate10X(Logic):

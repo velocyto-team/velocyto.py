@@ -858,7 +858,8 @@ class ExInCounter:
             logging.warn(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed, of those:")
             logging.warn(f"A situation where many genes were compatible with the observation in {(100*counter[1] / len(molitems)):.1f} cases")
             logging.warn(f"No gene is compatible with the observation in {(100*counter[2] / len(molitems)):.1f} cases")
-            logging.warn(f"Situation that were not described by the logic in the {(100*counter[3] / len(molitems)):.1f} of the caes")
+            logging.warn(f"Observation ompatible with more genes {(100*counter[3] / len(molitems)):.1f} of the cases")
+            logging.warn(f"Situation that were not described by the logic in the {(100*counter[4] / len(molitems)):.1f} of the cases")
 
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
             if self.kind_of_report == "p":
