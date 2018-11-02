@@ -1156,7 +1156,7 @@ class VelocytoLoom:
             The vector of squared coefficient of determination
 
         """
-        if steady_state_bool:
+        if steady_state_bool is not None:
             self.steady_state = steady_state_bool
         else:
             self.steady_state = np.ones(self.S.shape[1], dtype=bool)
@@ -1222,7 +1222,7 @@ class VelocytoLoom:
             if weighted:
                 self.gammas, self.q, self.R2 = fit_slope_weighted_offset(tmpU[:, self.steady_state],
                                                                          tmpS[:, self.steady_state],
-                                                                         W,
+                                                                         W[:, self.steady_state],
                                                                          return_R2=True,
                                                                          limit_gamma=limit_gamma)
             else:
@@ -1234,7 +1234,7 @@ class VelocytoLoom:
             if weighted:
                 self.gammas, self.q = fit_slope_weighted_offset(tmpU[:, self.steady_state],
                                                                 tmpS[:, self.steady_state],
-                                                                W, fixperc_q=True, limit_gamma=limit_gamma)
+                                                                W[:, self.steady_state], fixperc_q=True, limit_gamma=limit_gamma)
             else:
                 if limit_gamma:
                     logging.warning("limit_gamma not implemented with this settings")
@@ -1245,7 +1245,7 @@ class VelocytoLoom:
             if weighted:
                 self.gammas, self.R2 = fit_slope_weighted(tmpU[:, self.steady_state],
                                                           tmpS[:, self.steady_state],
-                                                          W, 
+                                                          W[:, self.steady_state], 
                                                           return_R2=True,
                                                           limit_gamma=limit_gamma)
                 self.q = np.zeros_like(self.gammas)
