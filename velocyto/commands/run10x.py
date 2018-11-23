@@ -79,8 +79,14 @@ def run10x(samplefolder: str, gtffile: str,
     elif "Pipestance completed successfully!" not in open(os.path.join(samplefolder, "_log")).read():
         logging.error("The outputs are not ready")
     bamfile = os.path.join(samplefolder, "outs", "possorted_genome_bam.bam")
-    bcfile = glob.glob(os.path.join(samplefolder,
-                       os.path.normcase("outs/filtered_gene_bc_matrices/*/barcodes.tsv")))[0]
+
+    bcmatches = glob.glob(os.path.join(samplefolder, os.path.normcase("outs/filtered_gene_bc_matrices/*/barcodes.tsv")))
+    if len(bcmatches) == 0:
+        bcmatches = glob.glob(os.path.join(samplefolder, os.path.normcase("outs/filtered_feature_bc_matrix/barcodes.tsv.gz")))
+    if len(bcmatches) == 0:
+        logging.error("Can not locate the barcodes.tsv file!")
+    bcfile = bcmatches[0]
+    
     outputfolder = os.path.join(samplefolder, "velocyto")
     sampleid = os.path.basename(samplefolder.rstrip("/").rstrip("\\"))
     assert not os.path.exists(os.path.join(outputfolder, f"{sampleid}.loom")), "The output already exist. Aborted!"

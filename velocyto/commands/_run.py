@@ -95,7 +95,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         valid_bcset = None
     else:
         # Get valid cell barcodes
-        valid_bcs_list = open(bcfile).read().rstrip().split()
+        valid_bcs_list = (gzip.open(bcfile).read().decode() if bcfile.endswith(".gz") else open(bcfile).read()).rstrip().split()
         valid_cellid_list = np.array([f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list])  # with sample id and with -1
         if len(set(bc.split('-')[0] for bc in valid_bcs_list)) == 1:
             gem_grp = f"-{valid_bcs_list[0].split('-')[-1]}"
