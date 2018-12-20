@@ -36,7 +36,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                                 readable=True,
                                 resolve_path=True))
 @click.option("--bcfile", "-b",
-              help="""Valid barcodes file, to filter the bam. If --bcfile is not specified the file will be searched in the default position outputed by ``velocyto tools dropest_bc_correct``. Otherwise an error will be thrown""",
+              help="""Valid barcodes file, to filter the bam. If --bcfile is not specified the file will be searched in the default position outputted by ``velocyto tools dropest_bc_correct``. Otherwise an error will be thrown""",
               default=None,
               show_default=True,
               type=click.Path(resolve_path=True,
@@ -71,7 +71,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
               default="0")
 @click.option('--verbose', '-v',
-              help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)",
+              help="Set the vebosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)",
               count=True, default=1)
 def run_dropest(bamfile: str, gtffile: str, bcfile: str, logic: str, outputfolder: str, sampleid: str,
                 repmask: str, samtools_threads: int, samtools_memory: int, dump: str, verbose: int, additional_ca: dict={}) -> None:

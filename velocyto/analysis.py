@@ -1274,7 +1274,7 @@ class VelocytoLoom:
         min_gamma: float, default=0.01
             Filter away low gammas. If None this filtering will be skipped
         minCorr: flaot, default=0.2
-            Filter away low spliced-usnpliced correlation. If None this filtering will be skipped
+            Filter away low spliced-unspliced correlation. If None this filtering will be skipped
 
         Returns
         -------
@@ -1905,7 +1905,7 @@ class VelocytoLoom:
         min_avg_S: float, default=None
             if cluster have been specified beforehand (using the function set_clusters) then this is the minimum average spliced molecules per cluster
         """
-        logging.warning("DEPRECATION WARNING - the current function is deprecated. Please refer to documetation for default parameters usage")
+        logging.warning("DEPRECATION WARNING - the current function is deprecated. Please refer to documentation for default parameters usage")
         if min_expr_counts is None:
             min_expr_counts = max(20, min(100, self.S.shape[1] * 2.25e-3))
         if min_cells_express is None:
@@ -1947,7 +1947,7 @@ class VelocytoLoom:
         Arguments
         ---------
         k: int, default=None
-            k in k-NearestNeighbours smoothing
+            k in k-NearestNeighbors smoothing
         n_comps: int, default=None
             numbed of components in pca
         """

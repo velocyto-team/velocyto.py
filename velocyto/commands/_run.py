@@ -134,7 +134,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     # Initialize Exon-Intron Counter with the logic and valid barcodes (need to do it now to peek)
     if without_umi:
         if umi_extension != "no":
-            logging.warning("--umi-extension was specified but uncompatible with --without-umi, it will be ignored!")
+            logging.warning("--umi-extension was specified but incompatible with --without-umi, it will be ignored!")
         umi_extension = "without_umi"
     exincounter = vcy.ExInCounter(sampleid=sampleid, logic=logic_class, valid_bcset=valid_bcset, umi_extension=umi_extension, onefilepercell=onefilepercell, dump_option=dump, outputfolder=outputfolder)
 
@@ -142,7 +142,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     try:
         mb_available = int(subprocess.check_output('grep MemAvailable /proc/meminfo'.split()).split()[1]) / 1000
     except subprocess.CalledProcessError:
-        logging.warning("Your system does not support calling `grep MemAvailable /proc/meminfo` so the memory effort for the samtools command could not be chosen appropriatelly. 32Gb will be assumed")
+        logging.warning("Your system does not support calling `grep MemAvailable /proc/meminfo` so the memory effort for the samtools command could not be chosen appropriately. 32Gb will be assumed")
         mb_available = 32000  # 64Gb
     threads_to_use = min(samtools_threads, multiprocessing.cpu_count())
     mb_to_use = int(min(samtools_memory, mb_available / (len(bamfile) * threads_to_use)))
@@ -226,7 +226,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
 
     # Do the actual counting
     logging.debug("Start molecule counting!")
-    results = exincounter.count(bamfile_cellsorted, multimap=multimap)  # NOTE: we would avoid some millions of if statements evalution if we write two function count and count_with output
+    results = exincounter.count(bamfile_cellsorted, multimap=multimap)  # NOTE: we would avoid some millions of if statements evaluations if we write two function count and count_with output
     dict_list_arrays, cell_bcs_order = results
 
     ########################
@@ -275,7 +275,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         del dict_list_arrays[layer_name]
     
     for layer_name in logic_obj.layers:
-        total: np.ndarray  # This is just a type annotation to avoid mypy compaints
+        total: np.ndarray  # This is just a type annotation to avoid mypy complaints
         try:
             total += layers[layer_name]
         except NameError:

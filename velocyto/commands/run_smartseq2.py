@@ -54,7 +54,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
               default="0")
 @click.option('--verbose', '-v',
-              help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)",
+              help="Set the verbosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)",
               count=True, default=1)
 def run_smartseq2(bamfiles: str, gtffile: str, outputfolder: str, sampleid: str,
                   repmask: str, dump: str, verbose: int, additional_ca: dict={}) -> None:

@@ -165,7 +165,7 @@ Then I run ``velocyto tools dropest_bc_correct`` with the bamfile as the only ar
 (1) Make a new bam with the barcodes substituted with the corrected ones, taking this info from the dropEst R dump
 (2) Generate the required file containing the allowed barcodes
 
-The bam file outputed by dropEst does not contain error-corrected but raw cell barcodes so we will have to make a new corrected bam file using the infromation otuputed.
+The bam file outputted by dropEst does not contain error-corrected but raw cell barcodes so we will have to make a new corrected bam file using the information otuputted.
 (Future version of DropEst will output the error-corrected barcodes).
 
 To do that run:
@@ -218,7 +218,7 @@ The sorting procedure uses ``samtools sort`` and it is expected to be time consu
 
 .. warning::
     Most of the ``velocyto`` pipeline is single threaded and several instances can be run on the same multicore machine to process your samples in a time effective way. 
-    However, because of the above mentioned multithreaded call to ``samtools sort``, running several instances of ``veloctyo run`` might end up using the memory and cpu of your system and possbily result in runtime errors.
+    However, because of the above mentioned multithreaded call to ``samtools sort``, running several instances of ``veloctyo run`` might end up using the memory and cpu of your system and possibly result in runtime errors.
     Therefore for batch jobs we suggest to first call :code:`samtools sort -t CB -O BAM -o cellsorted_possorted_genome_bam.bam possorted_genome_bam.bam` sequentially and only then running ``velocyto`` 
 
 Run with different logics
@@ -256,7 +256,7 @@ In particular the ``bam`` file will have to:
 
 
 velocyto assumes that the ``gtf`` file follows the `GENCODE gtf format description <https://www.gencodegenes.org/gencodeformat.html>`_.
-Hoever some mandatory field are relaxed to extend compatibility to a wider set of gtf files.
+However some mandatory field are relaxed to extend compatibility to a wider set of gtf files.
 In particular the ``gtf`` file will have to:
 
 1. Contain the 3rd column entry ``feature-type``. Note that only the `exon` entry of the gtf file marked as `exon`in this column will be considered and therefore the requirements below only apply to the ``exon`` labeled lines.
@@ -264,7 +264,7 @@ In particular the ``gtf`` file will have to:
 3. Contain, in the 9th column, the key-value pair ``transcript_name`` (Optional, if not present it will be set to the value of `transcript_id`)
 4. Contain, in the 9th column, the key-value pair ``gene_id``, containing an unique identified for the gene. 
 5. Contain, in the 9th column, the key-value pair ``gene_name`` (Optional, if not present it will be set to the value of `gene_id`)
-6. Contain, in the 9th column, the key-value pair ``exon_number`` (Reccomended but optional, if not provided velocyto will sort exons in memory and number them)
+6. Contain, in the 9th column, the key-value pair ``exon_number`` (Recommended but optional, if not provided velocyto will sort exons in memory and number them)
 
 .. warning::
     Annotation of artificial chromosomes such as the ones generated to count ERCC spikes or transgenes (GFP, Tomato, etc.) need also to contain the information above.

@@ -20,7 +20,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-@click.command(short_help="Runs the velocity analysis outputing a loom file")
+@click.command(short_help="Runs the velocity analysis outputting a loom file")
 @click.argument("bamfilepath", nargs=1, required=True,
                 type=click.Path(exists=True,
                                 file_okay=True,
@@ -34,7 +34,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                                 readable=True,
                                 resolve_path=True))
 @click.option("--corrected-output", "-o",
-              help="""(Optional) The file output of the output bam file. Otherwise the file will be outputed in the same folder of the input with the prefix `correct_`""",
+              help="""(Optional) The file output of the output bam file. Otherwise the file will be outputted in the same folder of the input with the prefix `correct_`""",
               default=None,
               type=click.Path(exists=False,
                               resolve_path=True,
@@ -54,7 +54,7 @@ def dropest_bc_correct(bamfilepath: str, dropest_out: str, corrected_output: str
         import rpy2.robjects as ro
         from velocyto.r_interface import convert_r_obj
     except:
-        ImportError("A problem was encountered importing rpy2. To run this `velocyto tools` rpy2 and R need to be installed (the use conda is reccomended)")
+        ImportError("A problem was encountered importing rpy2. To run this `velocyto tools` rpy2 and R need to be installed (the use conda is recommended)")
 
     # bamfilepath = sys.argv[1]
     # filename = os.path.join(parentpath, f"{bamfilename.split('_')[0]}_dropEst.rds")

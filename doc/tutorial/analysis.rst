@@ -59,7 +59,7 @@ Start a new analysis - Preliminary Filtering
 --------------------------------------------
 
 A good first stem is to clean up the data a bit. 
-Let's remove the cells with extremelly low unspliced detection
+Let's remove the cells with extremely low unspliced detection
 
 .. code-block:: python
 
@@ -124,7 +124,7 @@ The fit can be visualized by calling `plot_phase_portraits` and listing the gene
 
     vlm.plot_phase_portraits(["Igfbpl1", "Pdgfra"])
 
-The calcualte velocity and extrapolate the future state of the cells:
+The calculate velocity and extrapolate the future state of the cells:
 
 .. code-block:: python
 
