@@ -1,0 +1,1081 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CLI Internals &mdash; velocyto 0.17.16 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CLI Logic" href="api_cli_logic.html" />
+    <link rel="prev" title="velocyto.serialization module" href="api_serialization.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.17
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#command-line-api">Command Line API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#library-api">Library API</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#internals">Internals</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">CLI Internals</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-velocyto.counter">velocyto.counter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-velocyto.transcript_model">velocyto.transcript_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-velocyto.segment_match">velocyto.segment_match module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-velocyto.feature">velocyto.feature module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-velocyto.indexes">velocyto.indexes module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-velocyto.molitem">velocyto.molitem module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-velocyto.gene_info">velocyto.gene_info module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-velocyto.read">velocyto.read module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#customizable-internals">Customizable Internals</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Authors and citations</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">velocyto</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API</a> &raquo;</li>
+        
+      <li>CLI Internals</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/velocyto-team/velocyto.py/blob/master/fullapi/api_cli_internals.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cli-internals">
+<h1>CLI Internals<a class="headerlink" href="#cli-internals" title="Permalink to this headline">¶</a></h1>
+<p>The following page describes the internal API used by the Command Line Pipeline.
+These functions and objects are not meant for interactive usage.
+So this page is useful if you want to change the behavior of the molecule counting pipeline.</p>
+<div class="section" id="module-velocyto.counter">
+<span id="velocyto-counter-module"></span><h2>velocyto.counter module<a class="headerlink" href="#module-velocyto.counter" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="velocyto.counter.ExInCounter">
+<em class="property">class </em><code class="descclassname">velocyto.counter.</code><code class="descname">ExInCounter</code><span class="sig-paren">(</span><em>sampleid: str</em>, <em>logic: velocyto.logic.Logic</em>, <em>valid_bcset: Set[str] = None</em>, <em>umi_extension: str = 'no'</em>, <em>onefilepercell: bool = False</em>, <em>dump_option: str = '0'</em>, <em>outputfolder: str = './'</em>, <em>loom_numeric_dtype: str = 'uint16'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Main class to do the counting of introns and exons</p>
+<dl class="staticmethod">
+<dt id="velocyto.counter.ExInCounter.parse_cigar_tuple">
+<em class="property">static </em><code class="descname">parse_cigar_tuple</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.parse_cigar_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.parse_cigar_tuple" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.peek">
+<code class="descname">peek</code><span class="sig-paren">(</span><em>bamfile: str</em>, <em>lines: int = 1000</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.peek"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.peek" title="Permalink to this definition">¶</a></dt>
+<dd><p>Peeks into the samfile to determine if it is a cellranger or dropseq file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.peek_umi_only">
+<code class="descname">peek_umi_only</code><span class="sig-paren">(</span><em>bamfile: str</em>, <em>lines: int = 30</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.peek_umi_only"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.peek_umi_only" title="Permalink to this definition">¶</a></dt>
+<dd><p>Peeks for umi into the samfile to determine if it is a cellranger or dropseq file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.iter_alignments">
+<code class="descname">iter_alignments</code><span class="sig-paren">(</span><em>bamfiles: Tuple[str], unique: bool = True, yield_line: bool = False</em><span class="sig-paren">)</span> &#x2192; Iterable<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.iter_alignments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.iter_alignments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates over the bam/sam file and yield Read objects</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bamfiles</strong> (<em>Tuple</em><em>[</em><em>str</em><em>]</em>) – path to the bam files</li>
+<li><strong>unique</strong> (<em>bool</em>) – yield only unique alignments</li>
+<li><strong>yield_line</strong> (<em>bool</em>) – whether to yield the raw sam line</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>yields vcy.Read for each valid line of the bam file</em></li>
+<li>or a Tuple (vcy.Read, sam_line) if <code class="docutils literal notranslate"><span class="pre">yield_line==True</span></code></li>
+<li><strong>NOTE</strong> (At the file change it yields a <cite>None</cite>)</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.read_repeats">
+<code class="descname">read_repeats</code><span class="sig-paren">(</span><em>gtf_file: str</em>, <em>tolerance: int = 5</em><span class="sig-paren">)</span> &#x2192; Dict[str, List[velocyto.feature.Feature]]<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.read_repeats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.read_repeats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read repeats and merge close ones into highly repetitive areas</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>gtf_file</strong> (<em>str</em>) – file to read</li>
+<li><strong>tolerance</strong> (<em>int</em><em>, </em><em>default=5</em>) – if two repeats intervals to be masked are found closer than tolerance bases from each other they are fused in one bigger masked interval.
+Notice that in the downstream analysis only reads that are fall inside mask intervals are discarded</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mask_ivls_by_chromstrand</strong> – A dictionary key: chromosome+strand value: list of features (repeat intervals)
+(The reference is returned but an internal attribure self.self.masked_by_chrm_strand is kept)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Dict[str, List[vcy.Feature]]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.assign_indexes_to_genes">
+<code class="descname">assign_indexes_to_genes</code><span class="sig-paren">(</span><em>features: Dict[str, velocyto.transcript_model.TranscriptModel]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.assign_indexes_to_genes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.assign_indexes_to_genes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign to each newly encoutered gene an unique index corresponding to the output matrix column ix</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.read_transcriptmodels">
+<code class="descname">read_transcriptmodels</code><span class="sig-paren">(</span><em>gtf_file: str</em><span class="sig-paren">)</span> &#x2192; Dict[str, Dict[str, velocyto.transcript_model.TranscriptModel]]<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.read_transcriptmodels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.read_transcriptmodels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads transcript models from a sorted .gtf file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gtf_file</strong> (<em>str</em>) – Path to the sorted gtf file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>annotations_by_chrm_strand</strong> (<em>Dict[str, List[vcy.TrancriptModel]]</em>) – A dictionary key: chromosome+strand value: list of trascript models
+(The reference is returned but an internal attribure self.annotations_by_chrm_strand is kept)</li>
+<li><em>There will exist an object vcy.Features for the same exon appearing in a different vcy.TranscriptModel. (his is desired)</em></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.peek_and_correct">
+<code class="descname">peek_and_correct</code><span class="sig-paren">(</span><em>gtf_lines: List[str]</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.peek_and_correct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.peek_and_correct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look at the first 20 instances of a list of lines of a gtf file to dermine if exon number is specified as it should.
+If econ number is not contained it will infer the exon number sorting the list by lexicographic ordering tr_id, start, end</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gtf_lines</strong> – a list of the lines of a gtf file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the same list or the list corrected with added a exon number (filtered to contain only exons)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">gtf_lines</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.mark_up_introns">
+<code class="descname">mark_up_introns</code><span class="sig-paren">(</span><em>bamfile: Tuple[str], multimap: bool</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.mark_up_introns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.mark_up_introns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark up introns that have reads across exon-intron junctions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bamfile</strong> (<em>Tuple</em><em>[</em><em>str</em><em>]</em>) – path to the bam files to markup</li>
+<li><strong>logic</strong> (<em>vcy.Logic</em>) – The logic object to use, changes in different techniques / levels of strictness
+NOTE: Right now it is not used</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing it just add to validation to the vcy.Features</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Situations not considered:
+# If an the exon is so short that is possible to get both exonA-exonB junction and exonB-intronB boundary in the same read</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>bamfile: Tuple[str], multimap: bool, cell_batch_size: int = 100, molecules_report: bool = False</em><span class="sig-paren">)</span> &#x2192; Tuple[Dict[str, List[numpy.ndarray]], List[str]]<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do the counting of molecules</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bamfile</strong> (<em>str</em>) – path to the bam files to markup</li>
+<li><strong>cell_batch_size</strong> (<em>int</em><em>, </em><em>default = 50</em>) – it defines whether to require or not exon-intron spanning read to consider an intron valid.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict_list_arrays, cell_bcs_order</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The memory footprint could be reduced allocating scipy sparse arrays</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.pcount">
+<code class="descname">pcount</code><span class="sig-paren">(</span><em>samfile: str</em>, <em>cell_batch_size: int = 50</em>, <em>molecules_report: bool = False</em>, <em>n_processes: int = 4</em><span class="sig-paren">)</span> &#x2192; Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, List[str]]<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.pcount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.pcount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do the counting of molecules in parallel using multiprocessing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.counter.ExInCounter.pcount_cell_batch">
+<code class="descname">pcount_cell_batch</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, List[str]]<a class="reference internal" href="../_modules/velocyto/counter.html#ExInCounter.pcount_cell_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.ExInCounter.pcount_cell_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>It performs molecule counting for the current batch of cells</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.counter.reverse">
+<code class="descclassname">velocyto.counter.</code><code class="descname">reverse</code><span class="sig-paren">(</span><em>strand: str</em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/velocyto/counter.html#reverse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.counter.reverse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-velocyto.transcript_model">
+<span id="velocyto-transcript-model-module"></span><h2>velocyto.transcript_model module<a class="headerlink" href="#module-velocyto.transcript_model" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="velocyto.transcript_model.TranscriptModel">
+<em class="property">class </em><code class="descclassname">velocyto.transcript_model.</code><code class="descname">TranscriptModel</code><span class="sig-paren">(</span><em>trid: str</em>, <em>trname: str</em>, <em>geneid: str</em>, <em>genename: str</em>, <em>chromstrand: str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/velocyto/transcript_model.html#TranscriptModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A simple object representing a transcript model as a list of <cite>vcy.Feature</cite> objects</p>
+<dl class="attribute">
+<dt id="velocyto.transcript_model.TranscriptModel.trid">
+<code class="descname">trid</code><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.trid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.transcript_model.TranscriptModel.trname">
+<code class="descname">trname</code><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.trname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.transcript_model.TranscriptModel.geneid">
+<code class="descname">geneid</code><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.geneid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.transcript_model.TranscriptModel.genename">
+<code class="descname">genename</code><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.genename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.transcript_model.TranscriptModel.chromstrand">
+<code class="descname">chromstrand</code><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.chromstrand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.transcript_model.TranscriptModel.list_features">
+<code class="descname">list_features</code><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.list_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.transcript_model.TranscriptModel.start">
+<code class="descname">start</code><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.start" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>NOTE</em> – This should be accessed only after the creation of the transcript model is finished
+(i.e.) after append_exon has been called to add all the exons/introns</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.transcript_model.TranscriptModel.end">
+<code class="descname">end</code><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.end" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>NOTE</em> – This should be accessed only after the creation of the transcript model is finished
+(i.e.) after append_exon has been called to add all the exons/introns</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.transcript_model.TranscriptModel.ends_upstream_of">
+<code class="descname">ends_upstream_of</code><span class="sig-paren">(</span><em>read: velocyto.read.Read</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/transcript_model.html#TranscriptModel.ends_upstream_of"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.ends_upstream_of" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.transcript_model.TranscriptModel.intersects">
+<code class="descname">intersects</code><span class="sig-paren">(</span><em>segment: Tuple[int, int], minimum_flanking: int = 5</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/transcript_model.html#TranscriptModel.intersects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.intersects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.transcript_model.TranscriptModel.append_exon">
+<code class="descname">append_exon</code><span class="sig-paren">(</span><em>exon_feature: velocyto.feature.Feature</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/transcript_model.html#TranscriptModel.append_exon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.append_exon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append an exon and create an intron when needed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>exon_feature</strong> (<em>vcy.Feature</em>) – A feature object represneting an exon to add to the transcript model.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.transcript_model.TranscriptModel.chop_if_long_intron">
+<code class="descname">chop_if_long_intron</code><span class="sig-paren">(</span><em>maxlen: int = 1000000</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/transcript_model.html#TranscriptModel.chop_if_long_intron"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.transcript_model.TranscriptModel.chop_if_long_intron" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modify a Transcript model choppin the 5’ region upstram of a very long intron
+To avoid that extremelly long intron mask the counting of interal genes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>maxlen</strong> (<em>int</em><em>, </em><em>default=vcy.LONGEST_INTRON_ALLOWED</em>) – transcript model tha contain one or more intronic interval of len == maxlen will be chopped</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li>Nothing it will call <cite>_remove_upstream_of</cite> or <cite>_remove_downstream_of</cite> on the transcript model</li>
+<li>its name will be changed appending <cite>_mod</cite> to both trid and trname</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-velocyto.segment_match">
+<span id="velocyto-segment-match-module"></span><h2>velocyto.segment_match module<a class="headerlink" href="#module-velocyto.segment_match" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="velocyto.segment_match.SegmentMatch">
+<em class="property">class </em><code class="descclassname">velocyto.segment_match.</code><code class="descname">SegmentMatch</code><span class="sig-paren">(</span><em>segment: Tuple[int, int], feature: velocyto.feature.Feature, is_spliced: bool = False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/velocyto/segment_match.html#SegmentMatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.segment_match.SegmentMatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="velocyto.segment_match.SegmentMatch.segment">
+<code class="descname">segment</code><a class="headerlink" href="#velocyto.segment_match.SegmentMatch.segment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.segment_match.SegmentMatch.feature">
+<code class="descname">feature</code><a class="headerlink" href="#velocyto.segment_match.SegmentMatch.feature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.segment_match.SegmentMatch.is_spliced">
+<code class="descname">is_spliced</code><a class="headerlink" href="#velocyto.segment_match.SegmentMatch.is_spliced" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.segment_match.SegmentMatch.maps_to_intron">
+<code class="descname">maps_to_intron</code><a class="headerlink" href="#velocyto.segment_match.SegmentMatch.maps_to_intron" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.segment_match.SegmentMatch.maps_to_exon">
+<code class="descname">maps_to_exon</code><a class="headerlink" href="#velocyto.segment_match.SegmentMatch.maps_to_exon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.segment_match.SegmentMatch.skip_makes_sense">
+<code class="descname">skip_makes_sense</code><a class="headerlink" href="#velocyto.segment_match.SegmentMatch.skip_makes_sense" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the SKIP in the segment matches some extremity of the feature and therefore can be interpreted as a splice event</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-velocyto.feature">
+<span id="velocyto-feature-module"></span><h2>velocyto.feature module<a class="headerlink" href="#module-velocyto.feature" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="velocyto.feature.Feature">
+<em class="property">class </em><code class="descclassname">velocyto.feature.</code><code class="descname">Feature</code><span class="sig-paren">(</span><em>start: int</em>, <em>end: int</em>, <em>kind: int</em>, <em>exin_no: str</em>, <em>transcript_model: Any = None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/velocyto/feature.html#Feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.feature.Feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A simple class representing an annotated genomic feature (e.g. exon, intron, masked repeat)</p>
+<dl class="attribute">
+<dt id="velocyto.feature.Feature.start">
+<code class="descname">start</code><a class="headerlink" href="#velocyto.feature.Feature.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.feature.Feature.end">
+<code class="descname">end</code><a class="headerlink" href="#velocyto.feature.Feature.end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.feature.Feature.transcript_model">
+<code class="descname">transcript_model</code><a class="headerlink" href="#velocyto.feature.Feature.transcript_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.feature.Feature.kind">
+<code class="descname">kind</code><a class="headerlink" href="#velocyto.feature.Feature.kind" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.feature.Feature.exin_no">
+<code class="descname">exin_no</code><a class="headerlink" href="#velocyto.feature.Feature.exin_no" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.feature.Feature.is_validated">
+<code class="descname">is_validated</code><a class="headerlink" href="#velocyto.feature.Feature.is_validated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.feature.Feature.is_last_3prime">
+<code class="descname">is_last_3prime</code><a class="headerlink" href="#velocyto.feature.Feature.is_last_3prime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.feature.Feature.get_downstream_exon">
+<code class="descname">get_downstream_exon</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="../_modules/velocyto/feature.html#Feature.get_downstream_exon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.feature.Feature.get_downstream_exon" title="Permalink to this definition">¶</a></dt>
+<dd><p>To use only for introns. Returns the vcy.Feature corresponding to the neighbour exon downstream</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In a 15 exons transcript model:
+Downstream to intron10 is exon11 or the interval with index <cite>20</cite> if strand “+”.
+Downtream to intron10 is exon10 or the interval with index <cite>10</cite> if strand “-“</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.feature.Feature.get_upstream_exon">
+<code class="descname">get_upstream_exon</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="../_modules/velocyto/feature.html#Feature.get_upstream_exon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.feature.Feature.get_upstream_exon" title="Permalink to this definition">¶</a></dt>
+<dd><p>To use only for introns. Returns the vcy.Feature corresponding to the neighbour exon downstream</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In a 15 exons transcript model:
+Upstream to intron10 is exon9 or the interval with inxex <cite>18</cite> if strand “+”.
+Upstream to intron10 is exon11 or the interval with inxex <cite>8</cite> if strand “-“</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.feature.Feature.ends_upstream_of">
+<code class="descname">ends_upstream_of</code><span class="sig-paren">(</span><em>read: velocyto.read.Read</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/feature.html#Feature.ends_upstream_of"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.feature.Feature.ends_upstream_of" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>The following situation happens</dt>
+<dd><blockquote class="first">
+<div>Read</div></blockquote>
+<p class="last"><a href="#id1"><span class="problematic" id="id2">*</span></a>|||segment|||-?-||segment|||????????</p>
+</dd>
+</dl>
+<p>???????|||||Ivl|||||||||*</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.feature.Feature.doesnt_start_after">
+<code class="descname">doesnt_start_after</code><span class="sig-paren">(</span><em>segment: Tuple[int, int]</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/feature.html#Feature.doesnt_start_after"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.feature.Feature.doesnt_start_after" title="Permalink to this definition">¶</a></dt>
+<dd><p>One of the following situation happens</p>
+<blockquote>
+<div><a href="#id3"><span class="problematic" id="id4">*</span></a>||||||segment|||||????????</div></blockquote>
+<dl class="docutils">
+<dt><em>||||Ivl|||||</em></dt>
+<dd><dl class="first last docutils">
+<dt><a href="#id5"><span class="problematic" id="id6">*</span></a>|||||||||||||Ivl||||||||||????????????</dt>
+<dd><dl class="first last docutils">
+<dt><a href="#id7"><span class="problematic" id="id8">*</span></a>|||||||||||||Ivl||||||||||????????????</dt>
+<dd><a href="#id9"><span class="problematic" id="id10">*</span></a>|||||||||||||Ivl||||||||||????????????</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.feature.Feature.intersects">
+<code class="descname">intersects</code><span class="sig-paren">(</span><em>segment: Tuple[int, int], minimum_flanking: int = 5</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/feature.html#Feature.intersects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.feature.Feature.intersects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.feature.Feature.contains">
+<code class="descname">contains</code><span class="sig-paren">(</span><em>segment: Tuple[int, int], minimum_flanking: int = 5</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/feature.html#Feature.contains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.feature.Feature.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>One of following situation happens</p>
+<blockquote>
+<div><dl class="docutils">
+<dt><em>—–||||||segment|||||—–</em></dt>
+<dd><p class="first"><em>|||||||||||||Ivl||||||||||||||||</em></p>
+<blockquote>
+<div><em>—–||||||segment|||||—–</em></div></blockquote>
+<p><em>|||||||||||||Ivl||||||||||||||||</em></p>
+<blockquote>
+<div><em>—–||||||segment|||||—–</em></div></blockquote>
+<p class="last"><em>|||||||||||||Ivl||||||||||||||||</em></p>
+</dd>
+</dl>
+</div></blockquote>
+<p>where <cite>—</cite> idicates the minimum flanking</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.feature.Feature.start_overlaps_with_part_of">
+<code class="descname">start_overlaps_with_part_of</code><span class="sig-paren">(</span><em>segment: Tuple[int, int], minimum_flanking: int = 5</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/feature.html#Feature.start_overlaps_with_part_of"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.feature.Feature.start_overlaps_with_part_of" title="Permalink to this definition">¶</a></dt>
+<dd><p>The following situation happens</p>
+<blockquote>
+<div><dl class="docutils">
+<dt><em>—|||segment||—</em></dt>
+<dd><em>|||||||||||||Ivl||||||||||||||||</em></dd>
+</dl>
+</div></blockquote>
+<p>where <cite>—</cite> idicates the minimum flanking</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.feature.Feature.end_overlaps_with_part_of">
+<code class="descname">end_overlaps_with_part_of</code><span class="sig-paren">(</span><em>segment: Tuple[int, int], minimum_flanking: int = 5</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/feature.html#Feature.end_overlaps_with_part_of"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.feature.Feature.end_overlaps_with_part_of" title="Permalink to this definition">¶</a></dt>
+<dd><p>The following situation happens</p>
+<blockquote>
+<div><blockquote>
+<div><em>—|||segment||—</em></div></blockquote>
+<p><em>|||||||||||||Ivl||||||||||||||||</em></p>
+</div></blockquote>
+<p>where <cite>—</cite> idicates the minimum flanking</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-velocyto.indexes">
+<span id="velocyto-indexes-module"></span><h2>velocyto.indexes module<a class="headerlink" href="#module-velocyto.indexes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="velocyto.indexes.TransciptsIndex">
+<em class="property">class </em><code class="descclassname">velocyto.indexes.</code><code class="descname">TransciptsIndex</code><span class="sig-paren">(</span><em>trascript_models: List[velocyto.transcript_model.TranscriptModel]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/velocyto/indexes.html#TransciptsIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.indexes.TransciptsIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="velocyto.indexes.TransciptsIndex.transcipt_models">
+<code class="descname">transcipt_models</code><a class="headerlink" href="#velocyto.indexes.TransciptsIndex.transcipt_models" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.indexes.TransciptsIndex.tidx">
+<code class="descname">tidx</code><a class="headerlink" href="#velocyto.indexes.TransciptsIndex.tidx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.indexes.TransciptsIndex.maxtidx">
+<code class="descname">maxtidx</code><a class="headerlink" href="#velocyto.indexes.TransciptsIndex.maxtidx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.indexes.TransciptsIndex.scan_not_terminated">
+<code class="descname">scan_not_terminated</code><a class="headerlink" href="#velocyto.indexes.TransciptsIndex.scan_not_terminated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return false when all the chromosome has been scanned</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.indexes.TransciptsIndex.find_overlapping_trascript_models">
+<code class="descname">find_overlapping_trascript_models</code><span class="sig-paren">(</span><em>read: velocyto.read.Read</em><span class="sig-paren">)</span> &#x2192; Set[velocyto.transcript_model.TranscriptModel]<a class="reference internal" href="../_modules/velocyto/indexes.html#TransciptsIndex.find_overlapping_trascript_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.indexes.TransciptsIndex.find_overlapping_trascript_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all the Transcript models the Read overlaps with</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>read</strong> (<em>vcy.Read</em>) – the read object to be analyzed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>matched_transcripts</strong> – TranscriptModel the read is overlapping with and values the kind of overlapping
+it is one of vcy.MATCH_INSIDE (1), vcy.MATCH_OVER5END (2), vcy.MATCH_OVER3END (4)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">set of <cite>vcy.TranscriptModel</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="velocyto.indexes.FeatureIndex">
+<em class="property">class </em><code class="descclassname">velocyto.indexes.</code><code class="descname">FeatureIndex</code><span class="sig-paren">(</span><em>ivls: List[velocyto.feature.Feature] = []</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/velocyto/indexes.html#FeatureIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.indexes.FeatureIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Search help class used to find the intervals that a read is spanning</p>
+<dl class="attribute">
+<dt id="velocyto.indexes.FeatureIndex.last_interval_not_reached">
+<code class="descname">last_interval_not_reached</code><a class="headerlink" href="#velocyto.indexes.FeatureIndex.last_interval_not_reached" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.indexes.FeatureIndex.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/indexes.html#FeatureIndex.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.indexes.FeatureIndex.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>It set the current feature to the first feature</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.indexes.FeatureIndex.has_ivls_enclosing">
+<code class="descname">has_ivls_enclosing</code><span class="sig-paren">(</span><em>read: velocyto.read.Read</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/velocyto/indexes.html#FeatureIndex.has_ivls_enclosing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.indexes.FeatureIndex.has_ivls_enclosing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds out if there are intervals that are fully containing all the read segments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>read</strong> (<em>vcy.Read</em>) – the read object to be analyzed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>respones</strong> – if one has been found</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.indexes.FeatureIndex.mark_overlapping_ivls">
+<code class="descname">mark_overlapping_ivls</code><span class="sig-paren">(</span><em>read: velocyto.read.Read</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/indexes.html#FeatureIndex.mark_overlapping_ivls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.indexes.FeatureIndex.mark_overlapping_ivls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the overlap between Read and Features and mark intronic features if spanned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>read</strong> (<em>vcy.Read</em>) – the read object to be analyzed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Nothing, it marks the vcy.Feature object (is_validated = True) if there is evidence of exon-intron spanning</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="velocyto.indexes.FeatureIndex.find_overlapping_ivls">
+<code class="descname">find_overlapping_ivls</code><span class="sig-paren">(</span><em>read: velocyto.read.Read</em><span class="sig-paren">)</span> &#x2192; Dict[velocyto.transcript_model.TranscriptModel, List[velocyto.segment_match.SegmentMatch]]<a class="reference internal" href="../_modules/velocyto/indexes.html#FeatureIndex.find_overlapping_ivls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.indexes.FeatureIndex.find_overlapping_ivls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the possible overlaps between Read and Features and return a 1 read derived mapping record</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>read</strong> (<em>vcy.Read</em>) – the read object to be analyzed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>mapping_record</strong> – A record of the mappings by transcript model.
+Every entry contains a list of segment matches that in turn contains information on the segment and the feature</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Dict[vcy.TranscriptModel, List[vcy.SegmentMatch]]</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<ul class="simple">
+<li>It is possible that a segment overalps at the same time an exon and an intron (spanning segment)</li>
+<li>It is not possible that a segment overalps at the same time two exons. In that case the read is splitted</li>
+</ul>
+<p class="last">into two segments and  the Read attribute <cite>is_spliced == True</cite>.
+- Notice that the name of the function might be confousing. if there is a non valid overallapping an empty mappign record will be return
+- Also notice that returning an empty mapping record will cause the suppression of the counting of the molecule</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-velocyto.molitem">
+<span id="velocyto-molitem-module"></span><h2>velocyto.molitem module<a class="headerlink" href="#module-velocyto.molitem" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="velocyto.molitem.dictionary_union">
+<code class="descclassname">velocyto.molitem.</code><code class="descname">dictionary_union</code><span class="sig-paren">(</span><em>d1: DefaultDict[Any, List], d2: DefaultDict[Any, List]</em><span class="sig-paren">)</span> &#x2192; DefaultDict[Any, List]<a class="reference internal" href="../_modules/velocyto/molitem.html#dictionary_union"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.molitem.dictionary_union" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set union (|) operation on default dicitonary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>d1</strong> (<em>defaultdict</em>) – First default dict</li>
+<li><strong>d2</strong> (<em>defaultdict</em>) – Second default dict</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>A dictionary with the key the set union of the keys.</em></li>
+<li><em>If same key is present the entry will be combined using __add__</em></li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="velocyto.molitem.dictionary_intersect">
+<code class="descclassname">velocyto.molitem.</code><code class="descname">dictionary_intersect</code><span class="sig-paren">(</span><em>d1: DefaultDict[Any, List], d2: DefaultDict[Any, List]</em><span class="sig-paren">)</span> &#x2192; DefaultDict[Any, List]<a class="reference internal" href="../_modules/velocyto/molitem.html#dictionary_intersect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.molitem.dictionary_intersect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set intersection (&amp;) operation on default dicitonary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>d1</strong> (<em>defaultdict</em>) – First default dict</li>
+<li><strong>d2</strong> (<em>defaultdict</em>) – Second default dict</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>A dictionary with the key the set intersection of the keys.</em></li>
+<li><em>If same key is present the entry will be combined using __add__</em></li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="velocyto.molitem.Molitem">
+<em class="property">class </em><code class="descclassname">velocyto.molitem.</code><code class="descname">Molitem</code><a class="reference internal" href="../_modules/velocyto/molitem.html#Molitem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.molitem.Molitem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Object that represents a molecule in the counting pipeline</p>
+<dl class="attribute">
+<dt id="velocyto.molitem.Molitem.mappings_record">
+<code class="descname">mappings_record</code><a class="headerlink" href="#velocyto.molitem.Molitem.mappings_record" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.molitem.Molitem.add_mappings_record">
+<code class="descname">add_mappings_record</code><span class="sig-paren">(</span><em>mappings_record: DefaultDict[velocyto.transcript_model.TranscriptModel, List[velocyto.segment_match.SegmentMatch]]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/molitem.html#Molitem.add_mappings_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.molitem.Molitem.add_mappings_record" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-velocyto.gene_info">
+<span id="velocyto-gene-info-module"></span><h2>velocyto.gene_info module<a class="headerlink" href="#module-velocyto.gene_info" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="velocyto.gene_info.GeneInfo">
+<em class="property">class </em><code class="descclassname">velocyto.gene_info.</code><code class="descname">GeneInfo</code><span class="sig-paren">(</span><em>genename: str</em>, <em>geneid: str</em>, <em>chromstrand: str</em>, <em>start: int</em>, <em>end: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/velocyto/gene_info.html#GeneInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.gene_info.GeneInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A simple objects that stores basic info on a gene.
+Parsed from the .gtf file and used to build the row_attrs of the loom file</p>
+<dl class="attribute">
+<dt id="velocyto.gene_info.GeneInfo.genename">
+<code class="descname">genename</code><a class="headerlink" href="#velocyto.gene_info.GeneInfo.genename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.gene_info.GeneInfo.geneid">
+<code class="descname">geneid</code><a class="headerlink" href="#velocyto.gene_info.GeneInfo.geneid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.gene_info.GeneInfo.chrom">
+<code class="descname">chrom</code><a class="headerlink" href="#velocyto.gene_info.GeneInfo.chrom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.gene_info.GeneInfo.strand">
+<code class="descname">strand</code><a class="headerlink" href="#velocyto.gene_info.GeneInfo.strand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.gene_info.GeneInfo.start">
+<code class="descname">start</code><a class="headerlink" href="#velocyto.gene_info.GeneInfo.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.gene_info.GeneInfo.end">
+<code class="descname">end</code><a class="headerlink" href="#velocyto.gene_info.GeneInfo.end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-velocyto.read">
+<span id="velocyto-read-module"></span><h2>velocyto.read module<a class="headerlink" href="#module-velocyto.read" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="velocyto.read.Read">
+<em class="property">class </em><code class="descclassname">velocyto.read.</code><code class="descname">Read</code><span class="sig-paren">(</span><em>bc: str</em>, <em>umi: str</em>, <em>chrom: str</em>, <em>strand: str</em>, <em>pos: int</em>, <em>segments: List</em>, <em>clip5: Any</em>, <em>clip3: Any</em>, <em>ref_skipped: bool</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/velocyto/read.html#Read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.read.Read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Container for reads from sam alignment file</p>
+<dl class="attribute">
+<dt id="velocyto.read.Read.bc">
+<code class="descname">bc</code><a class="headerlink" href="#velocyto.read.Read.bc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.umi">
+<code class="descname">umi</code><a class="headerlink" href="#velocyto.read.Read.umi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.chrom">
+<code class="descname">chrom</code><a class="headerlink" href="#velocyto.read.Read.chrom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.strand">
+<code class="descname">strand</code><a class="headerlink" href="#velocyto.read.Read.strand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.pos">
+<code class="descname">pos</code><a class="headerlink" href="#velocyto.read.Read.pos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.segments">
+<code class="descname">segments</code><a class="headerlink" href="#velocyto.read.Read.segments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.clip5">
+<code class="descname">clip5</code><a class="headerlink" href="#velocyto.read.Read.clip5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.clip3">
+<code class="descname">clip3</code><a class="headerlink" href="#velocyto.read.Read.clip3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.ref_skipped">
+<code class="descname">ref_skipped</code><a class="headerlink" href="#velocyto.read.Read.ref_skipped" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.is_spliced">
+<code class="descname">is_spliced</code><a class="headerlink" href="#velocyto.read.Read.is_spliced" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.start">
+<code class="descname">start</code><a class="headerlink" href="#velocyto.read.Read.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.end">
+<code class="descname">end</code><a class="headerlink" href="#velocyto.read.Read.end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.read.Read.span">
+<code class="descname">span</code><a class="headerlink" href="#velocyto.read.Read.span" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api_cli_logic.html" class="btn btn-neutral float-right" title="CLI Logic" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api_serialization.html" class="btn btn-neutral" title="velocyto.serialization module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.17.16',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

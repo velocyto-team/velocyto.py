@@ -1,0 +1,722 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CLI Logic &mdash; velocyto 0.17.16 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Notebooks" href="../notebooks/index.html" />
+    <link rel="prev" title="CLI Internals" href="api_cli_internals.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.17
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#command-line-api">Command Line API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#library-api">Library API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#internals">Internals</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#customizable-internals">Customizable Internals</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">CLI Logic</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#velocyto-logic-module">velocyto.logic module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Authors and citations</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">velocyto</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API</a> &raquo;</li>
+        
+      <li>CLI Logic</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/velocyto-team/velocyto.py/blob/master/fullapi/api_cli_logic.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cli-logic">
+<h1>CLI Logic<a class="headerlink" href="#cli-logic" title="Permalink to this headline">¶</a></h1>
+<p>The following page describes the API of the logic module.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The logic module has been introduced as an experimetal feature in version 0.12.0, we forecast that its API and design will chnge considerably in future varsions.</p>
+</div>
+<p>The logic module offers the possibility to easily change the logic used to count “spliced”, “unspliced”, “ambiguous” (and other categories) of molecules, without requiring a complete rewrite of the all pipeline.
+This might be desired to adapt velocyto to different technologies or to introduce new rules and heuristics to make the counting more accurate or sensitive.</p>
+<div class="section" id="velocyto-logic-module">
+<h2>velocyto.logic module<a class="headerlink" href="#velocyto-logic-module" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-velocyto.logic"><span id="logicapi"></span></span><dl class="class">
+<dt id="velocyto.logic.Logic">
+<em class="property">class </em><code class="descclassname">velocyto.logic.</code><code class="descname">Logic</code><a class="reference internal" href="../_modules/velocyto/logic.html#Logic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Logic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class from wich all the logics should inherit</p>
+<dl class="attribute">
+<dt id="velocyto.logic.Logic.layers">
+<code class="descname">layers</code><a class="headerlink" href="#velocyto.logic.Logic.layers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Logic.stranded">
+<code class="descname">stranded</code><a class="headerlink" href="#velocyto.logic.Logic.stranded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Logic.perform_validation_markup">
+<code class="descname">perform_validation_markup</code><a class="headerlink" href="#velocyto.logic.Logic.perform_validation_markup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Logic.accept_discordant">
+<code class="descname">accept_discordant</code><a class="headerlink" href="#velocyto.logic.Logic.accept_discordant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.logic.Logic.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>molitem: velocyto.molitem.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, numpy.ndarray], geneid2ix: Dict[str, int]</em><span class="sig-paren">)</span> &#x2192; Union[None, int]<a class="reference internal" href="../_modules/velocyto/logic.html#Logic.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Logic.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>molitem</strong> (<em>vcy.Molitem</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">vcy.Molitem</span></code> object to be considered by the logic</li>
+<li><strong>cell_bcidx</strong> (<em>int</em>) – The cell index in the memory buffers below</li>
+<li><strong>dict_layers_columns</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em>) – A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting</li>
+<li><strong>geneid2ix</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing the Acession of the genes mapping to its column index position</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it adds the molecule to the appropriate layer (or does not count at all)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="velocyto.logic.Permissive10X">
+<em class="property">class </em><code class="descclassname">velocyto.logic.</code><code class="descname">Permissive10X</code><a class="reference internal" href="../_modules/velocyto/logic.html#Permissive10X"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Permissive10X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#velocyto.logic.Logic" title="velocyto.logic.Logic"><code class="xref py py-class docutils literal notranslate"><span class="pre">velocyto.logic.Logic</span></code></a></p>
+<p>Permissive logic for 10X Genomics chemistry</p>
+<p>This logic differs from the other 10x Logics because:
+- singletons if the fall in not validated introns are COUNTED UNSPLICED
+- singletons if the fall in validated introns are COUNTED UNSPLICED
+- non-singletons if are supported by not validated introns are COUNTED UNSPLICED
+- non-singletons if are supported by validated introns are COUNTED UNSPLICED</p>
+<dl class="attribute">
+<dt id="velocyto.logic.Permissive10X.layers">
+<code class="descname">layers</code><a class="headerlink" href="#velocyto.logic.Permissive10X.layers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Permissive10X.stranded">
+<code class="descname">stranded</code><a class="headerlink" href="#velocyto.logic.Permissive10X.stranded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Permissive10X.perform_validation_markup">
+<code class="descname">perform_validation_markup</code><a class="headerlink" href="#velocyto.logic.Permissive10X.perform_validation_markup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Permissive10X.accept_discordant">
+<code class="descname">accept_discordant</code><a class="headerlink" href="#velocyto.logic.Permissive10X.accept_discordant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.logic.Permissive10X.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>molitem: velocyto.molitem.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, numpy.ndarray], geneid2ix: Dict[str, int]</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/velocyto/logic.html#Permissive10X.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Permissive10X.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>molitem</strong> (<em>vcy.Molitem</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">vcy.Molitem</span></code> object to be considered by the logic</li>
+<li><strong>cell_bcidx</strong> (<em>int</em>) – The cell index in the memory buffers below</li>
+<li><strong>dict_layers_columns</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em>) – A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting</li>
+<li><strong>geneid2ix</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing the Acession of the genes mapping to its column index position</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it adds the molecule to the appropriate layer (or does not count at all)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="velocyto.logic.Intermediate10X">
+<em class="property">class </em><code class="descclassname">velocyto.logic.</code><code class="descname">Intermediate10X</code><a class="reference internal" href="../_modules/velocyto/logic.html#Intermediate10X"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Intermediate10X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#velocyto.logic.Logic" title="velocyto.logic.Logic"><code class="xref py py-class docutils literal notranslate"><span class="pre">velocyto.logic.Logic</span></code></a></p>
+<p>ValidatedIntrons logic for 10X Genomics chemistry</p>
+<p>This differs from the other 10x Logics because:
+- singletons if the fall in not validated introns are DISCARDED
+- singletons if the fall in validated introns are COUNTED UNSPLICED
+- non-singletons if are supported by not validated introns are COUNTED UNSPLICED
+- non-singletons if are supported by validated introns are COUNTED UNSPLICED</p>
+<dl class="attribute">
+<dt id="velocyto.logic.Intermediate10X.layers">
+<code class="descname">layers</code><a class="headerlink" href="#velocyto.logic.Intermediate10X.layers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Intermediate10X.stranded">
+<code class="descname">stranded</code><a class="headerlink" href="#velocyto.logic.Intermediate10X.stranded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Intermediate10X.perform_validation_markup">
+<code class="descname">perform_validation_markup</code><a class="headerlink" href="#velocyto.logic.Intermediate10X.perform_validation_markup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Intermediate10X.accept_discordant">
+<code class="descname">accept_discordant</code><a class="headerlink" href="#velocyto.logic.Intermediate10X.accept_discordant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.logic.Intermediate10X.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>molitem: velocyto.molitem.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, numpy.ndarray], geneid2ix: Dict[str, int]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/logic.html#Intermediate10X.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Intermediate10X.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>molitem</strong> (<em>vcy.Molitem</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">vcy.Molitem</span></code> object to be considered by the logic</li>
+<li><strong>cell_bcidx</strong> (<em>int</em>) – The cell index in the memory buffers below</li>
+<li><strong>dict_layers_columns</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em>) – A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting</li>
+<li><strong>geneid2ix</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing the Acession of the genes mapping to its column index position</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it adds the molecule to the appropriate layer (or does not count at all)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="velocyto.logic.ValidatedIntrons10X">
+<em class="property">class </em><code class="descclassname">velocyto.logic.</code><code class="descname">ValidatedIntrons10X</code><a class="reference internal" href="../_modules/velocyto/logic.html#ValidatedIntrons10X"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.ValidatedIntrons10X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#velocyto.logic.Logic" title="velocyto.logic.Logic"><code class="xref py py-class docutils literal notranslate"><span class="pre">velocyto.logic.Logic</span></code></a></p>
+<p>ValidatedIntrons logic for 10X Genomics chemistry</p>
+<p>This differs from the other 10x Logics because:
+- singletons if the fall in not validated introns are DISCARDED
+- singletons if the fall in validated introns are COUNTED UNSPLICED
+- non-singletons if are supported by not validated introns are DISCARDED
+- non-singletons if are supported by validated introns are COUNTED UNSPLICED</p>
+<dl class="attribute">
+<dt id="velocyto.logic.ValidatedIntrons10X.layers">
+<code class="descname">layers</code><a class="headerlink" href="#velocyto.logic.ValidatedIntrons10X.layers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.ValidatedIntrons10X.stranded">
+<code class="descname">stranded</code><a class="headerlink" href="#velocyto.logic.ValidatedIntrons10X.stranded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.ValidatedIntrons10X.perform_validation_markup">
+<code class="descname">perform_validation_markup</code><a class="headerlink" href="#velocyto.logic.ValidatedIntrons10X.perform_validation_markup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.ValidatedIntrons10X.accept_discordant">
+<code class="descname">accept_discordant</code><a class="headerlink" href="#velocyto.logic.ValidatedIntrons10X.accept_discordant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.logic.ValidatedIntrons10X.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>molitem: velocyto.molitem.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, numpy.ndarray], geneid2ix: Dict[str, int]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/logic.html#ValidatedIntrons10X.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.ValidatedIntrons10X.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>molitem</strong> (<em>vcy.Molitem</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">vcy.Molitem</span></code> object to be considered by the logic</li>
+<li><strong>cell_bcidx</strong> (<em>int</em>) – The cell index in the memory buffers below</li>
+<li><strong>dict_layers_columns</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em>) – A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting</li>
+<li><strong>geneid2ix</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing the Acession of the genes mapping to its column index position</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it adds the molecule to the appropriate layer (or does not count at all)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="velocyto.logic.Stricter10X">
+<em class="property">class </em><code class="descclassname">velocyto.logic.</code><code class="descname">Stricter10X</code><a class="reference internal" href="../_modules/velocyto/logic.html#Stricter10X"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Stricter10X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#velocyto.logic.Logic" title="velocyto.logic.Logic"><code class="xref py py-class docutils literal notranslate"><span class="pre">velocyto.logic.Logic</span></code></a></p>
+<p>Stricter logic for 10X Genomics chemistry</p>
+<p>This differ from the other 10x Logics because:
+- singletons if the fall in not validated introns are DISCARDED
+- singletons if the fall in validated introns are DISCARDED
+- non-singletons if are supported by not validated introns are DISCARDED
+- non-singletons if are supported by validated introns are COUNTED UNSPLICED</p>
+<dl class="attribute">
+<dt id="velocyto.logic.Stricter10X.layers">
+<code class="descname">layers</code><a class="headerlink" href="#velocyto.logic.Stricter10X.layers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Stricter10X.stranded">
+<code class="descname">stranded</code><a class="headerlink" href="#velocyto.logic.Stricter10X.stranded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Stricter10X.perform_validation_markup">
+<code class="descname">perform_validation_markup</code><a class="headerlink" href="#velocyto.logic.Stricter10X.perform_validation_markup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.logic.Stricter10X.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>molitem: velocyto.molitem.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, numpy.ndarray], geneid2ix: Dict[str, int]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/logic.html#Stricter10X.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Stricter10X.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>molitem</strong> (<em>vcy.Molitem</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">vcy.Molitem</span></code> object to be considered by the logic</li>
+<li><strong>cell_bcidx</strong> (<em>int</em>) – The cell index in the memory buffers below</li>
+<li><strong>dict_layers_columns</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em>) – A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting</li>
+<li><strong>geneid2ix</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing the Acession of the genes mapping to its column index position</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it adds the molecule to the appropriate layer (or does not count at all)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="velocyto.logic.ObservedSpanning10X">
+<em class="property">class </em><code class="descclassname">velocyto.logic.</code><code class="descname">ObservedSpanning10X</code><a class="reference internal" href="../_modules/velocyto/logic.html#ObservedSpanning10X"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.ObservedSpanning10X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#velocyto.logic.Logic" title="velocyto.logic.Logic"><code class="xref py py-class docutils literal notranslate"><span class="pre">velocyto.logic.Logic</span></code></a></p>
+<p>ObservedSpanning10X logic for 10X Genomics chemistry</p>
+<p>This differ from the other 10x Logics because:
+- singletons if the fall in not validated introns are DISCARDED
+- singletons if the fall in validated introns are DISCARDED
+- non-singletons if are supported by not validated introns are DISCARDED
+- non-singletons if are supported by validated introns are DISCARDED
+- Therefore only the observed intron spanning reads are counted as UNSPLICED</p>
+<dl class="attribute">
+<dt id="velocyto.logic.ObservedSpanning10X.layers">
+<code class="descname">layers</code><a class="headerlink" href="#velocyto.logic.ObservedSpanning10X.layers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.ObservedSpanning10X.stranded">
+<code class="descname">stranded</code><a class="headerlink" href="#velocyto.logic.ObservedSpanning10X.stranded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.ObservedSpanning10X.perform_validation_markup">
+<code class="descname">perform_validation_markup</code><a class="headerlink" href="#velocyto.logic.ObservedSpanning10X.perform_validation_markup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.ObservedSpanning10X.accept_discordant">
+<code class="descname">accept_discordant</code><a class="headerlink" href="#velocyto.logic.ObservedSpanning10X.accept_discordant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.logic.ObservedSpanning10X.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>molitem: velocyto.molitem.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, numpy.ndarray], geneid2ix: Dict[str, int]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/logic.html#ObservedSpanning10X.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.ObservedSpanning10X.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>molitem</strong> (<em>vcy.Molitem</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">vcy.Molitem</span></code> object to be considered by the logic</li>
+<li><strong>cell_bcidx</strong> (<em>int</em>) – The cell index in the memory buffers below</li>
+<li><strong>dict_layers_columns</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em>) – A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting</li>
+<li><strong>geneid2ix</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing the Acession of the genes mapping to its column index position</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it adds the molecule to the appropriate layer (or does not count at all)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="velocyto.logic.Discordant10X">
+<em class="property">class </em><code class="descclassname">velocyto.logic.</code><code class="descname">Discordant10X</code><a class="reference internal" href="../_modules/velocyto/logic.html#Discordant10X"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Discordant10X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#velocyto.logic.Logic" title="velocyto.logic.Logic"><code class="xref py py-class docutils literal notranslate"><span class="pre">velocyto.logic.Logic</span></code></a></p>
+<p>Just a test</p>
+<dl class="attribute">
+<dt id="velocyto.logic.Discordant10X.layers">
+<code class="descname">layers</code><a class="headerlink" href="#velocyto.logic.Discordant10X.layers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Discordant10X.stranded">
+<code class="descname">stranded</code><a class="headerlink" href="#velocyto.logic.Discordant10X.stranded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Discordant10X.perform_validation_markup">
+<code class="descname">perform_validation_markup</code><a class="headerlink" href="#velocyto.logic.Discordant10X.perform_validation_markup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Discordant10X.accept_discordant">
+<code class="descname">accept_discordant</code><a class="headerlink" href="#velocyto.logic.Discordant10X.accept_discordant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.logic.Discordant10X.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>molitem: velocyto.molitem.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, numpy.ndarray], geneid2ix: Dict[str, int]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/logic.html#Discordant10X.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.Discordant10X.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>molitem</strong> (<em>vcy.Molitem</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">vcy.Molitem</span></code> object to be considered by the logic</li>
+<li><strong>cell_bcidx</strong> (<em>int</em>) – The cell index in the memory buffers below</li>
+<li><strong>dict_layers_columns</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em>) – A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting</li>
+<li><strong>geneid2ix</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing the Acession of the genes mapping to its column index position</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it adds the molecule to the appropriate layer (or does not count at all)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="velocyto.logic.SmartSeq2">
+<em class="property">class </em><code class="descclassname">velocyto.logic.</code><code class="descname">SmartSeq2</code><a class="reference internal" href="../_modules/velocyto/logic.html#SmartSeq2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.SmartSeq2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#velocyto.logic.Logic" title="velocyto.logic.Logic"><code class="xref py py-class docutils literal notranslate"><span class="pre">velocyto.logic.Logic</span></code></a></p>
+<p>SmartSeq2 logic</p>
+<dl class="attribute">
+<dt id="velocyto.logic.SmartSeq2.layers">
+<code class="descname">layers</code><a class="headerlink" href="#velocyto.logic.SmartSeq2.layers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.SmartSeq2.stranded">
+<code class="descname">stranded</code><a class="headerlink" href="#velocyto.logic.SmartSeq2.stranded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.SmartSeq2.perform_validation_markup">
+<code class="descname">perform_validation_markup</code><a class="headerlink" href="#velocyto.logic.SmartSeq2.perform_validation_markup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.SmartSeq2.accept_discordant">
+<code class="descname">accept_discordant</code><a class="headerlink" href="#velocyto.logic.SmartSeq2.accept_discordant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="velocyto.logic.SmartSeq2.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>molitem: velocyto.molitem.Molitem, cell_bcidx: int, dict_layers_columns: Dict[str, numpy.ndarray], geneid2ix: Dict[str, int]</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/velocyto/logic.html#SmartSeq2.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#velocyto.logic.SmartSeq2.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>molitem</strong> (<em>vcy.Molitem</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">vcy.Molitem</span></code> object to be considered by the logic</li>
+<li><strong>cell_bcidx</strong> (<em>int</em>) – The cell index in the memory buffers below</li>
+<li><strong>dict_layers_columns</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em>) – A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting</li>
+<li><strong>geneid2ix</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing the Acession of the genes mapping to its column index position</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Nothing but it adds the molecule to the appropriate layer (or does not count at all)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="velocyto.logic.Default">
+<code class="descclassname">velocyto.logic.</code><code class="descname">Default</code><a class="headerlink" href="#velocyto.logic.Default" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#velocyto.logic.Permissive10X" title="velocyto.logic.Permissive10X"><code class="xref py py-class docutils literal notranslate"><span class="pre">velocyto.logic.Permissive10X</span></code></a></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../notebooks/index.html" class="btn btn-neutral float-right" title="Notebooks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api_cli_internals.html" class="btn btn-neutral" title="CLI Internals" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.17.16',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1375 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>velocyto.logic &mdash; velocyto 0.17.16 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.17
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fullapi/index.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Authors and citations</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">velocyto</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>velocyto.logic</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for velocyto.logic</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">velocyto</span> <span class="k">as</span> <span class="nn">vcy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+
+
+<div class="viewcode-block" id="Logic"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Logic">[docs]</a><span class="k">class</span> <span class="nc">Logic</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class from wich all the logics should inherit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Logic&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>  <span class="c1"># This should be overridden if a different set of layers is desired</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stranded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perform_validation_markup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">accept_discordant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Logic.count"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Logic.count">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>  <span class="c1"># This needs to be overridden</span>
+    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molitem</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Molitem</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dict_layers_columns</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">geneid2ix</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        molitem: vcy.Molitem</span>
+<span class="sd">            The :py:class:`vcy.Molitem` object to be considered by the logic</span>
+<span class="sd">        cell_bcidx: int</span>
+<span class="sd">            The cell index in the memory buffers below</span>
+<span class="sd">        dict_layers_columns: Dict[str, np.ndarray]</span>
+<span class="sd">            A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting</span>
+<span class="sd">        geneid2ix: Dict[str, int]</span>
+<span class="sd">            Dictionary containing the Acession of the genes mapping to its column index position</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Nothing but it adds the molecule to the appropriate layer (or does not count at all)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># NOTE I need to generalize this to any set of layers</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
+
+<div class="viewcode-block" id="Permissive10X"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Permissive10X">[docs]</a><span class="k">class</span> <span class="nc">Permissive10X</span><span class="p">(</span><span class="n">Logic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Permissive logic for 10X Genomics chemistry</span>
+
+<span class="sd">    This logic differs from the other 10x Logics because:</span>
+<span class="sd">    - singletons if the fall in not validated introns are COUNTED UNSPLICED</span>
+<span class="sd">    - singletons if the fall in validated introns are COUNTED UNSPLICED</span>
+<span class="sd">    - non-singletons if are supported by not validated introns are COUNTED UNSPLICED</span>
+<span class="sd">    - non-singletons if are supported by validated introns are COUNTED UNSPLICED</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Permissive10X&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>  <span class="c1"># This should be overridden if a different set of layers is desired</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">,</span> <span class="s2">&quot;unspliced&quot;</span><span class="p">,</span> <span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stranded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perform_validation_markup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">accept_discordant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Permissive10X.count"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Permissive10X.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molitem</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Molitem</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dict_layers_columns</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">geneid2ix</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># NOTE This can be simplified qyuite a bit, without loss of acuracy!</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="n">spliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">]</span>
+        <span class="n">unspliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;unspliced&quot;</span><span class="p">]</span>
+        <span class="n">ambiguous</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">2</span>
+        <span class="c1"># Compatible with one or more transcript models:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check that there are not different possible genes ??</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">geneid</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gene_check</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                
+                <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">transcript_model</span><span class="p">,</span> <span class="n">segments_list</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">gene_check</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">segment_match</span> <span class="ow">in</span> <span class="n">segments_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_intron</span><span class="p">:</span>
+                            <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_validated</span><span class="p">:</span>
+                                <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">downstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_downstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">downstream_exon</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">upstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_upstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">upstream_exon</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">elif</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_exon</span><span class="p">:</span>
+                            <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_last_3prime</span><span class="p">:</span>
+                                <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">is_spliced</span><span class="p">:</span>
+                                <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_introns</span><span class="p">:</span>
+                        <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">0</span>
+                        
+                <span class="k">if</span> <span class="n">multi_gene</span><span class="p">:</span>
+                    <span class="c1"># Many genes are compatible with the observation, do not count</span>
+                    <span class="k">return</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">):</span>
+                        <span class="c1"># No gene is compatible with the observation, do not count</span>
+                        <span class="k">return</span> <span class="mi">2</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># More common situation, normal exonic read, count as spliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">spliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># All the compatible transcript models have spanning exon-intron boundaries, count unspliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span> <span class="mi">0</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non-singleton in validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in non-validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span> <span class="mi">0</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non-singleton in non-validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="n">has_invalid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant. Count anyways</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Very rare, at least in 10X.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># this was ambiguous in a previous version</span>
+                            <span class="k">return</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span> <span class="mi">0</span>
+                <span class="k">return</span> <span class="mi">4</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">3</span></div></div>
+                    
+
+<div class="viewcode-block" id="Intermediate10X"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Intermediate10X">[docs]</a><span class="k">class</span> <span class="nc">Intermediate10X</span><span class="p">(</span><span class="n">Logic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ValidatedIntrons logic for 10X Genomics chemistry</span>
+<span class="sd">    </span>
+<span class="sd">    This differs from the other 10x Logics because:</span>
+<span class="sd">    - singletons if the fall in not validated introns are DISCARDED</span>
+<span class="sd">    - singletons if the fall in validated introns are COUNTED UNSPLICED</span>
+<span class="sd">    - non-singletons if are supported by not validated introns are COUNTED UNSPLICED</span>
+<span class="sd">    - non-singletons if are supported by validated introns are COUNTED UNSPLICED</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Intermediate10X&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>  <span class="c1"># This should be overridden if a different set of layers is desired</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">,</span> <span class="s2">&quot;unspliced&quot;</span><span class="p">,</span> <span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stranded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perform_validation_markup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">accept_discordant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Intermediate10X.count"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Intermediate10X.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molitem</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Molitem</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dict_layers_columns</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">geneid2ix</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># NOTE This can be simplified qyuite a bit, without loss of acuracy!</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="n">spliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">]</span>
+        <span class="n">unspliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;unspliced&quot;</span><span class="p">]</span>
+        <span class="n">ambiguous</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># Compatible with one or more transcript models:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check that there are not different possible genes ??</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">geneid</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gene_check</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                
+                <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">transcript_model</span><span class="p">,</span> <span class="n">segments_list</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">gene_check</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">segment_match</span> <span class="ow">in</span> <span class="n">segments_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_intron</span><span class="p">:</span>
+                            <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_validated</span><span class="p">:</span>
+                                <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">downstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_downstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">downstream_exon</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">upstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_upstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">upstream_exon</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">elif</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_exon</span><span class="p">:</span>
+                            <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_last_3prime</span><span class="p">:</span>
+                                <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">is_spliced</span><span class="p">:</span>
+                                <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_introns</span><span class="p">:</span>
+                        <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">0</span>
+                        
+                <span class="k">if</span> <span class="n">multi_gene</span><span class="p">:</span>
+                    <span class="c1"># many genes are compatible with the observation, do not count</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">):</span>
+                        <span class="c1"># no gene is compatible with the observation, do not count</span>
+                        <span class="k">return</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># More common situation, normal exonic read, count as spliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">spliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># All the compatible transcript models have spanning exon-intron boundaries, count unspliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non singleton in validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in non-validated intron</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non-singleton in non-validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_invalid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant.</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span></div></div>
+
+
+<div class="viewcode-block" id="ValidatedIntrons10X"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.ValidatedIntrons10X">[docs]</a><span class="k">class</span> <span class="nc">ValidatedIntrons10X</span><span class="p">(</span><span class="n">Logic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ValidatedIntrons logic for 10X Genomics chemistry</span>
+<span class="sd">    </span>
+<span class="sd">    This differs from the other 10x Logics because:</span>
+<span class="sd">    - singletons if the fall in not validated introns are DISCARDED</span>
+<span class="sd">    - singletons if the fall in validated introns are COUNTED UNSPLICED</span>
+<span class="sd">    - non-singletons if are supported by not validated introns are DISCARDED</span>
+<span class="sd">    - non-singletons if are supported by validated introns are COUNTED UNSPLICED</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ValidatedIntrons10X&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>  <span class="c1"># This should be overridden if a different set of layers is desired</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">,</span> <span class="s2">&quot;unspliced&quot;</span><span class="p">,</span> <span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stranded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perform_validation_markup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">accept_discordant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="ValidatedIntrons10X.count"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.ValidatedIntrons10X.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molitem</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Molitem</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dict_layers_columns</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">geneid2ix</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># NOTE This can be simplified qyuite a bit, without loss of acuracy!</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="n">spliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">]</span>
+        <span class="n">unspliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;unspliced&quot;</span><span class="p">]</span>
+        <span class="n">ambiguous</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># Compatible with one or more transcript models:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check that there are not different possible genes ??</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">geneid</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gene_check</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                
+                <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">transcript_model</span><span class="p">,</span> <span class="n">segments_list</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">gene_check</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">segment_match</span> <span class="ow">in</span> <span class="n">segments_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_intron</span><span class="p">:</span>
+                            <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_validated</span><span class="p">:</span>
+                                <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">downstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_downstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">downstream_exon</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">upstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_upstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">upstream_exon</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">elif</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_exon</span><span class="p">:</span>
+                            <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_last_3prime</span><span class="p">:</span>
+                                <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">is_spliced</span><span class="p">:</span>
+                                <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_introns</span><span class="p">:</span>
+                        <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">0</span>
+                        
+                <span class="k">if</span> <span class="n">multi_gene</span><span class="p">:</span>
+                    <span class="c1"># many genes are compatible with the observation, do not count</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">):</span>
+                        <span class="c1"># no gene is compatible with the observation, do not count</span>
+                        <span class="k">return</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># More common situation, normal exonic read, count as spliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">spliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># All the compatible transcript models have spanning exon-intron boundaries, count unspliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non singleton in validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in non-validated intron</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non-singleton in non-validated intron</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_invalid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant.</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span></div></div>
+
+
+<div class="viewcode-block" id="Stricter10X"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Stricter10X">[docs]</a><span class="k">class</span> <span class="nc">Stricter10X</span><span class="p">(</span><span class="n">Logic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Stricter logic for 10X Genomics chemistry</span>
+
+<span class="sd">    This differ from the other 10x Logics because:</span>
+<span class="sd">    - singletons if the fall in not validated introns are DISCARDED</span>
+<span class="sd">    - singletons if the fall in validated introns are DISCARDED</span>
+<span class="sd">    - non-singletons if are supported by not validated introns are DISCARDED</span>
+<span class="sd">    - non-singletons if are supported by validated introns are COUNTED UNSPLICED</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Stricter10X&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>  <span class="c1"># This should be overridden if a different set of layers is desired</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">,</span> <span class="s2">&quot;unspliced&quot;</span><span class="p">,</span> <span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stranded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perform_validation_markup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="Stricter10X.count"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Stricter10X.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molitem</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Molitem</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dict_layers_columns</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">geneid2ix</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># NOTE This can be simplified qyuite a bit, without loss of acuracy!</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="n">spliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">]</span>
+        <span class="n">unspliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;unspliced&quot;</span><span class="p">]</span>
+        <span class="n">ambiguous</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># Compatible with one or more transcript models:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check that there are not different possible genes ??</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">geneid</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gene_check</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                
+                <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">transcript_model</span><span class="p">,</span> <span class="n">segments_list</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">gene_check</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">segment_match</span> <span class="ow">in</span> <span class="n">segments_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_intron</span><span class="p">:</span>
+                            <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_validated</span><span class="p">:</span>
+                                <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">downstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_downstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">downstream_exon</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">upstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_upstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">upstream_exon</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">elif</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_exon</span><span class="p">:</span>
+                            <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_last_3prime</span><span class="p">:</span>
+                                <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">is_spliced</span><span class="p">:</span>
+                                <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_introns</span><span class="p">:</span>
+                        <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">0</span>
+                        
+                <span class="k">if</span> <span class="n">multi_gene</span><span class="p">:</span>
+                    <span class="c1"># many genes are compatible with the observation, do not count</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">):</span>
+                        <span class="c1"># no gene is compatible with the observation, do not count</span>
+                        <span class="k">return</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># More common situation, normal exonic read, count as spliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">spliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># All the compatible transcript models have spanning exon-intron boundaries, count unspliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in validated intron, do not count</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non singleton in validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in non-validated intron</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non-singleton in non-validated intron</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_invalid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant.</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span></div></div>
+
+
+<div class="viewcode-block" id="ObservedSpanning10X"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.ObservedSpanning10X">[docs]</a><span class="k">class</span> <span class="nc">ObservedSpanning10X</span><span class="p">(</span><span class="n">Logic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ObservedSpanning10X logic for 10X Genomics chemistry</span>
+
+<span class="sd">    This differ from the other 10x Logics because:</span>
+<span class="sd">    - singletons if the fall in not validated introns are DISCARDED</span>
+<span class="sd">    - singletons if the fall in validated introns are DISCARDED</span>
+<span class="sd">    - non-singletons if are supported by not validated introns are DISCARDED</span>
+<span class="sd">    - non-singletons if are supported by validated introns are DISCARDED</span>
+<span class="sd">    - Therefore only the observed intron spanning reads are counted as UNSPLICED</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ObservedSpanning10X&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>  <span class="c1"># This should be overridden if a different set of layers is desired</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">,</span> <span class="s2">&quot;unspliced&quot;</span><span class="p">,</span> <span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stranded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perform_validation_markup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">accept_discordant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="ObservedSpanning10X.count"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.ObservedSpanning10X.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molitem</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Molitem</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dict_layers_columns</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">geneid2ix</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># NOTE This can be simplified qyuite a bit, without loss of acuracy!</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="n">spliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">]</span>
+        <span class="n">unspliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;unspliced&quot;</span><span class="p">]</span>
+        <span class="n">ambiguous</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># Compatible with one or more transcript models:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check that there are not different possible genes ??</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">geneid</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gene_check</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                
+                <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">transcript_model</span><span class="p">,</span> <span class="n">segments_list</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">gene_check</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">segment_match</span> <span class="ow">in</span> <span class="n">segments_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_intron</span><span class="p">:</span>
+                            <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_validated</span><span class="p">:</span>
+                                <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">downstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_downstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">downstream_exon</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">upstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_upstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">upstream_exon</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">elif</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_exon</span><span class="p">:</span>
+                            <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_last_3prime</span><span class="p">:</span>
+                                <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">is_spliced</span><span class="p">:</span>
+                                <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_introns</span><span class="p">:</span>
+                        <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">0</span>
+                        
+                <span class="k">if</span> <span class="n">multi_gene</span><span class="p">:</span>
+                    <span class="c1"># Many genes are compatible with the observation, do not count</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">):</span>
+                        <span class="c1"># No gene is compatible with the observation, do not count</span>
+                        <span class="k">return</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># More common situation, normal exonic read, count as spliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">spliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># All the compatible transcript models have spanning exon-intron boundaries, count unspliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in validated intron, do not count</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non-singleton in validated intron, do not count</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in non-validated intron</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non-singleton in non-validated intron</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_invalid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant.</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span></div></div>
+
+
+<div class="viewcode-block" id="Discordant10X"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Discordant10X">[docs]</a><span class="k">class</span> <span class="nc">Discordant10X</span><span class="p">(</span><span class="n">Logic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Just a test</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Discordant10X&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>  <span class="c1"># This should be overridden if a different set of layers is desired</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">,</span> <span class="s2">&quot;unspliced&quot;</span><span class="p">,</span> <span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stranded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perform_validation_markup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">accept_discordant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="Discordant10X.count"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.Discordant10X.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molitem</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Molitem</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dict_layers_columns</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">geneid2ix</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># NOTE This can be simplified qyuite a bit, without loss of acuracy!</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="n">spliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">]</span>
+        <span class="n">unspliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;unspliced&quot;</span><span class="p">]</span>
+        <span class="n">ambiguous</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># Compatible with one or more transcript models:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check that there are not different possible genes ??</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">geneid</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gene_check</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                
+                <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">transcript_model</span><span class="p">,</span> <span class="n">segments_list</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">gene_check</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">segment_match</span> <span class="ow">in</span> <span class="n">segments_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_intron</span><span class="p">:</span>
+                            <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_validated</span><span class="p">:</span>
+                                <span class="n">has_validated_intron</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">downstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_downstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">downstream_exon</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">upstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_upstream_exon</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="n">upstream_exon</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                        <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">elif</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_exon</span><span class="p">:</span>
+                            <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">is_last_3prime</span><span class="p">:</span>
+                                <span class="n">has_non3prime</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">is_spliced</span><span class="p">:</span>
+                                <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_and_valid_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_introns</span><span class="p">:</span>
+                        <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_invalid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="n">has_validated_intron</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">0</span>
+                        
+                <span class="k">if</span> <span class="n">multi_gene</span><span class="p">:</span>
+                    <span class="c1"># Many genes are compatible with the observation, do not count</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">):</span>
+                        <span class="c1"># No gene is compatible with the observation, do not count</span>
+                        <span class="k">return</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># More common situation, normal exonic read, count as spliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">spliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># All the compatible transcript models have spanning exon-intron boundaries, count unspliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non-singleton in validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_and_valid_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># Singleton in non-validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Non-singleton in non-validated intron</span>
+                                <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                                <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                                <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_invalid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant. Count anyways</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_valid_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span></div></div>
+
+
+<div class="viewcode-block" id="SmartSeq2"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.SmartSeq2">[docs]</a><span class="k">class</span> <span class="nc">SmartSeq2</span><span class="p">(</span><span class="n">Logic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;SmartSeq2 logic</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;SmartSeq2&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>  <span class="c1"># This should be overridden if a different set of layers is desired</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">,</span> <span class="s2">&quot;unspliced&quot;</span><span class="p">,</span> <span class="s2">&quot;ambiguous&quot;</span><span class="p">,</span> <span class="s2">&quot;spanning&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stranded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perform_validation_markup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">accept_discordant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="SmartSeq2.count"><a class="viewcode-back" href="../../fullapi/api_cli_logic.html#velocyto.logic.SmartSeq2.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molitem</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Molitem</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dict_layers_columns</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">geneid2ix</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># NOTE This can be simplified qyuite a bit, without loss of acuracy!</span>
+        <span class="c1"># The hits are not compatible with any annotated transcript model</span>
+        <span class="n">spliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;spliced&quot;</span><span class="p">]</span>
+        <span class="n">unspliced</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;unspliced&quot;</span><span class="p">]</span>
+        <span class="n">ambiguous</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;ambiguous&quot;</span><span class="p">]</span>
+        <span class="n">spanning</span> <span class="o">=</span> <span class="n">dict_layers_columns</span><span class="p">[</span><span class="s2">&quot;spanning&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># Compatible with one or more transcript models:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check that there are not different possible genes ??</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">geneid</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">gene_check</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                
+                <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">transcript_model</span><span class="p">,</span> <span class="n">segments_list</span> <span class="ow">in</span> <span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">gene_check</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">multi_gene</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">segment_match</span> <span class="ow">in</span> <span class="n">segments_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_intron</span><span class="p">:</span>
+                            <span class="n">has_introns</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                <span class="n">downstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_downstream_exon</span><span class="p">()</span>
+                                <span class="k">if</span> <span class="n">downstream_exon</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">start_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                <span class="n">upstream_exon</span> <span class="o">=</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">get_upstream_exon</span><span class="p">()</span>
+                                <span class="k">if</span> <span class="n">upstream_exon</span><span class="o">.</span><span class="n">end_overlaps_with_part_of</span><span class="p">(</span><span class="n">segment_match</span><span class="o">.</span><span class="n">segment</span><span class="p">):</span>
+                                    <span class="n">has_exin_intron_span</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">elif</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">maps_to_exon</span><span class="p">:</span>
+                            <span class="n">has_exons</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">segment_match</span><span class="o">.</span><span class="n">is_spliced</span><span class="p">:</span>
+                                <span class="n">has_exseg_with_spliced_flag</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exons</span><span class="p">:</span>
+                        <span class="n">has_onlyintron_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_introns</span><span class="p">:</span>
+                        <span class="n">has_onlyexo_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">has_exons</span> <span class="ow">and</span> <span class="n">has_introns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_valid_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">has_mixed_model</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_exin_intron_span</span><span class="p">:</span>
+                        <span class="n">has_only_span_exin_model</span> <span class="o">=</span> <span class="mi">0</span>
+                        
+                <span class="k">if</span> <span class="n">multi_gene</span><span class="p">:</span>
+                    <span class="c1"># Many genes are compatible with the observation, do not count</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">molitem</span><span class="o">.</span><span class="n">mappings_record</span><span class="p">):</span>
+                        <span class="c1"># NOTE it does not happen for Smartseq2</span>
+                        <span class="c1"># No gene is compatible with the observation, do not count</span>
+                        <span class="k">return</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># More common situation, normal exonic read, count as spliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">spliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_only_span_exin_model</span><span class="p">:</span>
+                            <span class="c1"># NOTE This is what I want to count as spanning</span>
+                            <span class="c1"># All the compatible transcript models have spanning exon-intron boundaries, count unspliced</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">spanning</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_onlyexo_model</span><span class="p">:</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">unspliced</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_onlyintron_model</span> <span class="ow">and</span> <span class="n">has_onlyexo_model</span> <span class="ow">and</span> <span class="n">has_mixed_model</span><span class="p">:</span>
+                            <span class="c1"># NOTE has_mixed model is used only here in this logic</span>
+                            <span class="c1"># Ambiguity among the transcript models compatible with the mapping. Count ambiguous</span>
+                            <span class="n">gene_ix</span> <span class="o">=</span> <span class="n">geneid2ix</span><span class="p">[</span><span class="n">transcript_model</span><span class="o">.</span><span class="n">geneid</span><span class="p">]</span>
+                            <span class="n">ambiguous</span><span class="p">[</span><span class="n">gene_ix</span><span class="p">,</span> <span class="n">cell_bcidx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">return</span></div></div>
+
+
+<span class="n">Default</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">Permissive10X</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../',
+              VERSION:'0.17.16',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

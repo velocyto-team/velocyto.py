@@ -1,0 +1,649 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Command Line Tool API &mdash; velocyto 0.17.16 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="velocyto.analysis module" href="api_analysis.html" />
+    <link rel="prev" title="API" href="index.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.17
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#command-line-api">Command Line API</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="index.html#cli-usage">CLI Usage</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Command Line Tool API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#library-api">Library API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#internals">Internals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#customizable-internals">Customizable Internals</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Authors and citations</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">velocyto</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API</a> &raquo;</li>
+        
+      <li>Command Line Tool API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/velocyto-team/velocyto.py/blob/master/fullapi/cliapi.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="command-line-tool-api">
+<span id="cliapi"></span><h1>Command Line Tool API<a class="headerlink" href="#command-line-tool-api" title="Permalink to this headline">¶</a></h1>
+<p>This page contains a description of all the subcommand inputs of the command line tool <cite>velocyto</cite>. For a usage guide refer to the <a class="reference internal" href="../tutorial/cli.html#cli"><span class="std std-ref">command line tool tutorial</span></a></p>
+<div class="section" id="velocyto">
+<h2>velocyto<a class="headerlink" href="#velocyto" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>velocyto <span class="o">[</span>OPTIONS<span class="o">]</span> COMMAND <span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-version">
+<code class="descname">--version</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the version and exit.</p>
+</dd></dl>
+
+<div class="section" id="velocyto-run">
+<h3>run<a class="headerlink" href="#velocyto-run" title="Permalink to this headline">¶</a></h3>
+<p>Runs the velocity analysis outputting a loom file</p>
+<p>BAMFILE bam file with sorted reads</p>
+<p>GTFFILE genome annotation file</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>velocyto run <span class="o">[</span>OPTIONS<span class="o">]</span> BAMFILE... GTFFILE
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-run-b">
+<code class="descname">-b</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--bcfile</code><code class="descclassname"> &lt;bcfile&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-b" title="Permalink to this definition">¶</a></dt>
+<dd><p>Valid barcodes file, to filter the bam. If –bcfile is not specified all the cell barcodes will be included.
+Cell barcodes should be specified in the bcfile as the <cite>CB</cite> tag for each read</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-o">
+<code class="descname">-o</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--outputfolder</code><code class="descclassname"> &lt;outputfolder&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-o" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output folder, if it does not exist it will be created.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-e">
+<code class="descname">-e</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--sampleid</code><code class="descclassname"> &lt;sampleid&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-e" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sample name that will be used to retrieve informations from metadatatable</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-s">
+<code class="descname">-s</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--metadatatable</code><code class="descclassname"> &lt;metadatatable&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table containing metadata of the various samples (csv formatted, rows are samples and cols are entries)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-m">
+<code class="descname">-m</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--mask</code><code class="descclassname"> &lt;mask&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-m" title="Permalink to this definition">¶</a></dt>
+<dd><p>.gtf file containing intervals to mask</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-c">
+<code class="descname">-c</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--onefilepercell</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-c" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this flag is used every bamfile passed is interpreted as an independent cell, otherwise multiple files are interpreted as batch of different cells to be analyzed together.
+Important: cells reads should not be distributed over multiple bamfiles is not supported!! (default: off)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-l">
+<code class="descname">-l</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--logic</code><code class="descclassname"> &lt;logic&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-l" title="Permalink to this definition">¶</a></dt>
+<dd><p>The logic to use for the filtering (default: Default)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-u">
+<code class="descname">-U</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--without-umi</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-u" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this flag is used the data is assumed UMI-less and reads are counted instead of molecules (default: off)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-umi-extension">
+<code class="descname">-u</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--umi-extension</code><code class="descclassname"> &lt;umi_extension&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-umi-extension" title="Permalink to this definition">¶</a></dt>
+<dd><p>In case UMI is too short to guarantee uniqueness (without information from the ampping) set this parameter to <cite>chr</cite>, <cite>Gene</cite> ro <cite>[N]bp</cite>
+If set to <cite>chr</cite> the mapping position (binned to 10Gb intervals) will be appended to <cite>UB</cite> (ideal for InDrops+dropEst). If set to <cite>Gene</cite> then the <cite>GX</cite> tag will be appended to the <cite>UB</cite> tag.
+If set to <cite>[N]bp</cite> the first N bases of the sequence will be used to extend <cite>UB</cite> (ideal for STRT). (Default: <cite>no</cite>)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-multimap">
+<code class="descname">-M</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--multimap</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-multimap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consider not unique mappings (not reccomended)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run">
+<code class="descname">-&#64;</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--samtools-threads</code><code class="descclassname"> &lt;samtools_threads&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of threads to use to sort the bam by cellID file using samtools</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-samtools-memory">
+<code class="descname">--samtools-memory</code><code class="descclassname"> &lt;samtools_memory&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-samtools-memory" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of MB used for every thread by samtools to sort the bam file</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-t">
+<code class="descname">-t</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--dtype</code><code class="descclassname"> &lt;dtype&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-t" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation (default run: uint32)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-d">
+<code class="descname">-d</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--dump</code><code class="descclassname"> &lt;dump&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-d" title="Permalink to this definition">¶</a></dt>
+<dd><p>For debugging purposes only: it will dump a molecular mapping report to hdf5. –dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-v">
+<code class="descname">-v</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--verbose</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the vebosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-run-arg-bamfile">
+<code class="descname">BAMFILE</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-arg-bamfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument(s)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-arg-gtffile">
+<code class="descname">GTFFILE</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-arg-gtffile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</div>
+<div class="section" id="velocyto-run-dropest">
+<h3>run-dropest<a class="headerlink" href="#velocyto-run-dropest" title="Permalink to this headline">¶</a></h3>
+<p>Runs the velocity analysis on DropEst preprocessed data</p>
+<p>BAMFILE  bam files to be analyzed</p>
+<p>GTFFILE genome annotation file</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>velocyto run-dropest <span class="o">[</span>OPTIONS<span class="o">]</span> BAMFILE GTFFILE
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-b">
+<code class="descname">-b</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--bcfile</code><code class="descclassname"> &lt;bcfile&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-b" title="Permalink to this definition">¶</a></dt>
+<dd><p>Valid barcodes file, to filter the bam. If –bcfile is not specified the file will be searched in the default position outputted by <code class="docutils literal notranslate"><span class="pre">velocyto</span> <span class="pre">tools</span> <span class="pre">dropest_bc_correct</span></code>. Otherwise an error will be thrown</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-l">
+<code class="descname">-l</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--logic</code><code class="descclassname"> &lt;logic&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-l" title="Permalink to this definition">¶</a></dt>
+<dd><p>The logic to use for the filtering (default: Default)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-o">
+<code class="descname">-o</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--outputfolder</code><code class="descclassname"> &lt;outputfolder&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-o" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output folder, if it does not exist it will be created.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-e">
+<code class="descname">-e</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--sampleid</code><code class="descclassname"> &lt;sampleid&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-e" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sample name that will be used as a the filename of the output.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-m">
+<code class="descname">-m</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--repmask</code><code class="descclassname"> &lt;repmask&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-m" title="Permalink to this definition">¶</a></dt>
+<dd><p>.gtf file containing intervals to mask (Optional)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest">
+<code class="descname">-&#64;</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--samtools-threads</code><code class="descclassname"> &lt;samtools_threads&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-dropest" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of threads to use to sort the bam by cellID file using samtools</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-samtools-memory">
+<code class="descname">--samtools-memory</code><code class="descclassname"> &lt;samtools_memory&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-samtools-memory" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of MB used for every thread by samtools to sort the bam file</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-t">
+<code class="descname">-t</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--dtype</code><code class="descclassname"> &lt;dtype&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-t" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation (default run_dropest: uint32)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-d">
+<code class="descname">-d</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--dump</code><code class="descclassname"> &lt;dump&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-d" title="Permalink to this definition">¶</a></dt>
+<dd><p>For debugging purposes only: it will dump a molecular mapping report to hdf5. –dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-v">
+<code class="descname">-v</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--verbose</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the vebosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-arg-bamfile">
+<code class="descname">BAMFILE</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-arg-bamfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-dropest-arg-gtffile">
+<code class="descname">GTFFILE</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-dropest-arg-gtffile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</div>
+<div class="section" id="velocyto-run-smartseq2">
+<h3>run-smartseq2<a class="headerlink" href="#velocyto-run-smartseq2" title="Permalink to this headline">¶</a></h3>
+<p>Runs the velocity analysis on SmartSeq2 data (independent bam file per cell)</p>
+<p>[BAMFILES, …] a sequence of bam files to be analyzed (e.g. use a wild-card expansion)</p>
+<p>GTFFILE genome annotation file</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>velocyto run-smartseq2 <span class="o">[</span>OPTIONS<span class="o">]</span> BAMFILES... GTFFILE
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-run-smartseq2-o">
+<code class="descname">-o</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--outputfolder</code><code class="descclassname"> &lt;outputfolder&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-smartseq2-o" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output folder, if it does not exist it will be created.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-smartseq2-e">
+<code class="descname">-e</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--sampleid</code><code class="descclassname"> &lt;sampleid&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-smartseq2-e" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sample name that will be used as a the filename of the output.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-smartseq2-m">
+<code class="descname">-m</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--repmask</code><code class="descclassname"> &lt;repmask&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-smartseq2-m" title="Permalink to this definition">¶</a></dt>
+<dd><p>.gtf file containing intervals to mask</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-smartseq2-t">
+<code class="descname">-t</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--dtype</code><code class="descclassname"> &lt;dtype&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-smartseq2-t" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation (default in run_smartseq2: uint32)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-smartseq2-d">
+<code class="descname">-d</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--dump</code><code class="descclassname"> &lt;dump&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run-smartseq2-d" title="Permalink to this definition">¶</a></dt>
+<dd><p>For debugging purposes only: it will dump a molecular mapping report to hdf5. –dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-smartseq2-v">
+<code class="descname">-v</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--verbose</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-smartseq2-v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the verbosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-run-smartseq2-arg-bamfiles">
+<code class="descname">BAMFILES</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-smartseq2-arg-bamfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument(s)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run-smartseq2-arg-gtffile">
+<code class="descname">GTFFILE</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run-smartseq2-arg-gtffile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</div>
+<div class="section" id="velocyto-run10x">
+<h3>run10x<a class="headerlink" href="#velocyto-run10x" title="Permalink to this headline">¶</a></h3>
+<p>Runs the velocity analysis for a Chromium 10X Sample</p>
+<p>10XSAMPLEFOLDER specifies the cellranger sample folder</p>
+<p>GTFFILE genome annotation file</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>velocyto run10x <span class="o">[</span>OPTIONS<span class="o">]</span> SAMPLEFOLDER GTFFILE
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-s">
+<code class="descname">-s</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--metadatatable</code><code class="descclassname"> &lt;metadatatable&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run10x-s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table containing metadata of the various samples (csv fortmated rows are samples and cols are entries)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-m">
+<code class="descname">-m</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--mask</code><code class="descclassname"> &lt;mask&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run10x-m" title="Permalink to this definition">¶</a></dt>
+<dd><p>.gtf file containing intervals to mask</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-l">
+<code class="descname">-l</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--logic</code><code class="descclassname"> &lt;logic&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run10x-l" title="Permalink to this definition">¶</a></dt>
+<dd><p>The logic to use for the filtering (default: Default)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-multimap">
+<code class="descname">-M</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--multimap</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run10x-multimap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consider not unique mappings (not reccomended)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x">
+<code class="descname">-&#64;</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--samtools-threads</code><code class="descclassname"> &lt;samtools_threads&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run10x" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of threads to use to sort the bam by cellID file using samtools</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-samtools-memory">
+<code class="descname">--samtools-memory</code><code class="descclassname"> &lt;samtools_memory&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run10x-samtools-memory" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of MB used for every thread by samtools to sort the bam file</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-t">
+<code class="descname">-t</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--dtype</code><code class="descclassname"> &lt;dtype&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run10x-t" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation (default run_10x: uint16)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-d">
+<code class="descname">-d</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--dump</code><code class="descclassname"> &lt;dump&gt;</code><a class="headerlink" href="#cmdoption-velocyto-run10x-d" title="Permalink to this definition">¶</a></dt>
+<dd><p>For debugging purposes only: it will dump a molecular mapping report to hdf5. –dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-v">
+<code class="descname">-v</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--verbose</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run10x-v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-arg-samplefolder">
+<code class="descname">SAMPLEFOLDER</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run10x-arg-samplefolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-run10x-arg-gtffile">
+<code class="descname">GTFFILE</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-run10x-arg-gtffile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</div>
+<div class="section" id="velocyto-tools">
+<h3>tools<a class="headerlink" href="#velocyto-tools" title="Permalink to this headline">¶</a></h3>
+<p>helper tools for velocyto</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>velocyto tools <span class="o">[</span>OPTIONS<span class="o">]</span> COMMAND <span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<div class="section" id="velocyto-tools-dropest-bc-correct">
+<h4>dropest-bc-correct<a class="headerlink" href="#velocyto-tools-dropest-bc-correct" title="Permalink to this headline">¶</a></h4>
+<p>Using the output of DropEst:
+(1) Corrects barcodes directly in the bam file
+(2) Produces a valid barcodes list</p>
+<p>BAMFILEPATH - bam file with sorted reads obtained running DropEst</p>
+<p>DROPEST-OUT - R dump <cite>rds</cite> file generated by DropEst</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>velocyto tools dropest-bc-correct <span class="o">[</span>OPTIONS<span class="o">]</span> BAMFILEPATH DROPEST_OUT
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-tools-dropest-bc-correct-o">
+<code class="descname">-o</code><code class="descclassname"></code><code class="descclassname">, </code><code class="descname">--corrected-output</code><code class="descclassname"> &lt;corrected_output&gt;</code><a class="headerlink" href="#cmdoption-velocyto-tools-dropest-bc-correct-o" title="Permalink to this definition">¶</a></dt>
+<dd><p>(Optional) The file output of the output bam file. Otherwise the file will be outputted in the same folder of the input with the prefix <cite>correct_</cite></p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="option">
+<dt id="cmdoption-velocyto-tools-dropest-bc-correct-arg-bamfilepath">
+<code class="descname">BAMFILEPATH</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-tools-dropest-bc-correct-arg-bamfilepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-velocyto-tools-dropest-bc-correct-arg-dropest-out">
+<code class="descname">DROPEST_OUT</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-velocyto-tools-dropest-bc-correct-arg-dropest-out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api_analysis.html" class="btn btn-neutral float-right" title="velocyto.analysis module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.17.16',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

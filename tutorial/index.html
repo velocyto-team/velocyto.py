@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tutorial &mdash; velocyto 0.17.16 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CLI Usage Guide" href="cli.html" />
+    <link rel="prev" title="Installation Guide" href="../install/index.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.17
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-cli">Running the CLI</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli.html">CLI Usage Guide</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#estimating-rna-velocity">Estimating RNA velocity</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="analysis.html">Analysis Pipeline</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../fullapi/index.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Authors and citations</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">velocyto</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Tutorial</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/velocyto-team/velocyto.py/blob/master/tutorial/index.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tutorial">
+<span id="id1"></span><h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>Velocyto consists of two main components:</p>
+<blockquote>
+<div><ul class="simple">
+<li>A command line interface (CLI), that is used to run the pipeline that generates spliced/unspliced expression matrices.</li>
+<li>A library including functions to estimate RNA velocity from the above mentioned data matrices.</li>
+</ul>
+</div></blockquote>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>First make sure that velocyto is correctly installed following <a class="reference internal" href="../install/index.html#install"><span class="std std-ref">this guide</span></a>.</p>
+</div>
+<div class="section" id="running-the-cli">
+<h2>Running the CLI<a class="headerlink" href="#running-the-cli" title="Permalink to this headline">¶</a></h2>
+<p>This guide explains how to run the counting pipeline.
+It starts from <a class="reference external" href="https://samtools.github.io/hts-specs/">.bam/.sam</a> files to yield a <a class="reference external" href="https://github.com/linnarsson-lab/loompy">.loom file</a> with counts divided in spliced/unspliced/ambiguous.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#preparation">Preparation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli.html#download-genome-annotation-file">Download genome annotation file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli.html#download-expressed-repeats-annotation">Download expressed repeats annotation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#running-velocyto">Running <code class="docutils literal notranslate"><span class="pre">velocyto</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#run10x-run-on-10x-chromium-samples"><code class="docutils literal notranslate"><span class="pre">run10x</span></code> - Run on 10X Chromium samples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#run-smartseq2-run-on-smartseq2-samples"><code class="docutils literal notranslate"><span class="pre">run_smartseq2</span></code> - Run on SmartSeq2 samples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#run-dropest-run-on-dropseq-indrops-and-other-techniques"><code class="docutils literal notranslate"><span class="pre">run_dropest</span></code> - Run on DropSeq, InDrops and other techniques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#run-run-on-any-technique-advanced-use"><code class="docutils literal notranslate"><span class="pre">run</span></code> - Run on any technique (Advanced use)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli.html#notes-on-first-runtime-and-parallelization">Notes on first runtime and parallelization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli.html#run-with-different-logics">Run with different logics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#requirements-on-the-input-files">Requirements on the input files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#about-the-output-loom-file">About the output .loom file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli.html#merging-multiple-samples-lanes-in-a-single-file">Merging multiple samples/lanes in a single file</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#get-started-with-the-analysis">Get started with the analysis</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="estimating-rna-velocity">
+<h2>Estimating RNA velocity<a class="headerlink" href="#estimating-rna-velocity" title="Permalink to this headline">¶</a></h2>
+<p>This guide covers the analysis and assumes that you have produced a <a class="reference external" href="https://github.com/linnarsson-lab/loompy">.loom file</a> using the velocyto CLI (follow the guide above).</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html#velocyto-loom">Velocyto Loom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html#start-a-new-analysis-preliminary-filtering">Start a new analysis - Preliminary Filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html#preparation-for-gamma-fit">Preparation for gamma fit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html#gamma-fit-and-extrapolation">Gamma fit and extrapolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html#projection-of-velocity-onto-embeddings">Projection of velocity onto embeddings</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="cli.html" class="btn btn-neutral float-right" title="CLI Usage Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../install/index.html" class="btn btn-neutral" title="Installation Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.17.16',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

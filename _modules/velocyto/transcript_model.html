@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>velocyto.transcript_model &mdash; velocyto 0.17.16 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.17
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fullapi/index.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Authors and citations</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">velocyto</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>velocyto.transcript_model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for velocyto.transcript_model</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">velocyto</span> <span class="k">as</span> <span class="nn">vcy</span>
+
+
+<div class="viewcode-block" id="TranscriptModel"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.transcript_model.TranscriptModel">[docs]</a><span class="k">class</span> <span class="nc">TranscriptModel</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A simple object representing a transcript model as a list of `vcy.Feature` objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;trid&quot;</span><span class="p">,</span> <span class="s2">&quot;trname&quot;</span><span class="p">,</span> <span class="s2">&quot;geneid&quot;</span><span class="p">,</span> <span class="s2">&quot;genename&quot;</span><span class="p">,</span> <span class="s2">&quot;chromstrand&quot;</span><span class="p">,</span> <span class="s2">&quot;list_features&quot;</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">trname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">geneid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">genename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chromstrand</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trid</span> <span class="o">=</span> <span class="n">trid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trname</span> <span class="o">=</span> <span class="n">trname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geneid</span> <span class="o">=</span> <span class="n">geneid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genename</span> <span class="o">=</span> <span class="n">genename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chromstrand</span> <span class="o">=</span> <span class="n">chromstrand</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">vcy</span><span class="o">.</span><span class="n">Feature</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Feature</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">i</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">chromstrand</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">chromstrand</span><span class="p">,</span> <span class="s2">&quot;`&lt;`(.__lt__) not implemented for different chromosomes&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
+
+    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">chromstrand</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">chromstrand</span><span class="p">,</span> <span class="s2">&quot;`&gt;` (.__gt__) not implemented for different chromosomes&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; NOTE: This should be accessed only after the creation of the transcript model is finished</span>
+<span class="sd">        (i.e.) after append_exon has been called to add all the exons/introns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;NOTE: This should be accessed only after the creation of the transcript model is finished</span>
+<span class="sd">        (i.e.) after append_exon has been called to add all the exons/introns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">end</span>
+        
+<div class="viewcode-block" id="TranscriptModel.ends_upstream_of"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.transcript_model.TranscriptModel.ends_upstream_of">[docs]</a>    <span class="k">def</span> <span class="nf">ends_upstream_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Read</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># one could consider to add TOLERANCE</span>
+        <span class="c1"># note that ``self.list_features[-1]`` is the last exon if strand + and first exons for strand -</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">end</span> <span class="o">&lt;</span> <span class="n">read</span><span class="o">.</span><span class="n">pos</span></div>
+
+<div class="viewcode-block" id="TranscriptModel.intersects"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.transcript_model.TranscriptModel.intersects">[docs]</a>    <span class="k">def</span> <span class="nf">intersects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">segment</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">minimum_flanking</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="n">vcy</span><span class="o">.</span><span class="n">MIN_FLANK</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">minimum_flanking</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="ow">and</span>\
+               <span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">minimum_flanking</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>  <span class="c1"># and ((segment[-1] - segment[0]) &gt; minimum_flanking)</span></div>
+
+<div class="viewcode-block" id="TranscriptModel.append_exon"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.transcript_model.TranscriptModel.append_exon">[docs]</a>    <span class="k">def</span> <span class="nf">append_exon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exon_feature</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Feature</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Append an exon and create an intron when needed</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        exon_feature: vcy.Feature</span>
+<span class="sd">            A feature object represneting an exon to add to the transcript model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">exon_feature</span><span class="o">.</span><span class="n">transcript_model</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># first/last exon</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">exon_feature</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Some exon already exissted</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chromstrand</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
+                <span class="n">intron_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">exin_no</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">intron_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">exin_no</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vcy</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                                                  <span class="n">end</span><span class="o">=</span><span class="n">exon_feature</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                                                  <span class="n">kind</span><span class="o">=</span><span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">),</span>
+                                                  <span class="n">exin_no</span><span class="o">=</span><span class="n">intron_number</span><span class="p">,</span>
+                                                  <span class="n">transcript_model</span><span class="o">=</span><span class="bp">self</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">exon_feature</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TranscriptModel.chop_if_long_intron"><a class="viewcode-back" href="../../fullapi/api_cli_internals.html#velocyto.transcript_model.TranscriptModel.chop_if_long_intron">[docs]</a>    <span class="k">def</span> <span class="nf">chop_if_long_intron</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxlen</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="n">vcy</span><span class="o">.</span><span class="n">LONGEST_INTRON_ALLOWED</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Modify a Transcript model choppin the 5&#39; region upstram of a very long intron</span>
+<span class="sd">        To avoid that extremelly long intron mask the counting of interal genes</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        maxlen: int, default=vcy.LONGEST_INTRON_ALLOWED</span>
+<span class="sd">            transcript model tha contain one or more intronic interval of len == maxlen will be chopped</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Nothing it will call `_remove_upstream_of` or `_remove_downstream_of` on the transcript model</span>
+<span class="sd">        its name will be changed appending `_mod` to both trid and trname</span>
+<span class="sd">         </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">long_feats</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maxlen</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">long_feats</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chromstrand</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_remove_upstream_of</span><span class="p">(</span><span class="n">long_feats</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># self.chromstrand[-1] == &quot;-&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_remove_downstream_of</span><span class="p">(</span><span class="n">long_feats</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trid</span> <span class="o">+</span> <span class="s2">&quot;_mod&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trname</span> <span class="o">+</span> <span class="s2">&quot;_mod&quot;</span></div>
+
+    <span class="k">def</span> <span class="nf">_remove_upstream_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">longest_feat</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Feature</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ec</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">ic</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">feat</span> <span class="o">&gt;</span> <span class="n">longest_feat</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">):</span>
+                    <span class="n">feat</span><span class="o">.</span><span class="n">exin_no</span> <span class="o">=</span> <span class="n">ec</span>
+                    <span class="n">ec</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">feat</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">):</span>
+                    <span class="n">feat</span><span class="o">.</span><span class="n">exin_no</span> <span class="o">=</span> <span class="n">ic</span>
+                    <span class="n">ic</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span> <span class="o">=</span> <span class="n">tmp</span>
+
+    <span class="k">def</span> <span class="nf">_remove_downstream_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">longest_feat</span><span class="p">:</span> <span class="n">vcy</span><span class="o">.</span><span class="n">Feature</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ec</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">ic</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">feat</span> <span class="o">&lt;</span> <span class="n">longest_feat</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">feat</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">):</span>
+                    <span class="n">feat</span><span class="o">.</span><span class="n">exin_no</span> <span class="o">=</span> <span class="n">ec</span>
+                    <span class="n">ec</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">feat</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">):</span>
+                    <span class="n">feat</span><span class="o">.</span><span class="n">exin_no</span> <span class="o">=</span> <span class="n">ic</span>
+                    <span class="n">ic</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">list_feats</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;{chr(i.kind)}</span><span class="si">{i.exin_no}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_features</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;&lt;TrMod </span><span class="si">{self.trid}</span><span class="se">\t</span><span class="si">{list_feats}</span><span class="se">\t</span><span class="s2">at {hex(id(self))}&gt;&quot;</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../',
+              VERSION:'0.17.16',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

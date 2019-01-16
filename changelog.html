@@ -1,0 +1,395 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Changelog &mdash; velocyto 0.17.16 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="License" href="license/index.html" />
+    <link rel="prev" title="Notebooks" href="notebooks/index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> velocyto
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.17
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to velocyto.py!</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install/index.html">Installation Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fullapi/index.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/index.html">Notebooks</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="license/index.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="citing/index.html">Authors and citations</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">velocyto</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Changelog</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/velocyto-team/velocyto.py/blob/master/changelog.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="changelog">
+<span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="0.17.15">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.17.15">0.17.15</a> <span style="font-size: 75%;">2019-1-15</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> It adds the option to specify the data type of the loom file layers</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Avoids truncating or overflowing when data per cell per gene exceeds 6500 (max of uint16), this is very rare but it can happen in deeply sampled smartseq2</li>
+</ul>
+</div>
+<div class="section" id="0.17.8">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.17.8">0.17.8</a> <span style="font-size: 75%;">2018-05-30</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Avoids an error with an older versions of cellranger not outputting the _log file</li>
+</ul>
+</div>
+<div class="section" id="0.17.6">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.17.6">0.17.6</a> <span style="font-size: 75%;">2018-05-03</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Be more forgiving on the requirements of the gtf file: <cite>gene_name</cite>, <cite>transcipt_name</cite> and <cite>exon_number</cite> are not required fields anymore</li>
+<li>[<span style="color: #4070A0;">Support</span>]<span>:</span><span> </span> Add section of the docs, explaining better what the bam and gtf files are expected to contain</li>
+</ul>
+</div>
+<div class="section" id="0.17.5">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.17.5">0.17.5</a> <span style="font-size: 75%;">2018-04-19</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add <cite>filter_genes_by_phase_portrait</cite> as the main api to filter genes supporting versatile set of conditions</li>
+</ul>
+</div>
+<div class="section" id="0.17.2">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.17.2">0.17.2</a> <span style="font-size: 75%;">2018-04-08</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix an error when aligners report consecutive insertion/deletion instead of mismatch</li>
+</ul>
+</div>
+<div class="section" id="0.17.0">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.17.0">0.17.0</a> <span style="font-size: 75%;">2018-04-08</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Improved compatibility with InDrops and STRT through the <code class="docutils literal notranslate"><span class="pre">--umi-extentions</span></code>. It allows the same pipeline to be applied to methods with short molecular barcode that cannot be used call a unique molecule without the gene mapping information.</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Support barcodes of different length</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> support different verbosity levels with the <code class="docutils literal notranslate"><span class="pre">-v</span></code> flag</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> <code class="docutils literal notranslate"><span class="pre">--without-umi</span></code> option allows analyzing UMI-less data such as SmartSeq2</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Generalized logic to include more layers than just Spliced, Unspliced, Ambiguous</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> It supports multiple bam files input, it can interpret the file(s) as either as one-file-one-cell or just as batches to be analyzed together. IMPORTANT: a cell cannot be distributed over different bamfiles!</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> It supports SmartSeq2 and has a new run_smartseq2 command</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Improve the debug molecular report option to support hdf5</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add possibility to constraint knn averaging: when turned on avoids edges between cells of specified groups</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add size factor normalization option</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add optional feature selection for the unspliced</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> run automatically randomized (negative) control for the velocity. Added plotting options for the randomized control visualization</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Change behavior in no-barcode-list mode: use a very permissive heuristic of &lt; 80 molecules per cell as the threshold to thrash empty droplets / no-cell events</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add cosine projection penalty</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add the set of subcommands <code class="docutils literal notranslate"><span class="pre">veloctyo</span> <span class="pre">tools</span></code> to bridge velocyto with other software (for now DropEst)</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add subcommand <code class="docutils literal notranslate"><span class="pre">run_dropest</span></code> as a shortcut to run dropEst preprocessed data (including Indrops and DropSeq)</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix an error in filter_cells: colors array is now filtered as well</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix colormap bug with matplotlib 2.2.0</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix a skip repeat error with SmartSeq2 pipeline</li>
+<li>[<span style="color: #4070A0;">Support</span>]<span>:</span><span> </span> <code class="docutils literal notranslate"><span class="pre">--multimap</span></code> option was removed because it could have yield incorrect results depending on the output format chosen for the aligner</li>
+<li>[<span style="color: #4070A0;">Support</span>]<span>:</span><span> </span> Deprecation warning on <cite>default</cite> functions: they were being misused by the users.</li>
+</ul>
+</div>
+<div class="section" id="0.13.5">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.13.5">0.13.5</a> <span style="font-size: 75%;">2018-02-07</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix a bug that caused extremely slow runtimes when the input bam was not position sorted. Now <cite>velocyto</cite> will raise an error and ask the user to sort the file using samtools.</li>
+<li>[<span style="color: #4070A0;">Support</span>]<span>:</span><span> </span> Improve the changelog structure</li>
+</ul>
+</div>
+<div class="section" id="0.13.4">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.13.4">0.13.4</a> <span style="font-size: 75%;">2018-01-25</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> A change in slicing related to an API change of <cite>__getattr__</cite> in loompy2</li>
+</ul>
+</div>
+<div class="section" id="0.13.3">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.13.3">0.13.3</a> <span style="font-size: 75%;">2018-01-25</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Catch another error due to the API change of <cite>.create</cite> in loompy2</li>
+</ul>
+</div>
+<div class="section" id="0.13.2">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.13.2">0.13.2</a> <span style="font-size: 75%;">2018-01-25</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix an incompatibility with loompy2 related to column and row attributes changing from dict to an object</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Catch error due to the API change of <cite>.create</cite> in loompy2</li>
+</ul>
+</div>
+<div class="section" id="0.13.1">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.13.1">0.13.1</a> <span style="font-size: 75%;">2018-01-22</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Sample metadata file can be specified with different csv formats (the format will be determined automatically)</li>
+</ul>
+</div>
+<div class="section" id="0.13.0">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.13.0">0.13.0</a> <span style="font-size: 75%;">2018-01-19</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Improve documentation: remove information about sorting .gtf files. This procedure is not needed anymore.</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> CLI does not require presorting the gtf files. To reduce possibility of incorrect usage, now .gtf file sorting sorting is performed in memory (and not saved).</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Sometimes velocyto missed to detect and warn the user that the <cite>.gtf</cite> genome annotation file was not sorted, this could have caused undetected errors in the analysis. If you run velocyto without sorting the .gtf, we suggest rerunning.</li>
+</ul>
+</div>
+<div class="section" id="0.12.4">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.12.4">0.12.4</a> <span style="font-size: 75%;">2018-01-18</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span> </span><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/issues/40">#40</a><span>:</span> Error in hdf5 serialization when using cluster label as object array is now fixed</li>
+</ul>
+</div>
+<div class="section" id="0.12.3">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.12.3">0.12.3</a> <span style="font-size: 75%;">2018-01-17</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span> </span><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/issues/38">#38</a><span>:</span> Error in running run10x is now fixed</li>
+</ul>
+</div>
+<div class="section" id="0.12.2">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.12.2">0.12.2</a> <span style="font-size: 75%;">2018-01-12</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span> </span><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/issues/37">#37</a><span>:</span> Initial cell size array gets updated properly when filtering cells</li>
+</ul>
+</div>
+<div class="section" id="0.12.1">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.12.1">0.12.1</a> <span style="font-size: 75%;">2018-01-04</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span> </span><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/issues/35">#35</a><span>:</span> Attempted to fix a reported bug running velocyto CLI</li>
+</ul>
+</div>
+<div class="section" id="0.12.0">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.12.0">0.12.0</a> <span style="font-size: 75%;">2017-12-17</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Pipeline now consider all the possible transcript models that could be supported by a set of reads individually and then decides on the spliced/unspliced/ambiguous count.</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Support different Logic levels</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Changelog added to the doc</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Make the CLI simpler removing the extract interval step.
+Now the source .gtf files can be provided directly, they should be provided sorted using <code class="code docutils literal notranslate"><span class="pre">sort</span> <span class="pre">-k1,1</span> <span class="pre">-k7,7</span> <span class="pre">-k4,4n</span> <span class="pre">-o</span> <span class="pre">[OUTFILE]</span> <span class="pre">[INFILE]</span></code></li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Large parts of the documentation rewritten to match the changes in API</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Remove the subcommand <code class="docutils literal notranslate"><span class="pre">multi10x</span></code></li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add possibility to export pickle containing information of every molecule</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span> </span><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/issues/31">#31</a><span>:</span> Memory usage bug should be solved.</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Many small bug fixes</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Incorrect 0-based indexing for splicing junction corrected (was not causing problems because buffered by MIN_FLANK)</li>
+<li>[<span style="color: #4070A0;">Support</span>]<span>:</span><span> </span> Update the documentation for the new  <a class="reference internal" href="tutorial/cli.html#cli"><span class="std std-ref">CLI</span></a></li>
+</ul>
+</div>
+<div class="section" id="0.11.0">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.11.0">0.11.0</a> <span style="font-size: 75%;">2017-12-01</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> fix a bug with ambiguous molecules counting and version bump</li>
+</ul>
+</div>
+<div class="section" id="0.10.3">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.10.3">0.10.3</a> <span style="font-size: 75%;">2017-11-23</span></h2><ul class="simple">
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> The debug and sampleid option had the same short flag <cite>-d</cite></li>
+</ul>
+</div>
+<div class="section" id="0.10.1">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.10.1">0.10.1</a> <span style="font-size: 75%;">2017-11-18</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> further ~5x speedup of cython functions making them 100% C and using malloc instead of memory views</li>
+</ul>
+</div>
+<div class="section" id="0.10.0">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.10.0">0.10.0</a> <span style="font-size: 75%;">2017-11-18</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add support for DropSeq pipelines where the barcode flags in the bam file are <cite>XC</cite> and <cite>XM</cite> instead of <cite>CB</cite> and <cite>UB</cite></li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Using sphinx 1.7 sorts the autodoc API correctly</li>
+</ul>
+</div>
+<div class="section" id="0.9.11">
+<h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/velocyto-team/velocyto.py/tree/0.9.11">0.9.11</a> <span style="font-size: 75%;">2017-11-03</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Improve the docs</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="license/index.html" class="btn btn-neutral float-right" title="License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="notebooks/index.html" class="btn btn-neutral" title="Notebooks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Linnarsson Lab
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.17.16',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
