@@ -67,6 +67,9 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 @click.option("--samtools-memory",
               help="The number of MB used for every thread by samtools to sort the bam file",
               default=2048)
+@click.option("--dtype", "-t",
+              help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation (default run_dropest: uint32)",
+              default="uint32")
 @click.option("--dump", "-d",
               help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
               default="0")
@@ -74,7 +77,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               help="Set the vebosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)",
               count=True, default=1)
 def run_dropest(bamfile: str, gtffile: str, bcfile: str, logic: str, outputfolder: str, sampleid: str,
-                repmask: str, samtools_threads: int, samtools_memory: int, dump: str, verbose: int, additional_ca: dict={}) -> None:
+                repmask: str, samtools_threads: int, samtools_memory: int, dtype: str, dump: str, verbose: int, additional_ca: dict={}) -> None:
     """Runs the velocity analysis on DropEst preprocessed data
 
     BAMFILE  bam files to be analyzed
@@ -101,4 +104,4 @@ def run_dropest(bamfile: str, gtffile: str, bcfile: str, logic: str, outputfolde
                 sampleid=sampleid, metadatatable=None, repmask=repmask, onefilepercell=False,
                 logic=logic, without_umi=False, umi_extension="chr",
                 multimap=False, test=False, samtools_threads=samtools_threads,
-                samtools_memory=samtools_memory, dump=dump, verbose=verbose, additional_ca=additional_ca)
+                samtools_memory=samtools_memory, loom_numeric_dtype=dtype, dump=dump, verbose=verbose, additional_ca=additional_ca)

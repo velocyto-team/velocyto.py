@@ -20,9 +20,11 @@ import sys
 class ExInCounter:
     """ Main class to do the counting of introns and exons """
     def __init__(self, sampleid: str, logic: vcy.Logic, valid_bcset: Set[str]=None,
-                 umi_extension: str="no", onefilepercell: bool=False, dump_option: str="0", outputfolder: str="./") -> None:
+                 umi_extension: str="no", onefilepercell: bool=False, dump_option: str="0",
+                 outputfolder: str="./", loom_numeric_dtype: str=vcy.LOOM_NUMERIC_DTYPE) -> None:
         self.outputfolder = outputfolder
         self.sampleid = sampleid
+        self.loom_numeric_dtype = loom_numeric_dtype
         self.logic = logic()
         # NOTE: maybe there shoulb be a self.logic.verify_inputs(args) step at the end of init
         if valid_bcset is None:
@@ -840,7 +842,7 @@ class ExInCounter:
 
         dict_layers_columns: Dict[str, np.ndarray] = {}
         for layer_name in self.logic.layers:
-            dict_layers_columns[layer_name] = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE, order="C")
+            dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
 
         bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
@@ -996,7 +998,7 @@ class ExInCounter:
 
         dict_layers_columns: Dict[str, np.ndarray] = {}
         for layer_name in self.logic.layers:
-            dict_layers_columns[layer_name] = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE, order="C")
+            dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
 
         bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
@@ -1155,7 +1157,7 @@ class ExInCounter:
 
         dict_layers_columns: Dict[str, np.ndarray] = {}
         for layer_name in self.logic.layers:
-            dict_layers_columns[layer_name] = np.zeros(shape, dtype=vcy.LOOM_NUMERIC_DTYPE, order="C")
+            dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
 
         bc2idx: Dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting

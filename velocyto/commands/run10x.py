@@ -57,6 +57,9 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
 @click.option("--samtools-memory",
               help="The number of MB used for every thread by samtools to sort the bam file",
               default=2048)
+@click.option("--dtype", "-t",
+              help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation (default run_10x: uint16)",
+              default="uint16")
 @click.option("--dump", "-d",
               help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
               default="0")
@@ -65,7 +68,7 @@ logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(m
               count=True, default=1)
 def run10x(samplefolder: str, gtffile: str,
            metadatatable: str, mask: str, logic: str, multimap: bool,
-           samtools_threads: int, samtools_memory: int, dump: str, verbose: str) -> None:
+           samtools_threads: int, samtools_memory: int, dtype: str, dump: str, verbose: str) -> None:
     """Runs the velocity analysis for a Chromium 10X Sample
 
     10XSAMPLEFOLDER specifies the cellranger sample folder
@@ -109,4 +112,4 @@ def run10x(samplefolder: str, gtffile: str,
     return _run(bamfile=(bamfile, ), gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=mask, onefilepercell=False,
                 logic=logic, without_umi=False, umi_extension="no", multimap=multimap, test=False, samtools_threads=samtools_threads,
-                samtools_memory=samtools_memory, dump=dump, verbose=verbose, additional_ca=additional_ca)
+                samtools_memory=samtools_memory, dump=dump, loom_numeric_dtype=dtype, verbose=verbose, additional_ca=additional_ca)

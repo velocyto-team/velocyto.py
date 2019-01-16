@@ -28,7 +28,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
          sampleid: str, metadatatable: str,
          repmask: str, onefilepercell: bool, logic: str,
          without_umi: str, umi_extension: str, multimap: bool, test: bool,
-         samtools_threads: int, samtools_memory: int, dump: bool, verbose: int,
+         samtools_threads: int, samtools_memory: int, loom_numeric_dtype: str, dump: bool, verbose: int,
          additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputing a loom file
 
@@ -285,7 +285,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     try:
         ds = loompy.create(filename=outfile, matrix=total, row_attrs=ra, col_attrs=ca, dtype="float32")
         for layer_name in logic_obj.layers:
-            ds.set_layer(name=layer_name, matrix=layers[layer_name], dtype=vcy.LOOM_NUMERIC_DTYPE)
+            ds.set_layer(name=layer_name, matrix=layers[layer_name], dtype=loom_numeric_dtype)
         ds.attrs["velocyto.__version__"] = vcy.__version__
         ds.attrs["velocyto.logic"] = logic
         ds.close()
@@ -293,6 +293,6 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         # If user is using loompy2
         # NOTE maybe this is not super efficient if the type and order are already correct
         tmp_layers = {"": total.astype("float32", order="C", copy=False)}
-        tmp_layers.update({layer_name: layers[layer_name].astype(vcy.LOOM_NUMERIC_DTYPE, order="C", copy=False) for layer_name in logic_obj.layers})
+        tmp_layers.update({layer_name: layers[layer_name].astype(loom_numeric_dtype, order="C", copy=False) for layer_name in logic_obj.layers})
         loompy.create(filename=outfile, layers=tmp_layers, row_attrs=ra, col_attrs=ca, file_attrs={"velocyto.__version__": vcy.__version__, "velocyto.logic": logic})
     logging.debug("Terminated Succesfully!")

@@ -89,6 +89,9 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
 @click.option("--samtools-memory",
               help="The number of MB used for every thread by samtools to sort the bam file",
               default=2048)
+@click.option("--dtype", "-t",
+              help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation (default run: uint32)",
+              default="uint32")
 @click.option("--dump", "-d",
               help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
               default="0")
@@ -99,7 +102,7 @@ def run(bamfile: str, gtffile: str,
         bcfile: str, outputfolder: str,
         sampleid: str, metadatatable: str,
         mask: str, onefilepercell: bool, logic: str, without_umi: str, umi_extension: str, multimap: bool,
-        samtools_threads: int, samtools_memory: int, dump: str, verbose: int,
+        samtools_threads: int, samtools_memory: int, dtype: str, dump: str, verbose: int,
         additional_ca: dict={}) -> None:
     """Runs the velocity analysis outputting a loom file
 
@@ -110,4 +113,4 @@ def run(bamfile: str, gtffile: str,
     return _run(bamfile=bamfile, gtffile=gtffile, bcfile=bcfile, outputfolder=outputfolder,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=mask, onefilepercell=onefilepercell,
                 logic=logic, without_umi=without_umi, umi_extension=umi_extension, multimap=multimap, test=False, samtools_threads=samtools_threads,
-                samtools_memory=samtools_memory, dump=dump, verbose=verbose, additional_ca=additional_ca)
+                samtools_memory=samtools_memory, dump=dump, loom_numeric_dtype=dtype, verbose=verbose, additional_ca=additional_ca)

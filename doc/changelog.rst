@@ -4,6 +4,9 @@
 Changelog
 =========
 
+* :release:`0.17.15 <2019-1-15>`
+* :bug:`-` Avoids truncating or overflowing when data per cell per gene exceeds 6500 (max of uint16), this is very rare but it can happen in deeply sampled smartseq2
+* :feature:`-` It adds the option to specify the data type of the loom file layers
 * :release:`0.17.8 <2018-05-30>`
 * :bug:`-` Avoids an error with an older versions of cellranger not outputting the _log file
 * :release:`0.17.6 <2018-05-03>`

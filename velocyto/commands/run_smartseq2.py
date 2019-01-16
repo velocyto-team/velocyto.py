@@ -50,6 +50,9 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                               file_okay=True,
                               dir_okay=False,
                               readable=True))
+@click.option("--dtype", "-t",
+              help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation (default in run_smartseq2: uint32)",
+              default="uint32")
 @click.option("--dump", "-d",
               help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
               default="0")
@@ -57,7 +60,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               help="Set the verbosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)",
               count=True, default=1)
 def run_smartseq2(bamfiles: str, gtffile: str, outputfolder: str, sampleid: str,
-                  repmask: str, dump: str, verbose: int, additional_ca: dict={}) -> None:
+                  repmask: str, dtype: str, dump: str, verbose: int, additional_ca: dict={}) -> None:
     """Runs the velocity analysis on SmartSeq2 data (independent bam file per cell)
 
     [BAMFILES, ...] a sequence of bam files to be analyzed (e.g. use a wild-card expansion)
@@ -68,4 +71,4 @@ def run_smartseq2(bamfiles: str, gtffile: str, outputfolder: str, sampleid: str,
                 sampleid=sampleid, metadatatable=None, repmask=repmask, onefilepercell=True,
                 logic="SmartSeq2", without_umi=True, umi_extension="no",
                 multimap=False, test=False, samtools_threads=1,
-                samtools_memory=1, dump=dump, verbose=verbose, additional_ca=additional_ca)
+                samtools_memory=1, dump=dump, loom_numeric_dtype=dtype, verbose=verbose, additional_ca=additional_ca)
