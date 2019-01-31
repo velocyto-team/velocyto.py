@@ -994,6 +994,11 @@ class VelocytoLoom:
             if group_constraint is not None:
                 if isinstance(group_constraint, str) and group_constraint == "clusters":
                     constraint = np.array(self.cluster_ix)
+                if isinstance(group_constraint, np.ndarray):
+                    if len(group_constraint) != N:
+                        raise ValueError(f"Shape of the group_constraint varaible is {len(group_constraint)} instead of {N}")
+                    else:
+                        constraint = np.array(group_constraint)
                 bknn = BalancedKNN(k=k, sight_k=b_sight, maxl=b_maxl, metric=metric, constraint=constraint, mode="distance", n_jobs=n_jobs)
             else:
                 bknn = BalancedKNN(k=k, sight_k=b_sight, maxl=b_maxl, metric=metric, mode="distance", n_jobs=n_jobs)

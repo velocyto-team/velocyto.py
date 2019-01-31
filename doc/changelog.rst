@@ -4,6 +4,8 @@
 Changelog
 =========
 
+* :release:`0.17.17 <2019-1-31>`
+* :bug:`-` Allows inputing np.ndarray as constraint for imputation procedure
 * :release:`0.17.15 <2019-1-15>`
 * :bug:`-` Avoids truncating or overflowing when data per cell per gene exceeds 6500 (max of uint16), this is very rare but it can happen in deeply sampled smartseq2
 * :feature:`-` It adds the option to specify the data type of the loom file layers
