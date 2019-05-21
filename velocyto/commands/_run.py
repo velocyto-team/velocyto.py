@@ -283,9 +283,9 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
 
     logging.debug("Writing loom file")
     try:
-        ds = loompy.create(filename=outfile, matrix=total, row_attrs=ra, col_attrs=ca, dtype="float32")
+        ds = loompy.create(filename=outfile, layers=total, row_attrs=ra, col_attrs=ca, dtype="float32")
         for layer_name in logic_obj.layers:
-            ds.set_layer(name=layer_name, matrix=layers[layer_name], dtype=loom_numeric_dtype)
+            ds.set_layer(name=layer_name, layers=layers[layer_name], dtype=loom_numeric_dtype)
         ds.attrs["velocyto.__version__"] = vcy.__version__
         ds.attrs["velocyto.logic"] = logic
         ds.close()
