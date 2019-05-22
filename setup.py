@@ -49,7 +49,7 @@ setup(
                       'loompy',
                       'pysam',
                       'Click',
-                      'pandas'],
+                      'pandas>=0.24'],
     # command
     entry_points='''
         [console_scripts]
