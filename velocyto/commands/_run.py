@@ -12,6 +12,7 @@ import subprocess
 import multiprocessing
 import csv
 import itertools
+import pandas as pd
 from collections import defaultdict
 import logging
 import h5py
@@ -240,7 +241,26 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         gem_grp = ""
         valid_cellid_list = np.array([f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list])  # with sampleid and with -1
         logging.debug(f"Example of barcode: {valid_bcs_list[0]} and cell_id: {valid_cellid_list[0]}")
-     
+    
+    # If this data is from a 10X run, it is possible that additional_ca has data from cells that are present in the TSNE and Cluster files 
+    # but not present in the count matrix.   these are not removed prior to attempting to create the loom file, this whole process will fail
+    if len(cell_bcs_order) < len(additional_ca['_X']):
+        tsne_file = os.path.join(samplefolder, "outs", "analysis", "tsne", "2_components", "projection.csv")
+        if os.path.exists(tsne_file):
+            tsne_pd = pd.read_csv(tsne_file)
+            tsne_pd["Barcode"] = [_[:-2] for _ in tsne_pd["Barcode"]]
+            tsne_pd = tsne_pd[tsne_pd["Barcode"].isin(cell_bcs_order)]
+            additional_ca['_X'] = tsne_pd['TSNE-1'].to_numpy()
+            additional_ca['_Y'] = tsne_pd['TSNE-1'].to_numpy()
+        
+        clusters_file = os.path.join(samplefolder, "outs", "analysis", "clustering", "graphclust", "clusters.csv")
+        if os.path.exists(clusters_file):
+            labels = np.loadtxt(clusters_file, usecols=(1, ), delimiter=',', skiprows=1)
+            clusters_pd = pd.read_csv(clusters_file)
+            clusters_pd["Barcode"] = [_[:-2] for _ in clusters_pd["Barcode"]]
+            clusters_pd = clusters_pd[clusters_pd["Barcode"].isin(cell_bcs_order)]
+            additional_ca['Clusters'] = clusters_pd["Cluster"].to_numpy(dtype="int16") - 1
+
     ca = {"CellID": np.array([f"{sampleid}:{v_bc}{gem_grp}" for v_bc in cell_bcs_order])}
     ca.update(additional_ca)
 
@@ -282,17 +302,22 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
             total = np.array(layers[layer_name])
 
     logging.debug("Writing loom file")
-    try:
-        ds = loompy.create(filename=outfile, layers=total, row_attrs=ra, col_attrs=ca, dtype="float32")
-        for layer_name in logic_obj.layers:
-            ds.set_layer(name=layer_name, layers=layers[layer_name], dtype=loom_numeric_dtype)
-        ds.attrs["velocyto.__version__"] = vcy.__version__
-        ds.attrs["velocyto.logic"] = logic
-        ds.close()
-    except TypeError:
-        # If user is using loompy2
-        # NOTE maybe this is not super efficient if the type and order are already correct
-        tmp_layers = {"": total.astype("float32", order="C", copy=False)}
-        tmp_layers.update({layer_name: layers[layer_name].astype(loom_numeric_dtype, order="C", copy=False) for layer_name in logic_obj.layers})
-        loompy.create(filename=outfile, layers=tmp_layers, row_attrs=ra, col_attrs=ca, file_attrs={"velocyto.__version__": vcy.__version__, "velocyto.logic": logic})
+    # seems more likely that loompy will be some version above 2, so would be better to attempt to use the loompy2 targeting code first
+    if int(loompy.__version__.split(".")[0]) >= 2:
+        try:
+            tmp_layers = {"": total.astype("float32", order="C", copy=False)}
+            tmp_layers.update({layer_name: layers[layer_name].astype(loom_numeric_dtype, order="C", copy=False) for layer_name in logic_obj.layers})
+            loompy.create(filename=outfile, layers=tmp_layers, row_attrs=ra, col_attrs=ca, file_attrs={"velocyto.__version__": vcy.__version__, "velocyto.logic": logic})
+        except TypeError:
+            stop
+    elif int(loompy.__version__.split(".")[0]) < 2:
+        try:
+            ds = loompy.create(filename=outfile, layers=total, row_attrs=ra, col_attrs=ca)
+            for layer_name in logic_obj.layers:
+                ds.set_layer(name=layer_name, layers=layers[layer_name], dtype=loom_numeric_dtype)
+            ds.attrs["velocyto.__version__"] = vcy.__version__
+            ds.attrs["velocyto.logic"] = logic
+            ds.close()
+        except TypeError:
+            stop
     logging.debug("Terminated Succesfully!")
