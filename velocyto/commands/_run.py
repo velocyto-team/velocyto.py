@@ -30,7 +30,8 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
          repmask: str, onefilepercell: bool, logic: str,
          without_umi: str, umi_extension: str, multimap: bool, test: bool,
          samtools_threads: int, samtools_memory: int, loom_numeric_dtype: str, dump: bool, verbose: int,
-         additional_ca: dict={}) -> None:
+         additional_ca: dict={},
+         **kwargs) -> None:
     """Runs the velocity analysis outputing a loom file
 
     BAMFILE or [BAMFILES] one or several bam files with position-sorted
@@ -244,8 +245,8 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
     
     # If this data is from a 10X run, it is possible that additional_ca has data from cells that are present in the TSNE and Cluster files 
     # but not present in the count matrix.   these are not removed prior to attempting to create the loom file, this whole process will fail
-    if len(cell_bcs_order) < len(additional_ca['_X']):
-        tsne_file = os.path.join(samplefolder, "outs", "analysis", "tsne", "2_components", "projection.csv")
+    if (len(cell_bcs_order) < len(additional_ca['_X']) and kwargs['is_10X'] is True):
+        tsne_file = os.path.join(kwargs['samplefolder'], "outs", "analysis", "tsne", "2_components", "projection.csv")
         if os.path.exists(tsne_file):
             tsne_pd = pd.read_csv(tsne_file)
             tsne_pd["Barcode"] = [_[:-2] for _ in tsne_pd["Barcode"]]
@@ -253,7 +254,7 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
             additional_ca['_X'] = tsne_pd['TSNE-1'].to_numpy()
             additional_ca['_Y'] = tsne_pd['TSNE-1'].to_numpy()
         
-        clusters_file = os.path.join(samplefolder, "outs", "analysis", "clustering", "graphclust", "clusters.csv")
+        clusters_file = os.path.join(kwargs['samplefolder'], "outs", "analysis", "clustering", "graphclust", "clusters.csv")
         if os.path.exists(clusters_file):
             labels = np.loadtxt(clusters_file, usecols=(1, ), delimiter=',', skiprows=1)
             clusters_pd = pd.read_csv(clusters_file)
