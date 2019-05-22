@@ -113,4 +113,4 @@ def run10x(samplefolder: str, gtffile: str,
                 sampleid=sampleid, metadatatable=metadatatable, repmask=mask, onefilepercell=False,
                 logic=logic, without_umi=False, umi_extension="no", multimap=multimap, test=False, samtools_threads=samtools_threads,
                 samtools_memory=samtools_memory, dump=dump, loom_numeric_dtype=dtype, verbose=verbose, additional_ca=additional_ca, 
-                is_10X=TRUE, samplefolder=samplefolder)
+                is_10X=True, samplefolder=samplefolder)
