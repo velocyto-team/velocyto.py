@@ -1,4 +1,1 @@
-# Velocyto [![Build Status](https://travis-ci.org/velocyto-team/velocyto.py.svg?branch=master)](https://travis-ci.org/velocyto-team/velocyto.py)
-This repo contains the source code for `the velocyto.py` library.
-
-For more information consult the [velocyto.py documentation](http://velocyto.org/velocyto.py/index.html).
+Branch of `velocyto.py` with the protein acceleration functionality implemented as the `protaccel` function suite. For details, please consult https://www.biorxiv.org/content/10.1101/658401v2.
