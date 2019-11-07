@@ -337,7 +337,7 @@ class ExInCounter:
         repeat_ivls_list: List[vcy.Feature] = []
 
         # fin = open(gtf_file)
-        gtf_lines = [line for line in open(gtf_file) if not line.startswith('#')]
+        gtf_lines = read_gtf_lines(gtf_file)
 
         def sorting_key(entry: str) -> Tuple[str, bool, int, str]:
             """This sorting strategy is equivalent to sort -k1,1 -k7,7 -k4,4n"""
@@ -460,7 +460,7 @@ class ExInCounter:
         # Initialize containers
         # headerlines: List[str] = []
         
-        gtf_lines = [line for line in open(gtf_file) if not line.startswith('#')]
+        gtf_lines = read_gtf_lines(gtf_file)
 
         def sorting_key(entry: str) -> Tuple[str, bool, int, str]:
             """This sorting strategy is equivalent to sort -k1,1 -k7,7 -k4,4n"""
@@ -1263,6 +1263,11 @@ class ExInCounter:
         """It performs molecule counting for the current batch of cells
         """
         raise NotImplementedError("This will be a used by .pcount")
+
+
+def read_gtf_lines(gtf_file: str) -> List[str]:
+    return [line for line in (open(gtf_file) if not gtf_file.endswith('.gz') else gzip.open(gtf_file)) if
+            not line.startswith('#')]
 
 
 def reverse(strand: str) -> str:
