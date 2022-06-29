@@ -1,14 +1,11 @@
-from typing import *
-
-import velocyto as vcy
+from .constants import SPLIC_INACUR
+from .feature import Feature
 
 
 class SegmentMatch:
     __slots__ = ["segment", "feature", "is_spliced"]
 
-    def __init__(
-        self, segment: Tuple[int, int], feature: vcy.Feature, is_spliced: bool = False
-    ) -> None:
+    def __init__(self, segment: tuple[int, int], feature: Feature, is_spliced: bool = False) -> None:
         self.segment = segment
         self.feature = feature
         self.is_spliced = is_spliced  # this is really BAM_CREF_SKIP
@@ -28,8 +25,8 @@ class SegmentMatch:
             return True  # NOTE: maybe here I should raise an error because the property is not supposed to be called
         else:
             if (
-                abs(self.feature.start - self.segment[0]) <= vcy.SPLIC_INACUR
-                or abs(self.feature.end - self.segment[1]) <= vcy.SPLIC_INACUR
+                abs(self.feature.start - self.segment[0]) <= SPLIC_INACUR
+                or abs(self.feature.end - self.segment[1]) <= SPLIC_INACUR
             ):
                 return True
             else:

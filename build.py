@@ -1,13 +1,13 @@
 import shutil
 import sys
-from setuptools.dist import Distribution
-from setuptools.extension import Extension
-
 from pathlib import Path
-from Cython.Compiler.Errors import CompileError
+
 import numpy as np
 from Cython.Build import cythonize
+from Cython.Compiler.Errors import CompileError
 from Cython.Distutils.build_ext import build_ext
+from setuptools.dist import Distribution
+from setuptools.extension import Extension
 
 # C Extensions
 

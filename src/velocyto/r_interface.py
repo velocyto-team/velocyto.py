@@ -1,12 +1,9 @@
-import logging
-from typing import *
+from typing import Any
 
 import numpy as np
 
 try:
     import rpy2.robjects as ro
-    from rpy2.robjects import numpy2ri
-    from rpy2.robjects.packages import importr
 
     def convert_r_obj(v: Any, obj_to_obj: bool = True, verbose: bool = True) -> Any:
         """Function with manually specified conversion from a r-object to a python object"""
@@ -22,28 +19,17 @@ try:
             return None
         elif type(v) == ro.vectors.ListVector:
             try:
-                return {
-                    v.names[i]: convert_r_obj(v[i], obj_to_obj=obj_to_obj)
-                    for i in range(len(v))
-                }
+                return {v.names[i]: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))}
             except TypeError:
-                return {
-                    i: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))
-                }
+                return {i: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))}
         elif type(v) == ro.vectors.StrVector:
             if len(v) == 1:
                 return str(v[0])
             else:
                 try:
-                    return {
-                        v.names[i]: convert_r_obj(v[i], obj_to_obj=obj_to_obj)
-                        for i in range(len(v))
-                    }
+                    return {v.names[i]: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))}
                 except TypeError:
-                    return {
-                        i: convert_r_obj(v[i], obj_to_obj=obj_to_obj)
-                        for i in range(len(v))
-                    }
+                    return {i: convert_r_obj(v[i], obj_to_obj=obj_to_obj) for i in range(len(v))}
         elif type(v) == ro.vectors.DataFrame:
             from rpy2.robjects import pandas2ri
 

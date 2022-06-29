@@ -1,10 +1,8 @@
 import logging
-from typing import *
+from typing import Any
 
 import numpy as np
 import scipy.optimize
-from scipy import sparse
-from sklearn.neighbors import NearestNeighbors
 
 from .speedboosted import (
     _colDeltaCor,
@@ -42,9 +40,7 @@ def colDeltaCor(emat: np.ndarray, dmat: np.ndarray, threads: int = None) -> np.n
     return out
 
 
-def colDeltaCorpartial(
-    emat: np.ndarray, dmat: np.ndarray, ixs: np.ndarray, threads: int = None
-) -> np.ndarray:
+def colDeltaCorpartial(emat: np.ndarray, dmat: np.ndarray, ixs: np.ndarray, threads: int = None) -> np.ndarray:
     """Calculate the correlation between the displacement (d[:,i])
     and the difference between a cell and every other (e - e[:, i])
 
@@ -74,9 +70,7 @@ def colDeltaCorpartial(
     return out
 
 
-def colDeltaCorLog10(
-    emat: np.ndarray, dmat: np.ndarray, threads: int = None, psc: float = 1.0
-) -> np.ndarray:
+def colDeltaCorLog10(emat: np.ndarray, dmat: np.ndarray, threads: int = None, psc: float = 1.0) -> np.ndarray:
     """Calculate the correlation between the displacement (d[:,i])
     and the difference between a cell and every other (e - e[:, i])
 
@@ -138,9 +132,7 @@ def colDeltaCorLog10partial(
     return out
 
 
-def colDeltaCorSqrt(
-    emat: np.ndarray, dmat: np.ndarray, threads: int = None, psc: float = 0.0
-) -> np.ndarray:
+def colDeltaCorSqrt(emat: np.ndarray, dmat: np.ndarray, threads: int = None, psc: float = 0.0) -> np.ndarray:
     """Calculate the correlation between the displacement (d[:,i])
     and the difference between a cell and every other (e - e[:, i])
 
@@ -209,9 +201,7 @@ def _fit1_slope(y: np.ndarray, x: np.ndarray) -> float:
     elif not np.any(y):
         m = 0
     else:
-        result, rnorm = scipy.optimize.nnls(
-            x[:, None], y
-        )  # Fastest but costrains result >= 0
+        result, rnorm = scipy.optimize.nnls(x[:, None], y)  # Fastest but costrains result >= 0
         m = result[0]
         # Second fastest: m, _ = scipy.optimize.leastsq(lambda m: x*m - y, x0=(0,))
         # Third fastest: m = scipy.optimize.minimize_scalar(lambda m: np.sum((x*m - y)**2 )).x
@@ -226,7 +216,7 @@ def _fit1_slope_weighted(
     x: np.ndarray,
     w: np.ndarray,
     limit_gamma: bool = False,
-    bounds: Tuple[float, float] = (0, 20),
+    bounds: tuple[float, float] = (0, 20),
 ) -> float:
     """Simple function that fit a weighted linear regression model without intercept"""
     if not np.any(x):
@@ -259,7 +249,7 @@ def _fit1_slope_weighted_offset(
     w: np.ndarray,
     fixperc_q: bool = False,
     limit_gamma: bool = False,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """Function that fits a weighted linear regression model with intercept
     with some adhoc
     """
@@ -298,9 +288,7 @@ def _fit1_slope_weighted_offset(
     return m[0], m[1]
 
 
-def _fit1_slope_offset(
-    y: np.ndarray, x: np.ndarray, fixperc_q: bool = False
-) -> Tuple[float, float]:
+def _fit1_slope_offset(y: np.ndarray, x: np.ndarray, fixperc_q: bool = False) -> tuple[float, float]:
     """Simple function that fit a linear regression model with intercept"""
     if not np.any(x):
         m = (np.NAN, 0)  # It is definetelly not at steady state!!!
@@ -343,9 +331,7 @@ def fit_slope(Y: np.ndarray, X: np.ndarray) -> np.ndarray:
     return slopes
 
 
-def fit_slope_offset(
-    Y: np.ndarray, X: np.ndarray, fixperc_q: bool = False
-) -> Tuple[np.ndarray, np.ndarray]:
+def fit_slope_offset(Y: np.ndarray, X: np.ndarray, fixperc_q: bool = False) -> tuple[np.ndarray, np.ndarray]:
     """Loop through the genes and fits the slope
 
     Y: np.ndarray, shape=(genes, cells)
@@ -369,7 +355,7 @@ def fit_slope_weighted(
     W: np.ndarray,
     return_R2: bool = False,
     limit_gamma: bool = False,
-    bounds: Tuple[float, float] = (0, 20),
+    bounds: tuple[float, float] = (0, 20),
 ) -> np.ndarray:
     """Loop through the genes and fits the slope
 
@@ -386,7 +372,7 @@ def fit_slope_weighted(
     #                     count=Y.shape[0])
 
     slopes = np.zeros(Y.shape[0], dtype="float32")
-    offsets = np.zeros(Y.shape[0], dtype="float32")
+    # offsets = np.zeros(Y.shape[0], dtype="float32")
     if return_R2:
         R2 = np.zeros(Y.shape[0], dtype="float32")
     for i in range(Y.shape[0]):
@@ -428,9 +414,7 @@ def fit_slope_weighted_offset(
     if return_R2:
         R2 = np.zeros(Y.shape[0], dtype="float32")
     for i in range(Y.shape[0]):
-        m, q = _fit1_slope_weighted_offset(
-            Y[i, :], X[i, :], W[i, :], fixperc_q, limit_gamma
-        )
+        m, q = _fit1_slope_weighted_offset(Y[i, :], X[i, :], W[i, :], fixperc_q, limit_gamma)
         slopes[i] = m
         offsets[i] = q
         if return_R2:
@@ -454,23 +438,21 @@ def clusters_stats(
     clusters_uid: np.ndarray,
     cluster_ix: np.ndarray,
     size_limit: int = 40,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Calculate the averages per cluster
 
     If the cluster is too small (size<size_limit) the average of the toal is reported instead
     """
     U_avgs = np.zeros((S.shape[0], len(clusters_uid)))
     S_avgs = np.zeros((S.shape[0], len(clusters_uid)))
-    avgU_div_avgS = np.zeros((S.shape[0], len(clusters_uid)))
-    slopes_by_clust = np.zeros((S.shape[0], len(clusters_uid)))
+    # avgU_div_avgS = np.zeros((S.shape[0], len(clusters_uid)))
+    # slopes_by_clust = np.zeros((S.shape[0], len(clusters_uid)))
     for i, uid in enumerate(clusters_uid):
         cluster_filter = cluster_ix == i
         n_cells = np.sum(cluster_filter)
         logging.info(f"Cluster: {uid} ({n_cells} cells)")
         if n_cells > size_limit:
-            U_avgs[:, i], S_avgs[:, i] = U[:, cluster_filter].mean(1), S[
-                :, cluster_filter
-            ].mean(1)
+            U_avgs[:, i], S_avgs[:, i] = U[:, cluster_filter].mean(1), S[:, cluster_filter].mean(1)
         else:
             U_avgs[:, i], S_avgs[:, i] = U.mean(1), S.mean(1)
 

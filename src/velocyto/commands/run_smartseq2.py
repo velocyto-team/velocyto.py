@@ -1,48 +1,27 @@
-import csv
-import glob
-import gzip
-import logging
-import os
 import random
-import re
 import string
-import sys
-from collections import defaultdict
-from typing import *
 
 import click
-import loompy
-import numpy as np
-
-import velocyto as vcy
 
 from ._run import _run
 
 # logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 
-def id_generator(
-    size: int = 6, chars: str = string.ascii_uppercase + string.digits
-) -> str:
+def id_generator(size: int = 6, chars: str = string.ascii_uppercase + string.digits) -> str:
     return "".join(random.choice(chars) for _ in range(size))
 
 
-@click.command(
-    short_help="Runs the velocity analysis on SmartSeq2 data (independent bam file per cell)"
-)
+@click.command(short_help="Runs the velocity analysis on SmartSeq2 data (independent bam file per cell)")
 @click.argument(
     "bamfiles",
     nargs=-1,
     required=True,
-    type=click.Path(
-        exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
-    ),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
 )
 @click.argument(
     "gtffile",
-    type=click.Path(
-        exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
-    ),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
 )
 @click.option(
     "--outputfolder",

@@ -1,6 +1,3 @@
-[flake8]
-select = P,T4,
-max-line-length = 80
 # E127, E128 are hard to silence in certain nested formatting situations.
 # E265, E266 talk about comment formatting which is too opinionated.
 # E402 warns on imports coming after statements. There are important use cases

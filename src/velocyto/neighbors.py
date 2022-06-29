@@ -1,16 +1,16 @@
 import logging
-from typing import *
+from typing import Any
 
 import numpy as np
 from numba import jit
 from scipy import sparse
-from sklearn.neighbors import NearestNeighbors, kneighbors_graph
+from sklearn.neighbors import NearestNeighbors
 
 # Mutual KNN functions
 
 
 @jit(
-    signature_or_function="Tuple((float64[:,:], int64[:,:], int64[:]))(int64[:,:], float64[:, :], int64[:], int64, int64, boolean)",
+    signature_or_function="tuple((float64[:,:], int64[:,:], int64[:]))(int64[:,:], float64[:, :], int64[:], int64, int64, boolean)",
     nopython=True,
 )
 def balance_knn_loop(
@@ -20,7 +20,7 @@ def balance_knn_loop(
     maxl: int,
     k: int,
     return_distance: bool,
-) -> Tuple:
+) -> tuple:
     """Fast and greedy algorythm to balance a K-NN graph so that no node is the NN to more than maxl other nodes
 
     Arguments
@@ -94,7 +94,7 @@ def balance_knn_loop_constrained(
     maxl: int,
     k: int,
     return_distance: bool,
-) -> Tuple:
+) -> tuple:
     """Fast and greedy algorythm to balance a K-NN graph so that no node is the NN to more than maxl other nodes
 
     Arguments
@@ -125,7 +125,7 @@ def balance_knn_loop_constrained(
 
     """
     assert dsi.shape[1] >= k, "sight needs to be bigger than k"
-    # numba signature "Tuple((int64[:,:], float32[:, :], int64[:]))(int64[:,:], int64[:], int64, int64, bool)"
+    # numba signature "tuple((int64[:,:], float32[:, :], int64[:]))(int64[:,:], int64[:], int64, int64, bool)"
     dsi_new = -1 * np.ones((dsi.shape[0], k + 1), np.int64)  # maybe d.shape[0]
     l = np.zeros(dsi.shape[0], np.int64)
     if return_distance:
@@ -166,7 +166,7 @@ def knn_balance(
     maxl: int = 200,
     k: int = 60,
     constraint: np.ndarray = None,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Balance a K-NN graph so that no node is the NN to more than maxl other nodes
 
     Arguments
@@ -287,9 +287,7 @@ class BalancedKNN:
         self.fitdata = data
         if sight_k is not None:
             self.sight_k = sight_k
-        logging.debug(
-            f"First search the {self.sight_k} nearest neighbours for {self.n_samples}"
-        )
+        logging.debug(f"First search the {self.sight_k} nearest neighbours for {self.n_samples}")
         if self.metric == "correlation":
             self.nn = NearestNeighbors(
                 n_neighbors=self.sight_k + 1,
@@ -309,7 +307,7 @@ class BalancedKNN:
 
     def kneighbors(
         self, X: np.ndarray = None, maxl: int = None, mode: str = "distance"
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Finds the K-neighbors of a point.
 
         Returns indices of and distances to the neighbors of each point.
@@ -358,9 +356,7 @@ class BalancedKNN:
             self.dist[:, 0] = 0
         return self.dist_new, self.dsi_new, self.l
 
-    def kneighbors_graph(
-        self, X: np.ndarray = None, maxl: int = None, mode: str = "distance"
-    ) -> sparse.csr_matrix:
+    def kneighbors_graph(self, X: np.ndarray = None, maxl: int = None, mode: str = "distance") -> sparse.csr_matrix:
         """Retrun the K-neighbors graph as a sparse csr matrix
 
         Parameters
@@ -390,9 +386,7 @@ class BalancedKNN:
             (
                 np.ravel(dist_new),
                 np.ravel(dsi_new),
-                np.arange(
-                    0, dist_new.shape[0] * dist_new.shape[1] + 1, dist_new.shape[1]
-                ),
+                np.arange(0, dist_new.shape[0] * dist_new.shape[1] + 1, dist_new.shape[1]),
             ),
             (self.n_samples, self.n_samples),
         )
@@ -417,9 +411,7 @@ class BalancedKNN:
 
         """
         if self.bknn is None:
-            assert (X is None) and (
-                maxl is None
-            ), "graph was already fit with different parameters"
+            assert (X is None) and (maxl is None), "graph was already fit with different parameters"
             self.kneighbors_graph(X=X, maxl=maxl, mode=self.mode)
         if mutual:
             connectivity = make_mutual(self.bknn > 0)
@@ -428,17 +420,13 @@ class BalancedKNN:
         connectivity = connectivity.tolil()
         connectivity.setdiag(1)
         w = connectivity_to_weights(connectivity).T
-        assert np.allclose(
-            w.sum(0), 1
-        ), "weight matrix need to sum to one over the columns"
+        assert np.allclose(w.sum(0), 1), "weight matrix need to sum to one over the columns"
         if data_to_smooth.shape[1] == w.shape[0]:
             result = sparse.csr_matrix.dot(data_to_smooth, w)
         elif data_to_smooth.shape[0] == w.shape[0]:
             result = sparse.csr_matrix.dot(data_to_smooth.T, w).T
         else:
-            raise ValueError(
-                f"Incorrect size of matrix, none of the axis correspond to the one of graph. {w.shape}"
-            )
+            raise ValueError(f"Incorrect size of matrix, none of the axis correspond to the one of graph. {w.shape}")
 
         if only_increase:
             return np.maximum(result, data_to_smooth)
@@ -462,9 +450,7 @@ def knn_distance_matrix(
     To achieve that we call kneighbors_graph with X = None
     """
     if metric == "correlation":
-        nn = NearestNeighbors(
-            n_neighbors=k, metric="correlation", algorithm="brute", n_jobs=n_jobs
-        )
+        nn = NearestNeighbors(n_neighbors=k, metric="correlation", algorithm="brute", n_jobs=n_jobs)
         nn.fit(data)
         return nn.kneighbors_graph(X=None, mode=mode)
     else:
@@ -481,18 +467,14 @@ def make_mutual(knn: sparse.csr.csr_matrix) -> sparse.coo_matrix:
     return knn.minimum(knn.T)
 
 
-def connectivity_to_weights(
-    mknn: sparse.csr.csr_matrix, axis: int = 1
-) -> sparse.lil_matrix:
+def connectivity_to_weights(mknn: sparse.csr.csr_matrix, axis: int = 1) -> sparse.lil_matrix:
     """Convert a binary connectivity matrix to weights ready to be multiplied to smooth a data matrix"""
     if type(mknn) is not sparse.csr.csr_matrix:
         mknn = mknn.tocsr()
     return mknn.multiply(1.0 / sparse.csr_matrix.sum(mknn, axis=axis))
 
 
-def min_n(
-    row_data: np.ndarray, row_indices: np.ndarray, n: int
-) -> Tuple[np.ndarray, np.ndarray]:
+def min_n(row_data: np.ndarray, row_indices: np.ndarray, n: int) -> tuple[np.ndarray, np.ndarray]:
     """Find the smallest entry and smallest indices of a row"""
     i = row_data.argsort()[:n]
     # i = row_data.argpartition(-n)[-n:]
@@ -520,9 +502,7 @@ def convolve_by_sparse_weights(data: np.ndarray, w: sparse.csr_matrix) -> np.nda
     NOTE: A improved implementation could detect wich one is sparse and wich kind of sparse and perform faster computation
     """
     w_ = w.T
-    assert np.allclose(
-        w_.sum(0), 1
-    ), "weight matrix need to sum to one over the columns"
+    assert np.allclose(w_.sum(0), 1), "weight matrix need to sum to one over the columns"
     return sparse.csr_matrix.dot(data, w_)
 
 
@@ -532,7 +512,7 @@ def knn_smooth_weights(
     k_search: int = 20,
     k_mutual: int = 10,
     n_jobs: int = 10,
-) -> Tuple[sparse.spmatrix, sparse.csr_matrix]:
+) -> tuple[sparse.spmatrix, sparse.csr_matrix]:
     """Find the weights to smooth the dataset using efficient sparse matrix operations
 
     Arguments:
@@ -550,9 +530,7 @@ def knn_smooth_weights(
         weights (, knn)
     """
     assert k_search >= k_mutual, "k_search needs to be bigger than k_mutual"
-    knn = knn_distance_matrix(
-        matrix.T, metric=metric, k=k_search, mode="distance", n_jobs=n_jobs
-    )
+    knn = knn_distance_matrix(matrix.T, metric=metric, k=k_search, mode="distance", n_jobs=n_jobs)
     mknn = make_mutual(knn)
     top_mknn = take_top(mknn, k_mutual)
     top_mknn.setdiag(1)

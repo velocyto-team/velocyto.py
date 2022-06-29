@@ -1,8 +1,7 @@
-import logging
-from collections import defaultdict
-from typing import *
+from typing import Any
 
-import velocyto as vcy
+from .constants import MIN_FLANK
+from .read import Read
 
 
 class Feature:
@@ -52,7 +51,7 @@ class Feature:
             return self == self.transcript_model.list_features[0]
 
     def get_downstream_exon(self) -> Any:
-        """To use only for introns. Returns the vcy.Feature corresponding to the neighbour exon downstream
+        """To use only for introns. Returns the Feature corresponding to the neighbour exon downstream
 
         Note
         ----
@@ -68,7 +67,7 @@ class Feature:
         return self.transcript_model.list_features[ix]
 
     def get_upstream_exon(self) -> Any:
-        """To use only for introns. Returns the vcy.Feature corresponding to the neighbour exon downstream
+        """To use only for introns. Returns the Feature corresponding to the neighbour exon downstream
 
         Note
         ----
@@ -88,18 +87,16 @@ class Feature:
     #         else:
     #             intron_number = self.list_features[-1].exin_no - 1
 
-    def ends_upstream_of(self, read: vcy.Read) -> bool:
+    def ends_upstream_of(self, read: Read) -> bool:
         """The following situation happens
                                                     Read
                                        *|||segment|||-?-||segment|||????????
         ???????|||||Ivl|||||||||*
 
         """
-        return (
-            self.end < read.pos
-        )  # NOTE: pos is diffetent from start, consider chagning
+        return self.end < read.pos  # NOTE: pos is diffetent from start, consider chagning
 
-    def doesnt_start_after(self, segment: Tuple[int, int]) -> bool:
+    def doesnt_start_after(self, segment: tuple[int, int]) -> bool:
         """One of the following situation happens
 
                         *||||||segment|||||????????
@@ -111,16 +108,12 @@ class Feature:
         """
         return self.start < segment[-1]
 
-    def intersects(
-        self, segment: Tuple[int, int], minimum_flanking: int = vcy.MIN_FLANK
-    ) -> bool:
+    def intersects(self, segment: tuple[int, int], minimum_flanking: int = MIN_FLANK) -> bool:
         return (segment[-1] - minimum_flanking > self.start) and (
             segment[0] + minimum_flanking < self.end
         )  # and ((segment[-1] - segment[0]) > minimum_flanking)
 
-    def contains(
-        self, segment: Tuple[int, int], minimum_flanking: int = vcy.MIN_FLANK
-    ) -> bool:
+    def contains(self, segment: tuple[int, int], minimum_flanking: int = MIN_FLANK) -> bool:
         """One of following situation happens
 
             *-----||||||segment|||||-----*
@@ -140,9 +133,7 @@ class Feature:
             and ((segment[-1] - segment[0]) > minimum_flanking)
         )
 
-    def start_overlaps_with_part_of(
-        self, segment: Tuple[int, int], minimum_flanking: int = vcy.MIN_FLANK
-    ) -> bool:
+    def start_overlaps_with_part_of(self, segment: tuple[int, int], minimum_flanking: int = MIN_FLANK) -> bool:
         """The following situation happens
 
           *---|||segment||---*
@@ -151,13 +142,9 @@ class Feature:
         where `---` idicates the minimum flanking
 
         """
-        return (segment[0] + minimum_flanking < self.start) and (
-            segment[-1] - minimum_flanking > self.start
-        )
+        return (segment[0] + minimum_flanking < self.start) and (segment[-1] - minimum_flanking > self.start)
 
-    def end_overlaps_with_part_of(
-        self, segment: Tuple[int, int], minimum_flanking: int = vcy.MIN_FLANK
-    ) -> bool:
+    def end_overlaps_with_part_of(self, segment: tuple[int, int], minimum_flanking: int = MIN_FLANK) -> bool:
         """The following situation happens
 
                                       *---|||segment||---*
@@ -166,6 +153,4 @@ class Feature:
         where `---` idicates the minimum flanking
 
         """
-        return (segment[0] + minimum_flanking < self.end) and (
-            segment[-1] - minimum_flanking > self.end
-        )
+        return (segment[0] + minimum_flanking < self.end) and (segment[-1] - minimum_flanking > self.end)

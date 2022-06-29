@@ -1,37 +1,33 @@
-from typing import *
+from typing import Any
 
-import velocyto as vcy
+from .constants import LONGEST_INTRON_ALLOWED, MIN_FLANK
+from .feature import Feature
+from .read import Read
 
 
 class TranscriptModel:
-    """A simple object representing a transcript model as a list of `vcy.Feature` objects"""
+    """A simple object representing a transcript model as a list of `Feature` objects"""
 
     __slots__ = ["trid", "trname", "geneid", "genename", "chromstrand", "list_features"]
 
-    def __init__(
-        self, trid: str, trname: str, geneid: str, genename: str, chromstrand: str
-    ) -> None:
+    def __init__(self, trid: str, trname: str, geneid: str, genename: str, chromstrand: str) -> None:
         self.trid = trid
         self.trname = trname
         self.geneid = geneid
         self.genename = genename
         self.chromstrand = chromstrand
-        self.list_features: List[vcy.Feature] = []
+        self.list_features: list[Feature] = []
 
-    def __iter__(self) -> vcy.Feature:
+    def __iter__(self) -> Feature:
         for i in self.list_features:
             yield i
 
     def __lt__(self, other: Any) -> bool:
-        assert (
-            self.chromstrand == other.chromstrand
-        ), "`<`(.__lt__) not implemented for different chromosomes"
+        assert self.chromstrand == other.chromstrand, "`<`(.__lt__) not implemented for different chromosomes"
         return self.list_features[0].start < other.list_features[0].start
 
     def __gt__(self, other: Any) -> bool:
-        assert (
-            self.chromstrand == other.chromstrand
-        ), "`>` (.__gt__) not implemented for different chromosomes"
+        assert self.chromstrand == other.chromstrand, "`>` (.__gt__) not implemented for different chromosomes"
         return self.list_features[0].start > other.list_features[0].start
 
     @property
@@ -48,24 +44,22 @@ class TranscriptModel:
         """
         return self.list_features[-1].end
 
-    def ends_upstream_of(self, read: vcy.Read) -> bool:
+    def ends_upstream_of(self, read: Read) -> bool:
         # one could consider to add TOLERANCE
         # note that ``self.list_features[-1]`` is the last exon if strand + and first exons for strand -
         return self.list_features[-1].end < read.pos
 
-    def intersects(
-        self, segment: Tuple[int, int], minimum_flanking: int = vcy.MIN_FLANK
-    ) -> bool:
+    def intersects(self, segment: tuple[int, int], minimum_flanking: int = MIN_FLANK) -> bool:
         return (segment[-1] - minimum_flanking > self.start) and (
             segment[0] + minimum_flanking < self.end
         )  # and ((segment[-1] - segment[0]) > minimum_flanking)
 
-    def append_exon(self, exon_feature: vcy.Feature) -> None:
+    def append_exon(self, exon_feature: Feature) -> None:
         """Append an exon and create an intron when needed
 
         Arguments
         ---------
-        exon_feature: vcy.Feature
+        exon_feature: Feature
             A feature object represneting an exon to add to the transcript model.
         """
         exon_feature.transcript_model = self
@@ -79,7 +73,7 @@ class TranscriptModel:
             else:
                 intron_number = self.list_features[-1].exin_no - 1
             self.list_features.append(
-                vcy.Feature(
+                Feature(
                     start=self.list_features[-1].end + 1,
                     end=exon_feature.start - 1,
                     kind=ord("i"),
@@ -89,13 +83,13 @@ class TranscriptModel:
             )
             self.list_features.append(exon_feature)
 
-    def chop_if_long_intron(self, maxlen: int = vcy.LONGEST_INTRON_ALLOWED) -> None:
+    def chop_if_long_intron(self, maxlen: int = LONGEST_INTRON_ALLOWED) -> None:
         """Modify a Transcript model choppin the 5' region upstram of a very long intron
         To avoid that extremelly long intron mask the counting of interal genes
 
         Arguments
         ---------
-        maxlen: int, default=vcy.LONGEST_INTRON_ALLOWED
+        maxlen: int, default=LONGEST_INTRON_ALLOWED
             transcript model tha contain one or more intronic interval of len == maxlen will be chopped
 
         Returns
@@ -104,9 +98,7 @@ class TranscriptModel:
         its name will be changed appending `_mod` to both trid and trname
 
         """
-        long_feats = [
-            i for i in self.list_features if len(i) > maxlen and i.kind == ord("i")
-        ]
+        long_feats = [i for i in self.list_features if len(i) > maxlen and i.kind == ord("i")]
         if len(long_feats):
             if self.chromstrand[-1] == "+":
                 self._remove_upstream_of(long_feats[-1])
@@ -115,7 +107,7 @@ class TranscriptModel:
             self.trid = self.trid + "_mod"
             self.trname = self.trname + "_mod"
 
-    def _remove_upstream_of(self, longest_feat: vcy.Feature) -> None:
+    def _remove_upstream_of(self, longest_feat: Feature) -> None:
         tmp = []
         ec = 1
         ic = 1
@@ -131,7 +123,7 @@ class TranscriptModel:
                     tmp.append(feat)
         self.list_features = tmp
 
-    def _remove_downstream_of(self, longest_feat: vcy.Feature) -> None:
+    def _remove_downstream_of(self, longest_feat: Feature) -> None:
         tmp = []
         ec = 1
         ic = 1

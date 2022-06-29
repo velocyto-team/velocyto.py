@@ -1,29 +1,16 @@
-import csv
-import glob
-import gzip
 import logging
 import os
 import random
-import re
 import string
-import sys
-from collections import defaultdict
-from typing import *
 
 import click
-import loompy
-import numpy as np
-
-import velocyto as vcy
 
 from ._run import _run
 
 # logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 
-def id_generator(
-    size: int = 6, chars: str = string.ascii_uppercase + string.digits
-) -> str:
+def id_generator(size: int = 6, chars: str = string.ascii_uppercase + string.digits) -> str:
     return "".join(random.choice(chars) for _ in range(size))
 
 
@@ -32,16 +19,12 @@ def id_generator(
     "bamfile",
     nargs=1,
     required=True,
-    type=click.Path(
-        exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
-    ),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
 )
 @click.argument(
     "gtffile",
     required=True,
-    type=click.Path(
-        exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
-    ),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
 )
 @click.option(
     "--bcfile",
@@ -132,9 +115,7 @@ def run_dropest(
     if bcfile is None:
         parentpath, bamfilename = os.path.split(bamfile)
         bcfile = os.path.join(parentpath, f"barcodes_{bamfilename.split('_')[0]}.tsv")
-        logging.info(
-            f"Attempting to find automatically the valid barcode list file {bcfile}"
-        )
+        logging.info(f"Attempting to find automatically the valid barcode list file {bcfile}")
         if os.path.exists(bcfile):
             logging.info(f"{bcfile} found ")
             pass

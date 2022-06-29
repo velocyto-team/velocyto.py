@@ -30,6 +30,10 @@ pysam = "^0.19.1"
 click = "^8.1.3"
 pandas = "^1.4.3"
 scikit-learn = "^1.1.1"
+rpy2 = { version = "^3.5.2", optional = true }
+
+[tool.poetry.extras]
+R = ["rpy2"]
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"

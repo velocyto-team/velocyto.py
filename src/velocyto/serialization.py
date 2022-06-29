@@ -1,7 +1,7 @@
 import os
 import pickle
 import zlib
-from typing import *
+from typing import Type
 
 import h5py
 import numpy as np
@@ -46,7 +46,7 @@ def dump_hdf5(
     obj: object,
     filename: str,
     data_compression: int = 7,
-    chunks: Tuple = (2048, 2048),
+    chunks: tuple[int, int] = (2048, 2048),
     noarray_compression: int = 9,
     pickle_protocol: int = 2,
 ) -> None:
@@ -77,9 +77,7 @@ def dump_hdf5(
     for k in obj.__dict__.keys():
         attribute = getattr(obj, k)
         if type(attribute) is not np.ndarray:
-            serialized = _obj2uint(
-                attribute, compression=noarray_compression, protocol=pickle_protocol
-            )
+            serialized = _obj2uint(attribute, compression=noarray_compression, protocol=pickle_protocol)
             _file.create_dataset(
                 f"&{k}",
                 data=serialized,
@@ -90,12 +88,7 @@ def dump_hdf5(
                 shuffle=False,
             )
         else:
-            chunk_size = tuple(
-                (
-                    min(chunks[i], attribute.shape[i])
-                    for i in range(len(attribute.shape))
-                )
-            )
+            chunk_size = tuple((min(chunks[i], attribute.shape[i]) for i in range(len(attribute.shape))))
             _file.create_dataset(
                 k,
                 data=attribute,

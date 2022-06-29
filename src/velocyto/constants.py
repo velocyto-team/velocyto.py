@@ -1,3 +1,4 @@
+# Should this all be dumped into a JSON file?
 MATCH_INSIDE = 1
 MATCH_OVER5END = 2
 MATCH_OVER3END = 4
@@ -26,7 +27,9 @@ OTHER_INTRON = 32
 COMPETING_INTRON = ALT_INTRON | OTHER_INTRON
 COMPETING_EXON = ALT_EXON | OTHER_EXON
 
-PLACEHOLDER_UMI_LEN = 12  # the length of the placeholder random umi added if -U is set (complexity is 36 per unit length)
+PLACEHOLDER_UMI_LEN = (
+    12  # the length of the placeholder random umi added if -U is set (complexity is 36 per unit length)
+)
 
 CIGAR = {
     0: "BAM_CMATCH",
@@ -41,6 +44,7 @@ CIGAR = {
     9: "BAM_CBACK",
 }  # type: dict  # currently hard coded for speed
 
+# TODO: This *absolutely needs* to be updated for version 3+ chemistry
 GEM_codes = {
     "SI-3A-A1": ["AAACGGCG", "CCTACCAT", "GGCGTTTC", "TTGTAAGA"],
     "SI-3A-A10": ["ACAGCAAC", "CGCAATTT", "GAGTTGCG", "TTTCGCGA"],

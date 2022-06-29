@@ -1,5 +1,4 @@
-import inspect
-from typing import *
+from typing import Any
 
 
 class Read:
@@ -24,7 +23,7 @@ class Read:
         chrom: str,
         strand: str,
         pos: int,
-        segments: List,
+        segments: list,
         clip5: Any,
         clip3: Any,
         ref_skipped: bool,

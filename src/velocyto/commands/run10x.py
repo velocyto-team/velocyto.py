@@ -1,17 +1,10 @@
-import csv
 import glob
-import gzip
 import logging
 import os
-import re
 import sys
-from collections import defaultdict
-from typing import *
 
 import click
 import numpy as np
-
-import velocyto as vcy
 
 from ._run import _run
 
@@ -36,9 +29,7 @@ logging.basicConfig(
 )
 @click.argument(
     "gtffile",
-    type=click.Path(
-        exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
-    ),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
 )
 @click.option(
     "--metadatatable",
@@ -122,10 +113,7 @@ def run10x(
         logging.error(
             "This is an older version of cellranger, cannot check if the output are ready, make sure of this yourself"
         )
-    elif (
-        "Pipestance completed successfully!"
-        not in open(os.path.join(samplefolder, "_log")).read()
-    ):
+    elif "Pipestance completed successfully!" not in open(os.path.join(samplefolder, "_log")).read():
         logging.error("The outputs are not ready")
     bamfile = os.path.join(samplefolder, "outs", "possorted_genome_bam.bam")
 
@@ -148,30 +136,22 @@ def run10x(
 
     outputfolder = os.path.join(samplefolder, "velocyto")
     sampleid = os.path.basename(samplefolder.rstrip("/").rstrip("\\"))
-    assert not os.path.exists(
-        os.path.join(outputfolder, f"{sampleid}.loom")
-    ), "The output already exist. Aborted!"
+    assert not os.path.exists(os.path.join(outputfolder, f"{sampleid}.loom")), "The output already exist. Aborted!"
     additional_ca = {}
     try:
-        tsne_file = os.path.join(
-            samplefolder, "outs", "analysis", "tsne", "2_components", "projection.csv"
-        )
+        tsne_file = os.path.join(samplefolder, "outs", "analysis", "tsne", "2_components", "projection.csv")
         if os.path.exists(tsne_file):
             tsne = np.loadtxt(tsne_file, usecols=(1, 2), delimiter=",", skiprows=1)
             additional_ca["_X"] = tsne[:, 0].astype("float32")
             additional_ca["_Y"] = tsne[:, 1].astype("float32")
 
-        clusters_file = os.path.join(
-            samplefolder, "outs", "analysis", "clustering", "graphclust", "clusters.csv"
-        )
+        clusters_file = os.path.join(samplefolder, "outs", "analysis", "clustering", "graphclust", "clusters.csv")
         if os.path.exists(clusters_file):
             labels = np.loadtxt(clusters_file, usecols=(1,), delimiter=",", skiprows=1)
             additional_ca["Clusters"] = labels.astype("int") - 1
 
     except Exception:
-        logging.error(
-            "Some IO problem in loading cellranger tsne/pca/kmeans files occurred!"
-        )
+        logging.error("Some IO problem in loading cellranger tsne/pca/kmeans files occurred!")
 
     return _run(
         bamfile=(bamfile,),

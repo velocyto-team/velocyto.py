@@ -1,7 +1,7 @@
-import logging
-from typing import *
+from typing import Any
 
 import numpy as np
+from numpy.random import default_rng
 from scipy import sparse
 from scipy.stats import norm
 from sklearn.neighbors import NearestNeighbors
@@ -41,9 +41,7 @@ class Diffusion:
 
         # Find nearest neighbors
         nn = NearestNeighbors(n_neighbors=n_neighbors, algorithm="auto", n_jobs=4)
-        (dists, nearest) = nn.fit(x0).kneighbors(
-            x1
-        )  # These are shaped (n_cells, n_neighbors), but we flatten them
+        (dists, nearest) = nn.fit(x0).kneighbors(x1)  # These are shaped (n_cells, n_neighbors), but we flatten them
         dists = dists.reshape(n_cells * n_neighbors)
         nearest = nearest.reshape(n_cells * n_neighbors)
 
@@ -85,16 +83,12 @@ class Diffusion:
         (v0, v1) = (knn.row, knn.col)
 
         # calculate edge unit vectors
-        uv = (
-            x[v1] - x[v0]
-        )  # Vector corresponding to an edge from v0 to v1, shape (n_edges, n_dims)
+        uv = x[v1] - x[v0]  # Vector corresponding to an edge from v0 to v1, shape (n_edges, n_dims)
         norms = np.linalg.norm(uv, axis=1)
         uv = uv / norms[:, None]  # Convert to unit vector
 
         # Project the velocity vectors onto edges, and clip to zero
-        scalar_projection = np.array(
-            [a.dot(b) for a, b in zip(v[v0], uv)]
-        )  # Shape: (n_edges)
+        scalar_projection = np.array([a.dot(b) for a, b in zip(v[v0], uv)])  # Shape: (n_edges)
         if reverse:
             scalar_projection = -scalar_projection
         scalar_projection += epsilon
@@ -141,7 +135,8 @@ class Diffusion:
                 x = x_next
             return result
         elif mode == "trajectory":
-            node = np.random.choice(np.arange(x.shape[0]), p=x)
+            rng = default_rng()
+            node = rng.choice(np.arange(x.shape[0]), p=x)
             trajectories = [node]
             for ix in range(n_steps):
                 x = np.zeros(tr.shape[0])
@@ -151,7 +146,7 @@ class Diffusion:
                 x_next = normalize(x_next, norm="l1")[0]
                 if x_next.sum() == 0:
                     x_next = x.toarray()[0]
-                node = np.random.choice(np.arange(x_next.shape[0]), p=x_next)
+                node = rng.choice(np.arange(x_next.shape[0]), p=x_next)
                 trajectories.append(node)
                 x = x_next
             return trajectories

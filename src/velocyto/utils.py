@@ -1,21 +1,20 @@
-from typing import *
+from typing import Iterable
 
-import numpy as np
+from .feature import Feature
+from .segment_match import SegmentMatch
 
-import velocyto as vcy
 
-
-def jump_next_3p_exon(feature: vcy.Feature) -> vcy.Feature:
+def jump_next_3p_exon(feature: Feature) -> Feature:
     """Jump to the next exon following transcription direction instead of chromosome coordinate
 
     Arguments
     ---------
-    feature: vcy.Feature
+    feature: Feature
         An exonic feature
 
     Returns
     -------
-    vcy.Feature:
+    Feature:
         The next 3' exon following transcription direction
 
     Note
@@ -31,12 +30,12 @@ def jump_next_3p_exon(feature: vcy.Feature) -> vcy.Feature:
     return feature.transcript_model.list_features[ix]
 
 
-def closest_3prime(segment_match: vcy.SegmentMatch) -> int:
+def closest_3prime(segment_match: SegmentMatch) -> int:
     """Calculate the closest distance walking on the transcript model to the 3'UTR
 
     Argument
     --------
-    segment_match: vcy.SegmentMatch
+    segment_match: SegmentMatch
         the sement from which 5' extremity calculate the distance
 
     Returns
@@ -87,15 +86,13 @@ def closest_3prime(segment_match: vcy.SegmentMatch) -> int:
     return dist23prime
 
 
-def spliced_iter(
-    segments_list: List[vcy.SegmentMatch], read_len: int = 99
-) -> Iterable[vcy.SegmentMatch]:
+def spliced_iter(segments_list: list[SegmentMatch], read_len: int = 99) -> Iterable[SegmentMatch]:
     """Iterates over a list of segment matches grouping spliced segment in new special segment matches
     The goal i s to make the yielded output to be compatible with closest_3prime and further 3' mapping dist pipeline
 
     Arguments
     ---------
-    segments_list: List[vcy.SegmentMatch]
+    segments_list: list[SegmentMatch]
         A list of segment matches objects
 
     read_len: int, default=99
@@ -103,7 +100,7 @@ def spliced_iter(
 
     Returns
     -------
-    Iterable[vcy.SegmentMatch]:
+    Iterable[SegmentMatch]:
         Either the original segment match or a fake Segment matche that will take the place of a set segment that are spliced
 
     Note
@@ -118,11 +115,7 @@ def spliced_iter(
             sm_list = [sm]
             while segments_list[0].is_spliced:
                 sm_list.append(segments_list.pop(0))
-                if (
-                    sum([s.segment[1] - s.segment[0] + 1 for s in sm_list])
-                    + segments_list[0]
-                    > read_len
-                ):
+                if sum([s.segment[1] - s.segment[0] + 1 for s in sm_list]) + segments_list[0] > read_len:
                     break
             if len(segments_list) != 2:
                 # just for safety let's ignore those counts otherwise we could make a mess
@@ -131,16 +124,13 @@ def spliced_iter(
             if sm_list[0].feature.transcript_model.chromstrand[-1] == "+":
                 if sm_list[-1].feature.kind == ord("i"):
                     i += len(sm_list)
-                    yield vcy.SegmentMatch(
-                        segment=sm_list[0].segment, feature=sm_list[-1].feature
-                    )
+                    yield SegmentMatch(segment=sm_list[0].segment, feature=sm_list[-1].feature)
                 else:  # ord("e")
                     # in this way the distance should be calculated correctly
                     i += len(sm_list)
-                    yield vcy.SegmentMatch(
+                    yield SegmentMatch(
                         segment=(
-                            sm_list[-1].feature.start
-                            - (sm_list[0].segment[-1] - sm_list[0].segment[0]),
+                            sm_list[-1].feature.start - (sm_list[0].segment[-1] - sm_list[0].segment[0]),
                             -1,
                         ),
                         feature=sm_list[-1].feature,
@@ -148,16 +138,13 @@ def spliced_iter(
             else:  # "-" strand
                 if sm_list[0].feature.kind == ord("i"):
                     i += len(sm_list)
-                    yield vcy.SegmentMatch(
-                        segment=sm_list[-1].segment, feature=sm_list[0].feature
-                    )
+                    yield SegmentMatch(segment=sm_list[-1].segment, feature=sm_list[0].feature)
                 else:  # ord("e")
                     i += len(sm_list)
-                    yield vcy.SegmentMatch(
+                    yield SegmentMatch(
                         segment=(
                             -1,
-                            sm_list[-1].feature.end
-                            + (sm_list[0].segment[-1] - sm_list[0].segment[0]),
+                            sm_list[-1].feature.end + (sm_list[0].segment[-1] - sm_list[0].segment[0]),
                             -1,
                         ),
                         feature=sm_list[0].feature,

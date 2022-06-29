@@ -1,36 +1,32 @@
-import array
-import csv
-import glob
 import gzip
 import itertools
 import logging
 import multiprocessing
 import os
 import random
-import re
 import string
 import subprocess
 import sys
-from collections import defaultdict
-from typing import *
+from typing import Any
 
-import h5py
 import loompy
 import numpy as np
 import pandas as pd
 
-import velocyto as vcy
+from .. import version
+from ..constants import BAM_COMPRESSION
+from ..counter import ExInCounter
+from ..logic import Logic
+from ..metadata import MetadataCollection
 
 
-def id_generator(
-    size: int = 6, chars: str = string.ascii_uppercase + string.digits
-) -> str:
+def id_generator(size: int = 6, chars: str = string.ascii_uppercase + string.digits) -> str:
     return "".join(random.choice(chars) for _ in range(size))
 
 
 def _run(
     *,
-    bamfile: Tuple[str],
+    bamfile: tuple[str],
     gtffile: str,
     bcfile: str,
     outputfolder: str,
@@ -70,18 +66,12 @@ def _run(
         level=[logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG][verbose],
     )
 
-    if (
-        isinstance(bamfile, tuple)
-        and len(bamfile) > 1
-        and bamfile[-1][-4:] in [".bam", ".sam"]
-    ):
+    if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile[-1][-4:] in [".bam", ".sam"]:
         multi = True
     elif isinstance(bamfile, tuple) and len(bamfile) == 1:
         multi = False
     else:
-        raise IOError(
-            f"Something went wrong in the argument parsing. You passed as bamfile: {bamfile}"
-        )
+        raise IOError(f"Something went wrong in the argument parsing. You passed as bamfile: {bamfile}")
 
     if onefilepercell and multi:
         if bcfile is not None:
@@ -100,15 +90,10 @@ def _run(
         ), "--metadatatable was specified but cannot fetch sample metadata without valid sampleid"
         if multi:
             logging.warning(
-                f"When using mutliple files you may want to use --sampleid option to specify the name of the output file"
+                "When using mutliple files you may want to use --sampleid option to specify the name of the output file"
             )
         if multi and not onefilepercell:
-            full_name = "_".join(
-                [
-                    os.path.basename(bamfile[i]).split(".")[0]
-                    for i in range(len(bamfile))
-                ]
-            )
+            full_name = "_".join([os.path.basename(bamfile[i]).split(".")[0] for i in range(len(bamfile))])
             if len(full_name) > 50:
                 sampleid = f'multi_input_{os.path.basename(bamfile[0]).split(".")[0]}_{id_generator(5)}'
             else:
@@ -124,20 +109,17 @@ def _run(
     # Create an output folder inside the cell ranger output folder
     if outputfolder is None:
         outputfolder = os.path.join(os.path.split(bamfile[0])[0], "velocyto")
-        logging.info(
-            f"No OUTPUTFOLDER specified, find output files inside {outputfolder}"
-        )
+        logging.info(f"No OUTPUTFOLDER specified, find output files inside {outputfolder}")
     if not os.path.exists(outputfolder):
         os.mkdir(outputfolder)
 
-    logic_class = getattr(vcy, logic)
-    if not issubclass(logic_class, vcy.Logic):
+    if not issubclass(logic, Logic):
         raise ValueError(
-            f"{logic} is not a valid logic. Choose one among {', '.join([k for k, v in vcy.logic.__dict__.items() if issubclass(v, vcy.Logic)])}"
+            f"{logic} is not a valid logic. Choose one among {', '.join([k for k, v in logic.__dict__.items() if issubclass(v, Logic)])}"
         )
     else:
         logging.debug(f"Using logic: {logic}")
-        logic_obj = logic_class()
+        logic_obj = logic()
 
     if bcfile is None:
         logging.debug("Cell barcodes will be determined while reading the .bam file")
@@ -145,49 +127,35 @@ def _run(
     else:
         # Get valid cell barcodes
         valid_bcs_list = (
-            (
-                gzip.open(bcfile).read().decode()
-                if bcfile.endswith(".gz")
-                else open(bcfile).read()
-            )
-            .rstrip()
-            .split()
+            (gzip.open(bcfile).read().decode() if bcfile.endswith(".gz") else open(bcfile).read()).rstrip().split()
         )
-        valid_cellid_list = np.array(
-            [f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list]
-        )  # with sample id and with -1
+        valid_cellid_list = np.array([f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list])  # with sample id and with -1
         if len(set(bc.split("-")[0] for bc in valid_bcs_list)) == 1:
             gem_grp = f"-{valid_bcs_list[0].split('-')[-1]}"
         else:
             gem_grp = "x"
         valid_bcset = set(bc.split("-")[0] for bc in valid_bcs_list)  # without -1
         logging.info(f"Read {len(valid_bcs_list)} cell barcodes from {bcfile}")
-        logging.debug(
-            f"Example of barcode: {valid_bcs_list[0].split('-')[0]} and cell_id: {valid_cellid_list[0]}"
-        )
+        logging.debug(f"Example of barcode: {valid_bcs_list[0].split('-')[0]} and cell_id: {valid_cellid_list[0]}")
 
     # Get metadata from sample sheet
     if metadatatable:
         try:
-            sample_metadata = vcy.MetadataCollection(metadatatable)
+            sample_metadata = MetadataCollection(metadatatable)
             sample = sample_metadata.where("SampleID", sampleid)
             if len(sample) == 0:
                 logging.error(f"Sample ID {sampleid} not found in sample sheet")
-                # schema = []  # type: List
+                # schema = []  # type: list
                 sample = {}
             elif len(sample) > 1:
-                logging.error(
-                    f"Sample ID {sampleid} has multiple lines in sample sheet"
-                )
+                logging.error(f"Sample ID {sampleid} has multiple lines in sample sheet")
                 sys.exit(1)
             else:
                 # schema = sample[0].types
                 sample = sample[0].dict
             logging.debug(f"Collecting column attributes from {metadatatable}")
         except (NameError, TypeError) as e:
-            logging.warn(
-                "SAMPLEFILE was not specified. add -s SAMPLEFILE to add metadata."
-            )
+            logging.warn("SAMPLEFILE was not specified. add -s SAMPLEFILE to add metadata.")
             sample = {}
     else:
         sample = {}
@@ -199,13 +167,11 @@ def _run(
     # Initialize Exon-Intron Counter with the logic and valid barcodes (need to do it now to peek)
     if without_umi:
         if umi_extension != "no":
-            logging.warning(
-                "--umi-extension was specified but incompatible with --without-umi, it will be ignored!"
-            )
+            logging.warning("--umi-extension was specified but incompatible with --without-umi, it will be ignored!")
         umi_extension = "without_umi"
-    exincounter = vcy.ExInCounter(
+    exincounter = ExInCounter(
         sampleid=sampleid,
-        logic=logic_class,
+        logic=logic,
         valid_bcset=valid_bcset,
         umi_extension=umi_extension,
         onefilepercell=onefilepercell,
@@ -215,24 +181,15 @@ def _run(
 
     # Heuristic to chose the memory/cpu effort
     try:
-        mb_available = (
-            int(
-                subprocess.check_output(
-                    "grep MemAvailable /proc/meminfo".split()
-                ).split()[1]
-            )
-            / 1000
-        )
+        mb_available = int(subprocess.check_output("grep MemAvailable /proc/meminfo".split()).split()[1]) / 1000
     except subprocess.CalledProcessError:
         logging.warning(
             "Your system does not support calling `grep MemAvailable /proc/meminfo` so the memory effort for the samtools command could not be chosen appropriately. 32Gb will be assumed"
         )
         mb_available = 32000  # 64Gb
     threads_to_use = min(samtools_threads, multiprocessing.cpu_count())
-    mb_to_use = int(
-        min(samtools_memory, mb_available / (len(bamfile) * threads_to_use))
-    )
-    compression = vcy.BAM_COMPRESSION
+    mb_to_use = int(min(samtools_memory, mb_available / (len(bamfile) * threads_to_use)))
+    compression = BAM_COMPRESSION
 
     # I need to peek into the bam file to know wich cell barcode flag should be used
     if onefilepercell and without_umi:
@@ -251,11 +208,10 @@ def _run(
         bamfile_cellsorted = [bamfile[0]]
     else:
         bamfile_cellsorted = [
-            f"{os.path.join(os.path.dirname(bmf), 'cellsorted_' + os.path.basename(bmf))}"
-            for bmf in bamfile
+            f"{os.path.join(os.path.dirname(bmf), 'cellsorted_' + os.path.basename(bmf))}" for bmf in bamfile
         ]
 
-    sorting_process: Dict[int, Any] = {}
+    sorting_process: dict[int, Any] = {}
     for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):
         # Start a subprocess that sorts the bam file
         command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
@@ -266,14 +222,10 @@ def _run(
             )
             check_end_process = False
         else:
-            sorting_process[ni] = subprocess.Popen(
-                command.split(), stdout=subprocess.PIPE
-            )
-            logging.info(
-                f"Starting the sorting process of {bamfile[ni]} the output will be at: {bmf_cellsorted}"
-            )
+            sorting_process[ni] = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+            logging.info(f"Starting the sorting process of {bamfile[ni]} the output will be at: {bmf_cellsorted}")
             logging.info(f"Command being run is: {command}")
-            logging.info(f"While the bam sorting happens do other things...")
+            logging.info("While the bam sorting happens do other things...")
             check_end_process = True
 
     # Load annotations
@@ -282,21 +234,17 @@ def _run(
     chrs = list(v for k, v in annotations_by_chrm_strand.items())
     tms = list(itertools.chain.from_iterable((v.values() for v in chrs)))
     ivls = list(itertools.chain.from_iterable(tms))
-    logging.debug(
-        f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}"
-    )
+    logging.debug(f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}")
     del chrs, tms, ivls
 
     # Load annotations
     if repmask is not None:
         logging.info(f"Load the repeat masking annotation from {repmask}")
-        mask_ivls_by_chromstrand = exincounter.read_repeats(repmask)
+        # mask_ivls_by_chromstrand = exincounter.read_repeats(repmask)
 
     # Go through the bam files a first time to markup introns
     logging.info(f"Scan {' '.join(bamfile)} to validate intron intervals")
-    if (
-        test
-    ):  # NOTE: Remove this after finishing testing, the only purpuso was to save 15min in the debugging process
+    if test:  # NOTE: Remove this after finishing testing, the only purpuso was to save 15min in the debugging process
         logging.warning("This place is for developer only!")
         import pickle
 
@@ -313,7 +261,7 @@ def _run(
 
     # Wait for child process to terminate
     if check_end_process:
-        logging.info(f"Now just waiting that the bam sorting process terminates")
+        logging.info("Now just waiting that the bam sorting process terminates")
         for k in sorting_process.keys():
             returncode = sorting_process[k].wait()
             if returncode == 0:
@@ -342,12 +290,8 @@ def _run(
         valid_bcset = exincounter.valid_bcset  # without -1
         valid_bcs_list = list(valid_bcset)  # without -1
         gem_grp = ""
-        valid_cellid_list = np.array(
-            [f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list]
-        )  # with sampleid and with -1
-        logging.debug(
-            f"Example of barcode: {valid_bcs_list[0]} and cell_id: {valid_cellid_list[0]}"
-        )
+        valid_cellid_list = np.array([f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list])  # with sampleid and with -1
+        logging.debug(f"Example of barcode: {valid_bcs_list[0]} and cell_id: {valid_cellid_list[0]}")
 
     # If this data is from a 10X run, it is possible that additional_ca has data from cells that are present in the TSNE and Cluster files
     # but not present in the count matrix.   these are not removed prior to attempting to create the loom file, this whole process will fail
@@ -376,17 +320,13 @@ def _run(
             "clusters.csv",
         )
         if os.path.exists(clusters_file):
-            labels = np.loadtxt(clusters_file, usecols=(1,), delimiter=",", skiprows=1)
+            # labels = np.loadtxt(clusters_file, usecols=(1,), delimiter=",", skiprows=1)
             clusters_pd = pd.read_csv(clusters_file)
             clusters_pd["Barcode"] = [_[:-2] for _ in clusters_pd["Barcode"]]
             clusters_pd = clusters_pd[clusters_pd["Barcode"].isin(cell_bcs_order)]
-            additional_ca["Clusters"] = (
-                clusters_pd["Cluster"].to_numpy(dtype="int16") - 1
-            )
+            additional_ca["Clusters"] = clusters_pd["Cluster"].to_numpy(dtype="int16") - 1
 
-    ca = {
-        "CellID": np.array([f"{sampleid}:{v_bc}{gem_grp}" for v_bc in cell_bcs_order])
-    }
+    ca = {"CellID": np.array([f"{sampleid}:{v_bc}{gem_grp}" for v_bc in cell_bcs_order])}
     ca.update(additional_ca)
 
     for key, value in sample.items():
@@ -409,17 +349,13 @@ def _run(
     logging.debug("Collecting row attributes")
     ra = {}
     for name_col_attr, name_obj_attr, dtyp in atr_table:
-        tmp_array = np.zeros(
-            (len(exincounter.genes),), dtype=object
-        )  # type: np.ndarray
+        tmp_array = np.zeros((len(exincounter.genes),), dtype=object)  # type: np.ndarray
         for gene_id, gene_info in exincounter.genes.items():
-            tmp_array[exincounter.geneid2ix[gene_id]] = getattr(
-                gene_info, name_obj_attr
-            )
+            tmp_array[exincounter.geneid2ix[gene_id]] = getattr(gene_info, name_obj_attr)
         ra[name_col_attr] = tmp_array.astype(dtyp)
 
     logging.debug("Generating data table")
-    layers: Dict[str, np.ndarray] = {}
+    layers: dict[str, np.ndarray] = {}
 
     for layer_name in logic_obj.layers:
         layers[layer_name] = np.concatenate(dict_list_arrays[layer_name], axis=1)
@@ -439,9 +375,7 @@ def _run(
             tmp_layers = {"": total.astype("float32", order="C", copy=False)}
             tmp_layers.update(
                 {
-                    layer_name: layers[layer_name].astype(
-                        loom_numeric_dtype, order="C", copy=False
-                    )
+                    layer_name: layers[layer_name].astype(loom_numeric_dtype, order="C", copy=False)
                     for layer_name in logic_obj.layers
                 }
             )
@@ -451,24 +385,20 @@ def _run(
                 row_attrs=ra,
                 col_attrs=ca,
                 file_attrs={
-                    "velocyto.__version__": vcy.__version__,
+                    "velocyto.__version__": version(),
                     "velocyto.logic": logic,
                 },
             )
         except TypeError:
-            stop
+            sys.exit()
     elif int(loompy.__version__.split(".")[0]) < 2:
         try:
-            ds = loompy.create(
-                filename=outfile, layers=total, row_attrs=ra, col_attrs=ca
-            )
+            ds = loompy.create(filename=outfile, layers=total, row_attrs=ra, col_attrs=ca)
             for layer_name in logic_obj.layers:
-                ds.set_layer(
-                    name=layer_name, layers=layers[layer_name], dtype=loom_numeric_dtype
-                )
-            ds.attrs["velocyto.__version__"] = vcy.__version__
+                ds.set_layer(name=layer_name, layers=layers[layer_name], dtype=loom_numeric_dtype)
+            ds.attrs["velocyto.__version__"] = version()
             ds.attrs["velocyto.logic"] = logic
             ds.close()
         except TypeError:
-            stop
+            sys.exit()
     logging.debug("Terminated Succesfully!")

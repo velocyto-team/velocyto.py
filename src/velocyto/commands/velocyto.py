@@ -5,8 +5,7 @@ from typing import Any
 
 import click
 
-import velocyto._version
-
+from .. import __version__
 from .dropest_bc_correct import dropest_bc_correct
 from .run import run
 from .run10x import run10x
@@ -33,7 +32,7 @@ class NaturalOrderGroup(click.Group):
         return self.commands.keys()
 
 
-@click.version_option(version=velocyto._version.__version__)
+@click.version_option(version=__version__)
 @click.group(
     cls=NaturalOrderGroup,
     commands=OrderedDict(),

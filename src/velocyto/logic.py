@@ -1,9 +1,9 @@
 import abc
-from typing import *
+from typing import Union
 
 import numpy as np
 
-import velocyto as vcy
+from .molitem import Molitem
 
 
 class Logic(metaclass=abc.ABCMeta):
@@ -15,7 +15,7 @@ class Logic(metaclass=abc.ABCMeta):
     @property
     def layers(
         self,
-    ) -> List[str]:  # This should be overridden if a different set of layers is desired
+    ) -> list[str]:  # This should be overridden if a different set of layers is desired
         return []
 
     @property
@@ -33,23 +33,23 @@ class Logic(metaclass=abc.ABCMeta):
     @abc.abstractmethod  # This needs to be overridden
     def count(
         self,
-        molitem: vcy.Molitem,
+        molitem: Molitem,
         cell_bcidx: int,
-        dict_layers_columns: Dict[str, np.ndarray],
-        geneid2ix: Dict[str, int],
+        dict_layers_columns: dict[str, np.ndarray],
+        geneid2ix: dict[str, int],
     ) -> Union[None, int]:
         """This methods will have to countain the core operations of the logic to attribute a molecule to one of the cathergories
 
         Arguments
         ---------
-        molitem: vcy.Molitem
-            The :py:class:`vcy.Molitem` object to be considered by the logic
+        molitem: Molitem
+            The :py:class:`Molitem` object to be considered by the logic
         cell_bcidx: int
             The cell index in the memory buffers below
-        dict_layers_columns: Dict[str, np.ndarray]
+        dict_layers_columns: dict[str, np.ndarray]
             A dictionary mapping the name of a layer with the memory buffer that will be saved in the loom file after counting
-        geneid2ix: Dict[str, int]
-            Dictionary containing the Acession of the genes mapping to its column index position
+        geneid2ix: dict[str, int]
+            dictionary containing the Acession of the genes mapping to its column index position
 
         Returns
         -------
@@ -76,7 +76,7 @@ class Permissive10X(Logic):
     @property
     def layers(
         self,
-    ) -> List[str]:  # This should be overridden if a different set of layers is desired
+    ) -> list[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
@@ -93,10 +93,10 @@ class Permissive10X(Logic):
 
     def count(
         self,
-        molitem: vcy.Molitem,
+        molitem: Molitem,
         cell_bcidx: int,
-        dict_layers_columns: Dict[str, np.ndarray],
-        geneid2ix: Dict[str, int],
+        dict_layers_columns: dict[str, np.ndarray],
+        geneid2ix: dict[str, int],
     ) -> int:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -110,7 +110,7 @@ class Permissive10X(Logic):
         else:
             # Check that there are not different possible genes ??
             if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
-                gene_check: Set[str] = set()
+                gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
                 has_only_span_exin_model = 1
@@ -126,61 +126,39 @@ class Permissive10X(Logic):
                         multi_gene = 1
                     has_introns = 0
                     has_exons = 0
-                    has_exseg_with_spliced_flag = 0
+                    # has_exseg_with_spliced_flag = 0
                     has_validated_intron = 0
                     has_exin_intron_span = 0
-                    has_non3prime = 0
+                    # has_non3prime = 0
                     for segment_match in segments_list:
                         if segment_match.maps_to_intron:
                             has_introns = 1
                             if segment_match.feature.is_validated:
                                 has_validated_intron = 1
-                                if segment_match.feature.end_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    downstream_exon = (
-                                        segment_match.feature.get_downstream_exon()
-                                    )
-                                    if downstream_exon.start_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.end_overlaps_with_part_of(segment_match.segment):
+                                    downstream_exon = segment_match.feature.get_downstream_exon()
+                                    if downstream_exon.start_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
-                                if segment_match.feature.start_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    upstream_exon = (
-                                        segment_match.feature.get_upstream_exon()
-                                    )
-                                    if upstream_exon.end_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.start_overlaps_with_part_of(segment_match.segment):
+                                    upstream_exon = segment_match.feature.get_upstream_exon()
+                                    if upstream_exon.end_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
                         elif segment_match.maps_to_exon:
                             has_exons = 1
-                            if not segment_match.feature.is_last_3prime:
-                                has_non3prime = 1
-                            if segment_match.is_spliced:
-                                has_exseg_with_spliced_flag = 1
+                            # if not segment_match.feature.is_last_3prime:
+                            #     has_non3prime = 1
+                            # if segment_match.is_spliced:
+                            #     has_exseg_with_spliced_flag = 1
                     if has_validated_intron and not has_exons:
                         has_onlyintron_and_valid_model = 1
                     if has_introns and not has_exons:
                         has_onlyintron_model = 1
                     if has_exons and not has_introns:
                         has_onlyexo_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and not has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and not has_validated_intron and not has_exin_intron_span:
                         has_invalid_mixed_model = 1
                         has_mixed_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and has_validated_intron and not has_exin_intron_span:
                         has_valid_mixed_model = 1
                         has_mixed_model = 1
                     if not has_exin_intron_span:
@@ -194,11 +172,7 @@ class Permissive10X(Logic):
                         # No gene is compatible with the observation, do not count
                         return 2
                     else:
-                        if (
-                            has_onlyexo_model
-                            and not has_onlyintron_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
                             # More common situation, normal exonic read, count as spliced
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spliced[gene_ix, cell_bcidx] += 1
@@ -208,11 +182,7 @@ class Permissive10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return 0
-                        if (
-                            has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                        if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                             if len(segments_list) == 1:
                                 # Singleton in validated intron
                                 gene_ix = geneid2ix[transcript_model.geneid]
@@ -260,40 +230,22 @@ class Permissive10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return 0
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and not has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return 0
-                        if (
-                            has_onlyintron_model
-                            and not has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and not has_onlyexo_model and has_mixed_model:
                             # Very rare, at least in 10X.
                             gene_ix = geneid2ix[transcript_model.geneid]
-                            unspliced[
-                                gene_ix, cell_bcidx
-                            ] += 1  # this was ambiguous in a previous version
+                            unspliced[gene_ix, cell_bcidx] += 1  # this was ambiguous in a previous version
                             return 0
-                        if (
-                            not has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return 0
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
@@ -320,7 +272,7 @@ class Intermediate10X(Logic):
     @property
     def layers(
         self,
-    ) -> List[str]:  # This should be overridden if a different set of layers is desired
+    ) -> list[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
@@ -337,10 +289,10 @@ class Intermediate10X(Logic):
 
     def count(
         self,
-        molitem: vcy.Molitem,
+        molitem: Molitem,
         cell_bcidx: int,
-        dict_layers_columns: Dict[str, np.ndarray],
-        geneid2ix: Dict[str, int],
+        dict_layers_columns: dict[str, np.ndarray],
+        geneid2ix: dict[str, int],
     ) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -354,7 +306,7 @@ class Intermediate10X(Logic):
         else:
             # Check that there are not different possible genes ??
             if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
-                gene_check: Set[str] = set()
+                gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
                 has_only_span_exin_model = 1
@@ -370,61 +322,39 @@ class Intermediate10X(Logic):
                         multi_gene = 1
                     has_introns = 0
                     has_exons = 0
-                    has_exseg_with_spliced_flag = 0
+                    # has_exseg_with_spliced_flag = 0
                     has_validated_intron = 0
                     has_exin_intron_span = 0
-                    has_non3prime = 0
+                    # has_non3prime = 0
                     for segment_match in segments_list:
                         if segment_match.maps_to_intron:
                             has_introns = 1
                             if segment_match.feature.is_validated:
                                 has_validated_intron = 1
-                                if segment_match.feature.end_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    downstream_exon = (
-                                        segment_match.feature.get_downstream_exon()
-                                    )
-                                    if downstream_exon.start_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.end_overlaps_with_part_of(segment_match.segment):
+                                    downstream_exon = segment_match.feature.get_downstream_exon()
+                                    if downstream_exon.start_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
-                                if segment_match.feature.start_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    upstream_exon = (
-                                        segment_match.feature.get_upstream_exon()
-                                    )
-                                    if upstream_exon.end_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.start_overlaps_with_part_of(segment_match.segment):
+                                    upstream_exon = segment_match.feature.get_upstream_exon()
+                                    if upstream_exon.end_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
                         elif segment_match.maps_to_exon:
                             has_exons = 1
-                            if not segment_match.feature.is_last_3prime:
-                                has_non3prime = 1
-                            if segment_match.is_spliced:
-                                has_exseg_with_spliced_flag = 1
+                            # if not segment_match.feature.is_last_3prime:
+                            #     has_non3prime = 1
+                            # if segment_match.is_spliced:
+                            #     has_exseg_with_spliced_flag = 1
                     if has_validated_intron and not has_exons:
                         has_onlyintron_and_valid_model = 1
                     if has_introns and not has_exons:
                         has_onlyintron_model = 1
                     if has_exons and not has_introns:
                         has_onlyexo_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and not has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and not has_validated_intron and not has_exin_intron_span:
                         has_invalid_mixed_model = 1
                         has_mixed_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and has_validated_intron and not has_exin_intron_span:
                         has_valid_mixed_model = 1
                         has_mixed_model = 1
                     if not has_exin_intron_span:
@@ -438,11 +368,7 @@ class Intermediate10X(Logic):
                         # no gene is compatible with the observation, do not count
                         return
                     else:
-                        if (
-                            has_onlyexo_model
-                            and not has_onlyintron_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
                             # More common situation, normal exonic read, count as spliced
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spliced[gene_ix, cell_bcidx] += 1
@@ -452,11 +378,7 @@ class Intermediate10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                        if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                             if len(segments_list) == 1:
                                 # Singleton in validated intron
                                 gene_ix = geneid2ix[transcript_model.geneid]
@@ -500,38 +422,22 @@ class Intermediate10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and not has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and not has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and not has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            not has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
@@ -555,7 +461,7 @@ class ValidatedIntrons10X(Logic):
     @property
     def layers(
         self,
-    ) -> List[str]:  # This should be overridden if a different set of layers is desired
+    ) -> list[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
@@ -572,10 +478,10 @@ class ValidatedIntrons10X(Logic):
 
     def count(
         self,
-        molitem: vcy.Molitem,
+        molitem: Molitem,
         cell_bcidx: int,
-        dict_layers_columns: Dict[str, np.ndarray],
-        geneid2ix: Dict[str, int],
+        dict_layers_columns: dict[str, np.ndarray],
+        geneid2ix: dict[str, int],
     ) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -589,7 +495,7 @@ class ValidatedIntrons10X(Logic):
         else:
             # Check that there are not different possible genes ??
             if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
-                gene_check: Set[str] = set()
+                gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
                 has_only_span_exin_model = 1
@@ -605,61 +511,39 @@ class ValidatedIntrons10X(Logic):
                         multi_gene = 1
                     has_introns = 0
                     has_exons = 0
-                    has_exseg_with_spliced_flag = 0
+                    # has_exseg_with_spliced_flag = 0
                     has_validated_intron = 0
                     has_exin_intron_span = 0
-                    has_non3prime = 0
+                    # has_non3prime = 0
                     for segment_match in segments_list:
                         if segment_match.maps_to_intron:
                             has_introns = 1
                             if segment_match.feature.is_validated:
                                 has_validated_intron = 1
-                                if segment_match.feature.end_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    downstream_exon = (
-                                        segment_match.feature.get_downstream_exon()
-                                    )
-                                    if downstream_exon.start_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.end_overlaps_with_part_of(segment_match.segment):
+                                    downstream_exon = segment_match.feature.get_downstream_exon()
+                                    if downstream_exon.start_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
-                                if segment_match.feature.start_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    upstream_exon = (
-                                        segment_match.feature.get_upstream_exon()
-                                    )
-                                    if upstream_exon.end_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.start_overlaps_with_part_of(segment_match.segment):
+                                    upstream_exon = segment_match.feature.get_upstream_exon()
+                                    if upstream_exon.end_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
                         elif segment_match.maps_to_exon:
                             has_exons = 1
-                            if not segment_match.feature.is_last_3prime:
-                                has_non3prime = 1
-                            if segment_match.is_spliced:
-                                has_exseg_with_spliced_flag = 1
+                            # if not segment_match.feature.is_last_3prime:
+                            #     has_non3prime = 1
+                            # if segment_match.is_spliced:
+                            #     has_exseg_with_spliced_flag = 1
                     if has_validated_intron and not has_exons:
                         has_onlyintron_and_valid_model = 1
                     if has_introns and not has_exons:
                         has_onlyintron_model = 1
                     if has_exons and not has_introns:
                         has_onlyexo_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and not has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and not has_validated_intron and not has_exin_intron_span:
                         has_invalid_mixed_model = 1
                         has_mixed_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and has_validated_intron and not has_exin_intron_span:
                         has_valid_mixed_model = 1
                         has_mixed_model = 1
                     if not has_exin_intron_span:
@@ -673,11 +557,7 @@ class ValidatedIntrons10X(Logic):
                         # no gene is compatible with the observation, do not count
                         return
                     else:
-                        if (
-                            has_onlyexo_model
-                            and not has_onlyintron_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
                             # More common situation, normal exonic read, count as spliced
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spliced[gene_ix, cell_bcidx] += 1
@@ -687,11 +567,7 @@ class ValidatedIntrons10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                        if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                             if len(segments_list) == 1:
                                 # Singleton in validated intron
                                 gene_ix = geneid2ix[transcript_model.geneid]
@@ -733,38 +609,22 @@ class ValidatedIntrons10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and not has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and not has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and not has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            not has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
@@ -788,7 +648,7 @@ class Stricter10X(Logic):
     @property
     def layers(
         self,
-    ) -> List[str]:  # This should be overridden if a different set of layers is desired
+    ) -> list[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
@@ -801,10 +661,10 @@ class Stricter10X(Logic):
 
     def count(
         self,
-        molitem: vcy.Molitem,
+        molitem: Molitem,
         cell_bcidx: int,
-        dict_layers_columns: Dict[str, np.ndarray],
-        geneid2ix: Dict[str, int],
+        dict_layers_columns: dict[str, np.ndarray],
+        geneid2ix: dict[str, int],
     ) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -818,7 +678,7 @@ class Stricter10X(Logic):
         else:
             # Check that there are not different possible genes ??
             if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
-                gene_check: Set[str] = set()
+                gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
                 has_only_span_exin_model = 1
@@ -834,61 +694,39 @@ class Stricter10X(Logic):
                         multi_gene = 1
                     has_introns = 0
                     has_exons = 0
-                    has_exseg_with_spliced_flag = 0
+                    # has_exseg_with_spliced_flag = 0
                     has_validated_intron = 0
                     has_exin_intron_span = 0
-                    has_non3prime = 0
+                    # has_non3prime = 0
                     for segment_match in segments_list:
                         if segment_match.maps_to_intron:
                             has_introns = 1
                             if segment_match.feature.is_validated:
                                 has_validated_intron = 1
-                                if segment_match.feature.end_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    downstream_exon = (
-                                        segment_match.feature.get_downstream_exon()
-                                    )
-                                    if downstream_exon.start_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.end_overlaps_with_part_of(segment_match.segment):
+                                    downstream_exon = segment_match.feature.get_downstream_exon()
+                                    if downstream_exon.start_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
-                                if segment_match.feature.start_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    upstream_exon = (
-                                        segment_match.feature.get_upstream_exon()
-                                    )
-                                    if upstream_exon.end_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.start_overlaps_with_part_of(segment_match.segment):
+                                    upstream_exon = segment_match.feature.get_upstream_exon()
+                                    if upstream_exon.end_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
                         elif segment_match.maps_to_exon:
                             has_exons = 1
-                            if not segment_match.feature.is_last_3prime:
-                                has_non3prime = 1
-                            if segment_match.is_spliced:
-                                has_exseg_with_spliced_flag = 1
+                            # if not segment_match.feature.is_last_3prime:
+                            #     has_non3prime = 1
+                            # if segment_match.is_spliced:
+                            #     has_exseg_with_spliced_flag = 1
                     if has_validated_intron and not has_exons:
                         has_onlyintron_and_valid_model = 1
                     if has_introns and not has_exons:
                         has_onlyintron_model = 1
                     if has_exons and not has_introns:
                         has_onlyexo_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and not has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and not has_validated_intron and not has_exin_intron_span:
                         has_invalid_mixed_model = 1
                         has_mixed_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and has_validated_intron and not has_exin_intron_span:
                         has_valid_mixed_model = 1
                         has_mixed_model = 1
                     if not has_exin_intron_span:
@@ -902,11 +740,7 @@ class Stricter10X(Logic):
                         # no gene is compatible with the observation, do not count
                         return
                     else:
-                        if (
-                            has_onlyexo_model
-                            and not has_onlyintron_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
                             # More common situation, normal exonic read, count as spliced
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spliced[gene_ix, cell_bcidx] += 1
@@ -916,11 +750,7 @@ class Stricter10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                        if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                             if len(segments_list) == 1:
                                 # Singleton in validated intron, do not count
                                 return
@@ -960,38 +790,22 @@ class Stricter10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and not has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and not has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and not has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            not has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
@@ -1015,7 +829,7 @@ class ObservedSpanning10X(Logic):
     @property
     def layers(
         self,
-    ) -> List[str]:  # This should be overridden if a different set of layers is desired
+    ) -> list[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
@@ -1032,10 +846,10 @@ class ObservedSpanning10X(Logic):
 
     def count(
         self,
-        molitem: vcy.Molitem,
+        molitem: Molitem,
         cell_bcidx: int,
-        dict_layers_columns: Dict[str, np.ndarray],
-        geneid2ix: Dict[str, int],
+        dict_layers_columns: dict[str, np.ndarray],
+        geneid2ix: dict[str, int],
     ) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -1049,7 +863,7 @@ class ObservedSpanning10X(Logic):
         else:
             # Check that there are not different possible genes ??
             if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
-                gene_check: Set[str] = set()
+                gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
                 has_only_span_exin_model = 1
@@ -1065,61 +879,39 @@ class ObservedSpanning10X(Logic):
                         multi_gene = 1
                     has_introns = 0
                     has_exons = 0
-                    has_exseg_with_spliced_flag = 0
+                    # has_exseg_with_spliced_flag = 0
                     has_validated_intron = 0
                     has_exin_intron_span = 0
-                    has_non3prime = 0
+                    # has_non3prime = 0
                     for segment_match in segments_list:
                         if segment_match.maps_to_intron:
                             has_introns = 1
                             if segment_match.feature.is_validated:
                                 has_validated_intron = 1
-                                if segment_match.feature.end_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    downstream_exon = (
-                                        segment_match.feature.get_downstream_exon()
-                                    )
-                                    if downstream_exon.start_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.end_overlaps_with_part_of(segment_match.segment):
+                                    downstream_exon = segment_match.feature.get_downstream_exon()
+                                    if downstream_exon.start_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
-                                if segment_match.feature.start_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    upstream_exon = (
-                                        segment_match.feature.get_upstream_exon()
-                                    )
-                                    if upstream_exon.end_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.start_overlaps_with_part_of(segment_match.segment):
+                                    upstream_exon = segment_match.feature.get_upstream_exon()
+                                    if upstream_exon.end_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
                         elif segment_match.maps_to_exon:
                             has_exons = 1
-                            if not segment_match.feature.is_last_3prime:
-                                has_non3prime = 1
-                            if segment_match.is_spliced:
-                                has_exseg_with_spliced_flag = 1
+                            # if not segment_match.feature.is_last_3prime:
+                            #     has_non3prime = 1
+                            # if segment_match.is_spliced:
+                            #     has_exseg_with_spliced_flag = 1
                     if has_validated_intron and not has_exons:
                         has_onlyintron_and_valid_model = 1
                     if has_introns and not has_exons:
                         has_onlyintron_model = 1
                     if has_exons and not has_introns:
                         has_onlyexo_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and not has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and not has_validated_intron and not has_exin_intron_span:
                         has_invalid_mixed_model = 1
                         has_mixed_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and has_validated_intron and not has_exin_intron_span:
                         has_valid_mixed_model = 1
                         has_mixed_model = 1
                     if not has_exin_intron_span:
@@ -1133,11 +925,7 @@ class ObservedSpanning10X(Logic):
                         # No gene is compatible with the observation, do not count
                         return
                     else:
-                        if (
-                            has_onlyexo_model
-                            and not has_onlyintron_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
                             # More common situation, normal exonic read, count as spliced
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spliced[gene_ix, cell_bcidx] += 1
@@ -1147,11 +935,7 @@ class ObservedSpanning10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                        if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                             if len(segments_list) == 1:
                                 # Singleton in validated intron, do not count
                                 return
@@ -1189,38 +973,22 @@ class ObservedSpanning10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and not has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and not has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and not has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            not has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare.
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
@@ -1236,7 +1004,7 @@ class Discordant10X(Logic):
     @property
     def layers(
         self,
-    ) -> List[str]:  # This should be overridden if a different set of layers is desired
+    ) -> list[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous"]
 
     @property
@@ -1253,10 +1021,10 @@ class Discordant10X(Logic):
 
     def count(
         self,
-        molitem: vcy.Molitem,
+        molitem: Molitem,
         cell_bcidx: int,
-        dict_layers_columns: Dict[str, np.ndarray],
-        geneid2ix: Dict[str, int],
+        dict_layers_columns: dict[str, np.ndarray],
+        geneid2ix: dict[str, int],
     ) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -1270,7 +1038,7 @@ class Discordant10X(Logic):
         else:
             # Check that there are not different possible genes ??
             if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
-                gene_check: Set[str] = set()
+                gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
                 has_only_span_exin_model = 1
@@ -1286,61 +1054,39 @@ class Discordant10X(Logic):
                         multi_gene = 1
                     has_introns = 0
                     has_exons = 0
-                    has_exseg_with_spliced_flag = 0
+                    # has_exseg_with_spliced_flag = 0
                     has_validated_intron = 0
                     has_exin_intron_span = 0
-                    has_non3prime = 0
+                    # has_non3prime = 0
                     for segment_match in segments_list:
                         if segment_match.maps_to_intron:
                             has_introns = 1
                             if segment_match.feature.is_validated:
                                 has_validated_intron = 1
-                                if segment_match.feature.end_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    downstream_exon = (
-                                        segment_match.feature.get_downstream_exon()
-                                    )
-                                    if downstream_exon.start_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.end_overlaps_with_part_of(segment_match.segment):
+                                    downstream_exon = segment_match.feature.get_downstream_exon()
+                                    if downstream_exon.start_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
-                                if segment_match.feature.start_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
-                                    upstream_exon = (
-                                        segment_match.feature.get_upstream_exon()
-                                    )
-                                    if upstream_exon.end_overlaps_with_part_of(
-                                        segment_match.segment
-                                    ):
+                                if segment_match.feature.start_overlaps_with_part_of(segment_match.segment):
+                                    upstream_exon = segment_match.feature.get_upstream_exon()
+                                    if upstream_exon.end_overlaps_with_part_of(segment_match.segment):
                                         has_exin_intron_span = 1
                         elif segment_match.maps_to_exon:
                             has_exons = 1
-                            if not segment_match.feature.is_last_3prime:
-                                has_non3prime = 1
-                            if segment_match.is_spliced:
-                                has_exseg_with_spliced_flag = 1
+                            # if not segment_match.feature.is_last_3prime:
+                            #     has_non3prime = 1
+                            # if segment_match.is_spliced:
+                            #     has_exseg_with_spliced_flag = 1
                     if has_validated_intron and not has_exons:
                         has_onlyintron_and_valid_model = 1
                     if has_introns and not has_exons:
                         has_onlyintron_model = 1
                     if has_exons and not has_introns:
                         has_onlyexo_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and not has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and not has_validated_intron and not has_exin_intron_span:
                         has_invalid_mixed_model = 1
                         has_mixed_model = 1
-                    if (
-                        has_exons
-                        and has_introns
-                        and has_validated_intron
-                        and not has_exin_intron_span
-                    ):
+                    if has_exons and has_introns and has_validated_intron and not has_exin_intron_span:
                         has_valid_mixed_model = 1
                         has_mixed_model = 1
                     if not has_exin_intron_span:
@@ -1354,11 +1100,7 @@ class Discordant10X(Logic):
                         # No gene is compatible with the observation, do not count
                         return
                     else:
-                        if (
-                            has_onlyexo_model
-                            and not has_onlyintron_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
                             # More common situation, normal exonic read, count as spliced
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spliced[gene_ix, cell_bcidx] += 1
@@ -1368,11 +1110,7 @@ class Discordant10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                        if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                             if len(segments_list) == 1:
                                 # Singleton in validated intron
                                 gene_ix = geneid2ix[transcript_model.geneid]
@@ -1420,38 +1158,22 @@ class Discordant10X(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and not has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and not has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and not has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            not has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping. Very rare. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
@@ -1467,7 +1189,7 @@ class SmartSeq2(Logic):
     @property
     def layers(
         self,
-    ) -> List[str]:  # This should be overridden if a different set of layers is desired
+    ) -> list[str]:  # This should be overridden if a different set of layers is desired
         return ["spliced", "unspliced", "ambiguous", "spanning"]
 
     @property
@@ -1484,10 +1206,10 @@ class SmartSeq2(Logic):
 
     def count(
         self,
-        molitem: vcy.Molitem,
+        molitem: Molitem,
         cell_bcidx: int,
-        dict_layers_columns: Dict[str, np.ndarray],
-        geneid2ix: Dict[str, int],
+        dict_layers_columns: dict[str, np.ndarray],
+        geneid2ix: dict[str, int],
     ) -> None:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
@@ -1502,7 +1224,7 @@ class SmartSeq2(Logic):
         else:
             # Check that there are not different possible genes ??
             if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
-                gene_check: Set[str] = set()
+                gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
                 has_only_span_exin_model = 1
@@ -1515,41 +1237,29 @@ class SmartSeq2(Logic):
                         multi_gene = 1
                     has_introns = 0
                     has_exons = 0
-                    has_exseg_with_spliced_flag = 0
+                    # has_exseg_with_spliced_flag = 0
                     has_exin_intron_span = 0
                     for segment_match in segments_list:
                         if segment_match.maps_to_intron:
                             has_introns = 1
-                            if segment_match.feature.end_overlaps_with_part_of(
-                                segment_match.segment
-                            ):
-                                downstream_exon = (
-                                    segment_match.feature.get_downstream_exon()
-                                )
-                                if downstream_exon.start_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
+                            if segment_match.feature.end_overlaps_with_part_of(segment_match.segment):
+                                downstream_exon = segment_match.feature.get_downstream_exon()
+                                if downstream_exon.start_overlaps_with_part_of(segment_match.segment):
                                     has_exin_intron_span = 1
-                            if segment_match.feature.start_overlaps_with_part_of(
-                                segment_match.segment
-                            ):
-                                upstream_exon = (
-                                    segment_match.feature.get_upstream_exon()
-                                )
-                                if upstream_exon.end_overlaps_with_part_of(
-                                    segment_match.segment
-                                ):
+                            if segment_match.feature.start_overlaps_with_part_of(segment_match.segment):
+                                upstream_exon = segment_match.feature.get_upstream_exon()
+                                if upstream_exon.end_overlaps_with_part_of(segment_match.segment):
                                     has_exin_intron_span = 1
                         elif segment_match.maps_to_exon:
                             has_exons = 1
-                            if segment_match.is_spliced:
-                                has_exseg_with_spliced_flag = 1
+                            # if segment_match.is_spliced:
+                            #     has_exseg_with_spliced_flag = 1
                     if has_introns and not has_exons:
                         has_onlyintron_model = 1
                     if has_exons and not has_introns:
                         has_onlyexo_model = 1
                     if has_exons and has_introns and not has_exin_intron_span:
-                        has_valid_mixed_model = 1
+                        # has_valid_mixed_model = 1
                         has_mixed_model = 1
                     if not has_exin_intron_span:
                         has_only_span_exin_model = 0
@@ -1563,11 +1273,7 @@ class SmartSeq2(Logic):
                         # No gene is compatible with the observation, do not count
                         return
                     else:
-                        if (
-                            has_onlyexo_model
-                            and not has_onlyintron_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
                             # More common situation, normal exonic read, count as spliced
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spliced[gene_ix, cell_bcidx] += 1
@@ -1578,28 +1284,16 @@ class SmartSeq2(Logic):
                             gene_ix = geneid2ix[transcript_model.geneid]
                             spanning[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                        if has_onlyintron_model and not has_mixed_model and not has_onlyexo_model:
                             gene_ix = geneid2ix[transcript_model.geneid]
                             unspliced[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            has_onlyintron_model
-                            and has_onlyexo_model
-                            and not has_mixed_model
-                        ):
+                        if has_onlyintron_model and has_onlyexo_model and not has_mixed_model:
                             # Ambiguity among the transcript models compatible with the mapping, most common case! Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]
                             ambiguous[gene_ix, cell_bcidx] += 1
                             return
-                        if (
-                            not has_onlyintron_model
-                            and has_onlyexo_model
-                            and has_mixed_model
-                        ):
+                        if not has_onlyintron_model and has_onlyexo_model and has_mixed_model:
                             # NOTE has_mixed model is used only here in this logic
                             # Ambiguity among the transcript models compatible with the mapping. Count ambiguous
                             gene_ix = geneid2ix[transcript_model.geneid]

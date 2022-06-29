@@ -1,15 +1,18 @@
 import logging
 from collections import defaultdict
-from typing import *
 
-import velocyto as vcy
+from .constants import MATCH_INSIDE, MATCH_OVER3END, MATCH_OVER5END, MIN_FLANK
+from .feature import Feature
+from .read import Read
+from .segment_match import SegmentMatch
+from .transcript_model import TranscriptModel
 
 
 class TransciptsIndex:
     __slots__ = ["transcipt_models", "tidx", "maxtidx"]
     """Search help class used to find the transcipt models that a read is spanning/contained into"""
 
-    def __init__(self, trascript_models: List[vcy.TranscriptModel]) -> None:
+    def __init__(self, trascript_models: list[TranscriptModel]) -> None:
         self.transcipt_models = trascript_models
         # self.transcipt_models.sort()
         self.tidx = 0  # index of the current interval
@@ -20,26 +23,24 @@ class TransciptsIndex:
         """Return false when all the chromosome has been scanned"""
         return self.tidx < self.maxtidx
 
-    def find_overlapping_trascript_models(
-        self, read: vcy.Read
-    ) -> Set[vcy.TranscriptModel]:
+    def find_overlapping_trascript_models(self, read: Read) -> set[TranscriptModel]:
         """Finds all the Transcript models the Read overlaps with
 
         Args
         ----
-        read: vcy.Read
+        read: Read
             the read object to be analyzed
 
         Returns
         -------
-        matched_transcripts: set of `vcy.TranscriptModel`
+        matched_transcripts: set of `TranscriptModel`
             TranscriptModel the read is overlapping with and values the kind of overlapping
-            it is one of vcy.MATCH_INSIDE (1), vcy.MATCH_OVER5END (2), vcy.MATCH_OVER3END (4)
+            it is one of MATCH_INSIDE (1), MATCH_OVER5END (2), MATCH_OVER3END (4)
 
         """
-        matched_transcripts: Set[vcy.TranscriptModel] = set()
+        matched_transcripts: set[TranscriptModel] = set()
         if len(self.transcipt_models) == 0:
-            logging.error("TransciptsIndex %s contains no intervals" % self)
+            logging.error(f"TransciptsIndex {self} contains no intervals")
             return matched_transcripts
 
         tmodel = self.transcipt_models[self.tidx]  # current transcript model
@@ -54,7 +55,7 @@ class TransciptsIndex:
             # Local search for each segment move a little forward (this just moves a coupple of intervals)
             i = self.tidx
             while i < self.maxtidx and tmodel.starts_upstream_of(segment):
-                matchtype = 0  # No match
+                # matchtype = 0  # No match
                 if tmodel.intersects(segment):
                     # NOTE: do we need to append all the model or the id would be enough?
                     matched_transcripts.add(tmodel)
@@ -67,7 +68,7 @@ class TransciptsIndex:
 class FeatureIndex:
     """Search help class used to find the intervals that a read is spanning"""
 
-    def __init__(self, ivls: List[vcy.Feature] = []) -> None:
+    def __init__(self, ivls: list[Feature] = []) -> None:
         self.ivls = ivls
         self.ivls.sort()  # NOTE: maybe I am sorting twice check what I do upon creation
         self.iidx = 0  # index of the current interval
@@ -82,12 +83,12 @@ class FeatureIndex:
         """It set the current feature to the first feature"""
         self.iidx = 0
 
-    def has_ivls_enclosing(self, read: vcy.Read) -> bool:
+    def has_ivls_enclosing(self, read: Read) -> bool:
         """Finds out if there are intervals that are fully containing all the read segments
 
         Args
         ----
-        read: vcy.Read
+        read: Read
             the read object to be analyzed
 
         Returns
@@ -115,15 +116,13 @@ class FeatureIndex:
             while i < self.maxiidx and ivl.doesnt_start_after(segment):
                 matchtype = 0  # No match
                 if ivl.contains(segment):
-                    matchtype = vcy.MATCH_INSIDE
+                    matchtype = MATCH_INSIDE
                 if ivl.start_overlaps_with_part_of(
                     segment
                 ):  # NOTE: should this be elif or it makes sense to allow both?
-                    matchtype |= vcy.MATCH_OVER5END
-                if ivl.end_overlaps_with_part_of(
-                    segment
-                ):  # NOTE: should this be elif or it makes sense to allow both?
-                    matchtype |= vcy.MATCH_OVER3END
+                    matchtype |= MATCH_OVER5END
+                if ivl.end_overlaps_with_part_of(segment):  # NOTE: should this be elif or it makes sense to allow both?
+                    matchtype |= MATCH_OVER3END
 
                 segment_matchtype |= matchtype
                 # move to the next interval
@@ -131,22 +130,22 @@ class FeatureIndex:
                 ivl = self.ivls[i]
 
             # If one of the segments does not match inside a repeat we return false
-            if segment_matchtype ^ vcy.MATCH_INSIDE:
+            if segment_matchtype ^ MATCH_INSIDE:
                 return False
         # If I arrive at this point of the code all the segments matched inside
         return True
 
-    def mark_overlapping_ivls(self, read: vcy.Read) -> None:
+    def mark_overlapping_ivls(self, read: Read) -> None:
         """Finds the overlap between Read and Features and mark intronic features if spanned
 
         Args
         ----
-        read: vcy.Read
+        read: Read
             the read object to be analyzed
 
         Returns
         -------
-        Nothing, it marks the vcy.Feature object (is_validated = True) if there is evidence of exon-intron spanning
+        Nothing, it marks the Feature object (is_validated = True) if there is evidence of exon-intron spanning
         """
 
         # ## TEMPORARY ######
@@ -155,7 +154,7 @@ class FeatureIndex:
 
         if len(self.ivls) == 0:
             return
-        feature: vcy.Feature = self.ivls[self.iidx]  # current interval
+        feature: Feature = self.ivls[self.iidx]  # current interval
         # Move forward until we find the position we will never search left of again (because the reads are ordered)
         while self.last_interval_not_reached and feature.ends_upstream_of(read):
             # move to the next interval
@@ -190,9 +189,7 @@ class FeatureIndex:
                 elif feature.kind == ord("e"):
                     pass  # here I can pass if I do the proper checks at the intron level
                 else:
-                    raise ValueError(
-                        f"Unrecognized type of genomic feature {chr(feature.kind)}"
-                    )
+                    raise ValueError(f"Unrecognized type of genomic feature {chr(feature.kind)}")
 
                 #  move to the next interval
                 i += 1
@@ -202,19 +199,17 @@ class FeatureIndex:
         # return dump_list
         ####################
 
-    def find_overlapping_ivls(
-        self, read: vcy.Read
-    ) -> Dict[vcy.TranscriptModel, List[vcy.SegmentMatch]]:
+    def find_overlapping_ivls(self, read: Read) -> dict[TranscriptModel, list[SegmentMatch]]:
         """Finds the possible overlaps between Read and Features and return a 1 read derived mapping record
 
         Arguments
         ---------
-        read: vcy.Read
+        read: Read
             the read object to be analyzed
 
         Returns
         -------
-        mapping_record: Dict[vcy.TranscriptModel, List[vcy.SegmentMatch]]
+        mapping_record: dict[TranscriptModel, list[SegmentMatch]]
             A record of the mappings by transcript model.
             Every entry contains a list of segment matches that in turn contains information on the segment and the feature
 
@@ -228,14 +223,12 @@ class FeatureIndex:
 
         """
 
-        mapping_record: Dict[vcy.TranscriptModel, List[vcy.SegmentMatch]] = defaultdict(
-            list
-        )
+        mapping_record: dict[TranscriptModel, list[SegmentMatch]] = defaultdict(list)
 
         if len(self.ivls) == 0:
             return mapping_record
 
-        feature: vcy.Feature = self.ivls[self.iidx]  # current interval
+        feature: Feature = self.ivls[self.iidx]  # current interval
         # Move forward until we find the position we will never search left of again (because the reads are ordered)
         while self.last_interval_not_reached and feature.ends_upstream_of(read):
             # move to the next interval
@@ -243,7 +236,7 @@ class FeatureIndex:
             feature = self.ivls[self.iidx]
 
         # Loop trough the mapping segments of a read (e.g. just one of an internal exon, generally 2 for a splice. for intron???)
-        for seg_n, segment in enumerate(read.segments):
+        for _, segment in enumerate(read.segments):
             # Local search for each segment move a little forward (this just moves a couple of intervals)
             i = self.iidx
             feature = self.ivls[i]
@@ -252,13 +245,8 @@ class FeatureIndex:
                 # I might want to cache the check results of the previous feature
                 # it was  if feature.contains(segment) or feature.start_overlaps_with_part_of(segment) or feature.end_overlaps_with_part_of(segment)
                 # but I changed to the more simple
-                if (
-                    feature.intersects(segment)
-                    and (segment[-1] - segment[0]) > vcy.MIN_FLANK
-                ):
-                    mapping_record[feature.transcript_model].append(
-                        vcy.SegmentMatch(segment, feature, read.is_spliced)
-                    )
+                if feature.intersects(segment) and (segment[-1] - segment[0]) > MIN_FLANK:
+                    mapping_record[feature.transcript_model].append(SegmentMatch(segment, feature, read.is_spliced))
                 #  move to the next interval
                 i += 1
                 feature = self.ivls[i]

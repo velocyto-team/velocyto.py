@@ -1,27 +1,15 @@
-import glob
 import logging
 import os
 import random
-import re
 import string
-import sys
-from collections import defaultdict
-from typing import *
 
 import click
-import numpy as np
 import pysam
-
-import velocyto as vcy
-
-from ._run import _run
 
 # logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 
-def id_generator(
-    size: int = 6, chars: str = string.ascii_uppercase + string.digits
-) -> str:
+def id_generator(size: int = 6, chars: str = string.ascii_uppercase + string.digits) -> str:
     return "".join(random.choice(chars) for _ in range(size))
 
 
@@ -30,17 +18,13 @@ def id_generator(
     "bamfilepath",
     nargs=1,
     required=True,
-    type=click.Path(
-        exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
-    ),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
 )
 @click.argument(
     "dropest-out",
     nargs=1,
     required=True,
-    type=click.Path(
-        exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
-    ),
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
 )
 @click.option(
     "--corrected-output",
@@ -49,9 +33,7 @@ def id_generator(
     default=None,
     type=click.Path(exists=False, resolve_path=True, file_okay=True, dir_okay=False),
 )
-def dropest_bc_correct(
-    bamfilepath: str, dropest_out: str, corrected_output: str
-) -> None:
+def dropest_bc_correct(bamfilepath: str, dropest_out: str, corrected_output: str) -> None:
     """Using the output of DropEst:
     (1) Corrects barcodes directly in the bam file
     (2) Produces a valid barcodes list
@@ -64,7 +46,7 @@ def dropest_bc_correct(
     try:
         import rpy2.robjects as ro
 
-        from velocyto.r_interface import convert_r_obj
+        from ..r_interface import convert_r_obj
     except:
         ImportError(
             "A problem was encountered importing rpy2. To run this `velocyto tools` rpy2 and R need to be installed (the use conda is recommended)"
@@ -75,9 +57,7 @@ def dropest_bc_correct(
     parentpath, bamfilename = os.path.split(bamfilepath)
     filename = dropest_out
     logging.info(f"Loading `merge_targets` from {filename} using R / rpy2")
-    mapping = convert_r_obj(
-        ro.r(f"rds <- readRDS('{filename}'); rds$merge_targets")
-    )  # a dict
+    mapping = convert_r_obj(ro.r(f"rds <- readRDS('{filename}'); rds$merge_targets"))  # a dict
 
     output_path = os.path.join(parentpath, f"barcodes_{bamfilename.split('_')[0]}.tsv")
     logging.info(f"Generating {output_path}")
