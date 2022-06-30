@@ -18,28 +18,34 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import sys
 import subprocess
+import sys
 
-sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('_ext'))
+sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, os.path.abspath("_ext"))
 
 # Custom preprocessing for velocyto
 
 processes = []
-command_list = [("velocyto", "velocyto --help"),
-                ("run", "velocyto run --help"),
-                ("run10x", "velocyto run10x --help"),
-                ("run_smartseq2", "velocyto run_smartseq2 --help"),
-                ("run_dropest", "velocyto run_dropest --help"),
-                ("dropest_bc_correct", "velocyto tools dropest_bc_correct --help")]
+command_list = [
+    ("velocyto", "velocyto --help"),
+    ("run", "velocyto run --help"),
+    ("run10x", "velocyto run10x --help"),
+    ("run_smartseq2", "velocyto run_smartseq2 --help"),
+    ("run_dropest", "velocyto run_dropest --help"),
+    ("dropest_bc_correct", "velocyto tools dropest_bc_correct --help"),
+]
 
 for filename, command in command_list:
-    processes.append((filename, subprocess.Popen(command.split(), stdout=subprocess.PIPE)))
+    processes.append(
+        (filename, subprocess.Popen(command.split(), stdout=subprocess.PIPE))
+    )
 
 for filename, running in processes:
     message = running.communicate()[0]
-    formatted_message = "::\n\n\t" + b'\n\t\t'.join(message.split(b"\n")).decode("utf-8")
+    formatted_message = "::\n\n\t" + b"\n\t\t".join(message.split(b"\n")).decode(
+        "utf-8"
+    )
     with open(f"substitutions/{filename}.txt", "w") as fout:
         fout.write(formatted_message)
 
@@ -53,35 +59,39 @@ for filename, running in processes:
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.mathjax',
-              'sphinx.ext.viewcode',
-              'sphinx.ext.githubpages',
-              'sphinx.ext.napoleon',
-              'sphinx_click.ext',
-              'edit_on_github',
-              'releases']
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.napoleon",
+    "sphinx_click.ext",
+    "edit_on_github",
+    "releases",
+]
 
 releases_github_path = "velocyto-team/velocyto.py"  # NOTE Change to "velocyto-team/velocyto.py" upon public release
-releases_unstable_prehistory = True  # If changelog includes “simple” pre-1.0 releases derived from a single branch
+releases_unstable_prehistory = (
+    True  # If changelog includes “simple” pre-1.0 releases derived from a single branch
+)
 napoleon_use_ivar = True
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'velocyto'
-copyright = '2017, Linnarsson Lab'
-author = 'Linnarsson Lab'
+project = "velocyto"
+copyright = "2017, Linnarsson Lab"
+author = "Linnarsson Lab"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -89,7 +99,7 @@ author = 'Linnarsson Lab'
 #
 # The short X.Y version.
 __version__ = "0.0.0"
-exec(open('../velocyto/_version.py').read())
+exec(open("../velocyto/_version.py").read())
 
 version = ".".join(__version__.split(".")[:2])
 # The full version, including alpha/beta/rc tags.
@@ -105,10 +115,10 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
@@ -133,7 +143,7 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -154,7 +164,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'velocytodoc'
+htmlhelp_basename = "velocytodoc"
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -163,15 +173,12 @@ latex_elements: dict = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     #
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
-
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -181,8 +188,7 @@ latex_elements: dict = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'velocyto.tex', 'velocyto Documentation',
-     'Linnarsson Lab', 'manual'),
+    (master_doc, "velocyto.tex", "velocyto Documentation", "Linnarsson Lab", "manual"),
 ]
 
 
@@ -190,10 +196,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'velocyto', 'velocyto Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, "velocyto", "velocyto Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -202,14 +205,20 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'velocyto', 'velocyto Documentation',
-     author, 'velocyto', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc,
+        "velocyto",
+        "velocyto Documentation",
+        author,
+        "velocyto",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
 ]
 
 # --- Options for "Edit on GitHub" ---
-edit_on_github_project = 'velocyto-team/velocyto.py'
-edit_on_github_branch = 'master'  # "marster/doc"
+edit_on_github_project = "velocyto-team/velocyto.py"
+edit_on_github_branch = "master"  # "marster/doc"
 
 # --- Sort the autodocs by source (currently not workin not sure why)
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"

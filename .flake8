@@ -1,0 +1,29 @@
+# E127, E128 are hard to silence in certain nested formatting situations.
+# E265, E266 talk about comment formatting which is too opinionated.
+# E402 warns on imports coming after statements. There are important use cases
+# like demandimport (https://fburl.com/demandimport) that require statements
+# before imports.
+# E501 is not flexible enough, we're using B950 instead.
+# E722 is a duplicate of B001.
+# P207 is a duplicate of B003.
+# W503 talks about operator formatting which is too opinionated.
+# E203 conflicts with Black
+[flake8]
+select = B,B9,C,D,DAR,E,F,N,RST,S,W,P,T4,
+exclude =
+  .git,
+  .hg,
+  __pycache__,
+  _bin/*,
+  _build/*,
+  _ig_fbcode_wheel/*,
+  buck-out/*,
+  third-party-buck/*,
+  third-party2/*
+ignore = B950,C901, D415, D100, D103, D212, D205, E127,E128,E203,E265,E266,E402,E501,E722,N802, N803, P207,RST301,RST203,RST201,T484,W503 
+max-line-length = 120
+max-complexity = 10
+docstring-convention = google
+per-file-ignores = tests/*:S101
+rst-roles = class,const,func,meth,mod,ref
+rst-directives = deprecated
