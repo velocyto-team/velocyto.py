@@ -29,7 +29,11 @@ if C_COMPILE:
                 extra_link_args=["-fopenmp"],
             )
         ]
-        extensions = cythonize(extensions, include_path=[np.get_include()])
+        extensions = cythonize(
+            extensions,
+            include_path=[np.get_include()],
+            compiler_directives={"language_level": 3}
+            )
     else:
         extensions = [
             Extension(
