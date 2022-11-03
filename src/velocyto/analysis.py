@@ -1754,6 +1754,7 @@ class VelocytoLoom:
         else:
             NotImplementedError("not implemented for other situations other than Sx or Sx_sz")
 
+    # TODO: replace this with UMAP
     def perform_TSNE(
         self,
         n_dims: int = 2,
@@ -2759,6 +2760,7 @@ class VelocytoLoom:
                 length_includes_head=True,
             )
 
+    # TODO: replace tSNE with UMAP
     def plot_velocity_as_color(
         self,
         gene_name: str = None,

@@ -1,35 +1,30 @@
 import gzip
 import itertools
-import logging
 import multiprocessing
-import os
-import random
-import string
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any
 
 import loompy
 import numpy as np
 import pandas as pd
+from loguru import logger
 
 from .. import version
 from ..constants import BAM_COMPRESSION
 from ..counter import ExInCounter
 from ..logic import Logic
 from ..metadata import MetadataCollection
-
-
-def id_generator(size: int = 6, chars: str = string.ascii_uppercase + string.digits) -> str:
-    return "".join(random.choice(chars) for _ in range(size))
+from .common import id_generator
 
 
 def _run(
     *,
-    bamfile: tuple[str],
-    gtffile: str,
-    bcfile: str,
-    outputfolder: str,
+    bamfile: tuple[Path],
+    gtffile: Path,
+    bcfile: Path,
+    outputfolder: Path,
     sampleid: str,
     metadatatable: str,
     repmask: str,
@@ -60,13 +55,7 @@ def _run(
     #    Resolve Inputs    #
     ########################
 
-    logging.basicConfig(
-        stream=sys.stdout,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        level=[logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG][verbose],
-    )
-
-    if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile[-1][-4:] in [".bam", ".sam"]:
+    if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile.suffix in [".bam", ".sam"]:
         multi = True
     elif isinstance(bamfile, tuple) and len(bamfile) == 1:
         multi = False
@@ -78,9 +67,9 @@ def _run(
             raise ValueError(
                 "Inputs incompatibility. --bcfile/-b option was used together with --onefilepercell/-c option."
             )
-        logging.warning("Each bam file will be interpreted as a DIFFERENT cell")
+        logger.warning("Each bam file will be interpreted as a DIFFERENT cell")
     elif not onefilepercell and multi:
-        logging.warning(
+        logger.warning(
             "Several input files but --onefilepercell is False. Each bam file will be interpreted as containing a SET of cells!!!"
         )
 
@@ -89,40 +78,40 @@ def _run(
             metadatatable is None
         ), "--metadatatable was specified but cannot fetch sample metadata without valid sampleid"
         if multi:
-            logging.warning(
+            logger.warning(
                 "When using mutliple files you may want to use --sampleid option to specify the name of the output file"
             )
         if multi and not onefilepercell:
-            full_name = "_".join([os.path.basename(bamfile[i]).split(".")[0] for i in range(len(bamfile))])
+            full_name = "_".join([bamfile[i].name.split(".")[0] for i in range(len(bamfile))])
             if len(full_name) > 50:
-                sampleid = f'multi_input_{os.path.basename(bamfile[0]).split(".")[0]}_{id_generator(5)}'
+                sampleid = f'multi_input_{bamfile[0].name.split(".")[0]}_{id_generator(5)}'
             else:
                 sampleid = f"multi_input_{full_name}_and_others_{id_generator(5)}"
         elif multi and onefilepercell:
-            sampleid = f'onefilepercell_{os.path.basename(bamfile[0]).split(".")[0]}_and_others_{id_generator(5)}'
+            sampleid = f'onefilepercell_{bamfile[0].name.split(".")[0]}_and_others_{id_generator(5)}'
         else:
-            sampleid = f'{os.path.basename(bamfile[0]).split(".")[0]}_{id_generator(5)}'
-        logging.info(
+            sampleid = f'{bamfile[0].name.split(".")[0]}_{id_generator(5)}'
+        logger.info(
             f"No SAMPLEID specified, the sample will be called {sampleid} (last 5 digits are a random-id to avoid overwriting some other file by mistake)"
         )
 
     # Create an output folder inside the cell ranger output folder
     if outputfolder is None:
-        outputfolder = os.path.join(os.path.split(bamfile[0])[0], "velocyto")
-        logging.info(f"No OUTPUTFOLDER specified, find output files inside {outputfolder}")
-    if not os.path.exists(outputfolder):
-        os.mkdir(outputfolder)
+        outputfolder = bamfile[0].parent.joinpath("velocyto")
+        logger.info(f"No OUTPUTFOLDER specified, find output files inside {outputfolder}")
+    if not outputfolder.exists():
+        outputfolder.mkdir()
 
     if not issubclass(logic, Logic):
         raise ValueError(
             f"{logic} is not a valid logic. Choose one among {', '.join([k for k, v in logic.__dict__.items() if issubclass(v, Logic)])}"
         )
     else:
-        logging.debug(f"Using logic: {logic}")
+        logger.debug(f"Using logic: {logic}")
         logic_obj = logic()
 
     if bcfile is None:
-        logging.debug("Cell barcodes will be determined while reading the .bam file")
+        logger.debug("Cell barcodes will be determined while reading the .bam file")
         valid_bcset = None
     else:
         # Get valid cell barcodes
@@ -135,8 +124,8 @@ def _run(
         else:
             gem_grp = "x"
         valid_bcset = set(bc.split("-")[0] for bc in valid_bcs_list)  # without -1
-        logging.info(f"Read {len(valid_bcs_list)} cell barcodes from {bcfile}")
-        logging.debug(f"Example of barcode: {valid_bcs_list[0].split('-')[0]} and cell_id: {valid_cellid_list[0]}")
+        logger.info(f"Read {len(valid_bcs_list)} cell barcodes from {bcfile}")
+        logger.debug(f"Example of barcode: {valid_bcs_list[0].split('-')[0]} and cell_id: {valid_cellid_list[0]}")
 
     # Get metadata from sample sheet
     if metadatatable:
@@ -144,18 +133,18 @@ def _run(
             sample_metadata = MetadataCollection(metadatatable)
             sample = sample_metadata.where("SampleID", sampleid)
             if len(sample) == 0:
-                logging.error(f"Sample ID {sampleid} not found in sample sheet")
+                logger.error(f"Sample ID {sampleid} not found in sample sheet")
                 # schema = []  # type: list
                 sample = {}
             elif len(sample) > 1:
-                logging.error(f"Sample ID {sampleid} has multiple lines in sample sheet")
+                logger.error(f"Sample ID {sampleid} has multiple lines in sample sheet")
                 sys.exit(1)
             else:
                 # schema = sample[0].types
                 sample = sample[0].dict
-            logging.debug(f"Collecting column attributes from {metadatatable}")
+            logger.debug(f"Collecting column attributes from {metadatatable}")
         except (NameError, TypeError) as e:
-            logging.warn("SAMPLEFILE was not specified. add -s SAMPLEFILE to add metadata.")
+            logger.warn("SAMPLEFILE was not specified. add -s SAMPLEFILE to add metadata.")
             sample = {}
     else:
         sample = {}
@@ -167,7 +156,7 @@ def _run(
     # Initialize Exon-Intron Counter with the logic and valid barcodes (need to do it now to peek)
     if without_umi:
         if umi_extension != "no":
-            logging.warning("--umi-extension was specified but incompatible with --without-umi, it will be ignored!")
+            logger.warning("--umi-extension was specified but incompatible with --without-umi, it will be ignored!")
         umi_extension = "without_umi"
     exincounter = ExInCounter(
         sampleid=sampleid,
@@ -183,7 +172,7 @@ def _run(
     try:
         mb_available = int(subprocess.check_output("grep MemAvailable /proc/meminfo".split()).split()[1]) / 1000
     except subprocess.CalledProcessError:
-        logging.warning(
+        logger.warning(
             "Your system does not support calling `grep MemAvailable /proc/meminfo` so the memory effort for the samtools command could not be chosen appropriately. 32Gb will be assumed"
         )
         mb_available = 32000  # 64Gb
@@ -195,7 +184,7 @@ def _run(
     if onefilepercell and without_umi:
         tagname = "NOTAG"
     elif onefilepercell:
-        logging.debug("The multi input option ")
+        logger.debug("The multi input option ")
         tagname = "NOTAG"
         exincounter.peek_umi_only(bamfile[0])
     else:
@@ -207,53 +196,51 @@ def _run(
     elif onefilepercell:
         bamfile_cellsorted = [bamfile[0]]
     else:
-        bamfile_cellsorted = [
-            f"{os.path.join(os.path.dirname(bmf), 'cellsorted_' + os.path.basename(bmf))}" for bmf in bamfile
-        ]
+        bamfile_cellsorted = [f"{bmf.parent.joinpath('cellsorted_', bmf.name)}" for bmf in bamfile]
 
     sorting_process: dict[int, Any] = {}
     for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):
         # Start a subprocess that sorts the bam file
         command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
-        if os.path.exists(bmf_cellsorted):
+        if bmf_cellsorted.exists():
             # This should skip sorting in smartseq2
-            logging.warning(
+            logger.warning(
                 f"The file {bmf_cellsorted} already exists. The sorting step will be skipped and the existing file will be used."
             )
             check_end_process = False
         else:
             sorting_process[ni] = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-            logging.info(f"Starting the sorting process of {bamfile[ni]} the output will be at: {bmf_cellsorted}")
-            logging.info(f"Command being run is: {command}")
-            logging.info("While the bam sorting happens do other things...")
+            logger.info(f"Starting the sorting process of {bamfile[ni]} the output will be at: {bmf_cellsorted}")
+            logger.info(f"Command being run is: {command}")
+            logger.info("While the bam sorting happens do other things...")
             check_end_process = True
 
     # Load annotations
-    logging.info(f"Load the annotation from {gtffile}")
+    logger.info(f"Load the annotation from {gtffile}")
     annotations_by_chrm_strand = exincounter.read_transcriptmodels(gtffile)
     chrs = list(v for k, v in annotations_by_chrm_strand.items())
     tms = list(itertools.chain.from_iterable((v.values() for v in chrs)))
     ivls = list(itertools.chain.from_iterable(tms))
-    logging.debug(f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}")
+    logger.debug(f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}")
     del chrs, tms, ivls
 
     # Load annotations
     if repmask is not None:
-        logging.info(f"Load the repeat masking annotation from {repmask}")
+        logger.info(f"Load the repeat masking annotation from {repmask}")
         # mask_ivls_by_chromstrand = exincounter.read_repeats(repmask)
 
     # Go through the bam files a first time to markup introns
-    logging.info(f"Scan {' '.join(bamfile)} to validate intron intervals")
+    logger.info(f"Scan {' '.join(bamfile)} to validate intron intervals")
     if test:  # NOTE: Remove this after finishing testing, the only purpuso was to save 15min in the debugging process
-        logging.warning("This place is for developer only!")
+        logger.warning("This place is for developer only!")
         import pickle
 
-        if os.path.exists("exincounter_dump.pickle"):
-            logging.debug("exincounter_dump.pickle is being loaded")
+        if Path("exincounter_dump.pickle").exists():
+            logger.debug("exincounter_dump.pickle is being loaded")
             exincounter = pickle.load(open("exincounter_dump.pickle", "rb"))
         else:
-            logging.debug("exincounter_dump.pickle was not found")
-            logging.debug("Dumping exincounter_dump.pickle BEFORE markup")
+            logger.debug("exincounter_dump.pickle was not found")
+            logger.debug("Dumping exincounter_dump.pickle BEFORE markup")
             pickle.dump(exincounter, open("exincounter_dump.pickle", "wb"))
             exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
     else:
@@ -261,11 +248,11 @@ def _run(
 
     # Wait for child process to terminate
     if check_end_process:
-        logging.info("Now just waiting that the bam sorting process terminates")
+        logger.info("Now just waiting that the bam sorting process terminates")
         for k in sorting_process.keys():
             returncode = sorting_process[k].wait()
             if returncode == 0:
-                logging.info(f"bam file #{k} has been sorted")
+                logger.info(f"bam file #{k} has been sorted")
             else:
                 raise MemoryError(
                     f"bam file #{k} could not be sorted by cells.\n\
@@ -275,7 +262,7 @@ def _run(
                 )
 
     # Do the actual counting
-    logging.debug("Start molecule counting!")
+    logger.debug("Start molecule counting!")
     results = exincounter.count(
         bamfile_cellsorted, multimap=multimap
     )  # NOTE: we would avoid some millions of if statements evaluations if we write two function count and count_with output
@@ -291,35 +278,29 @@ def _run(
         valid_bcs_list = list(valid_bcset)  # without -1
         gem_grp = ""
         valid_cellid_list = np.array([f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list])  # with sampleid and with -1
-        logging.debug(f"Example of barcode: {valid_bcs_list[0]} and cell_id: {valid_cellid_list[0]}")
+        logger.debug(f"Example of barcode: {valid_bcs_list[0]} and cell_id: {valid_cellid_list[0]}")
 
     # If this data is from a 10X run, it is possible that additional_ca has data from cells that are present in the TSNE and Cluster files
     # but not present in the count matrix.   these are not removed prior to attempting to create the loom file, this whole process will fail
     if len(cell_bcs_order) < len(additional_ca["_X"]) and kwargs["is_10X"] is True:
-        tsne_file = os.path.join(
-            kwargs["samplefolder"],
-            "outs",
-            "analysis",
-            "tsne",
-            "2_components",
-            "projection.csv",
-        )
-        if os.path.exists(tsne_file):
-            tsne_pd = pd.read_csv(tsne_file)
-            tsne_pd["Barcode"] = [_[:-2] for _ in tsne_pd["Barcode"]]
-            tsne_pd = tsne_pd[tsne_pd["Barcode"].isin(cell_bcs_order)]
-            additional_ca["_X"] = tsne_pd["TSNE-1"].to_numpy()
-            additional_ca["_Y"] = tsne_pd["TSNE-1"].to_numpy()
+        umap_file = list(
+            Path(kwargs["samplefolder"], "outs", "per_sample_outs").rglob(
+                "analysis/umap/gene_expression_2_components/projection.csv",
+            )
+        )[0]
+        if umap_file.exists():
+            umap_pd = pd.read_csv(umap_file)
+            umap_pd["Barcode"] = [_[:-2] for _ in umap_pd["Barcode"]]
+            umap_pd = umap_pd[umap_pd["Barcode"].isin(cell_bcs_order)]
+            additional_ca["_X"] = umap_pd["UMAP-1"].to_numpy()
+            additional_ca["_Y"] = umap_pd["UMAP-1"].to_numpy()
 
-        clusters_file = os.path.join(
-            kwargs["samplefolder"],
-            "outs",
-            "analysis",
-            "clustering",
-            "graphclust",
-            "clusters.csv",
-        )
-        if os.path.exists(clusters_file):
+        clusters_file = list(
+            Path(kwargs["samplefolder"], "outs", "per_sample_outs").rglob(
+                "analysis/clustering/gene_expression_graphclust/clusters.csv",
+            )
+        )[0]
+        if clusters_file.exists():
             # labels = np.loadtxt(clusters_file, usecols=(1,), delimiter=",", skiprows=1)
             clusters_pd = pd.read_csv(clusters_file)
             clusters_pd["Barcode"] = [_[:-2] for _ in clusters_pd["Barcode"]]
@@ -333,8 +314,8 @@ def _run(
         ca[key] = np.full(len(cell_bcs_order), value)
 
     # Save to loom file
-    outfile = os.path.join(outputfolder, f"{sampleid}.loom")
-    logging.debug(f"Generating output file {outfile}")
+    outfile = outputfolder.joinpath(f"{sampleid}.loom")
+    logger.debug(f"Generating output file {outfile}")
 
     # row attributes
     atr_table = (
@@ -346,7 +327,7 @@ def _run(
         ("End", "end", int),
     )
 
-    logging.debug("Collecting row attributes")
+    logger.debug("Collecting row attributes")
     ra = {}
     for name_col_attr, name_obj_attr, dtyp in atr_table:
         tmp_array = np.zeros((len(exincounter.genes),), dtype=object)  # type: np.ndarray
@@ -354,7 +335,7 @@ def _run(
             tmp_array[exincounter.geneid2ix[gene_id]] = getattr(gene_info, name_obj_attr)
         ra[name_col_attr] = tmp_array.astype(dtyp)
 
-    logging.debug("Generating data table")
+    logger.debug("Generating data table")
     layers: dict[str, np.ndarray] = {}
 
     for layer_name in logic_obj.layers:
@@ -368,7 +349,7 @@ def _run(
         except NameError:
             total = np.array(layers[layer_name])
 
-    logging.debug("Writing loom file")
+    logger.debug("Writing loom file")
     # seems more likely that loompy will be some version above 2, so would be better to attempt to use the loompy2 targeting code first
     if int(loompy.__version__.split(".")[0]) >= 2:
         try:
@@ -401,4 +382,4 @@ def _run(
             ds.close()
         except TypeError:
             sys.exit()
-    logging.debug("Terminated Succesfully!")
+    logger.debug("Terminated Succesfully!")

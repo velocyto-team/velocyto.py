@@ -1,39 +1,28 @@
 import logging
-import os
-import random
-import string
+from pathlib import Path
+from typing import Optional
 
-import click
 import pysam
+import typer
 
-# logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
-
-
-def id_generator(size: int = 6, chars: str = string.ascii_uppercase + string.digits) -> str:
-    return "".join(random.choice(chars) for _ in range(size))
+app = typer.Typer(name="velocyto-run", help="Correct barcodes for DropEst data")
 
 
-@click.command(short_help="Runs the velocity analysis outputting a loom file")
-@click.argument(
-    "bamfilepath",
-    nargs=1,
-    required=True,
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
-)
-@click.argument(
-    "dropest-out",
-    nargs=1,
-    required=True,
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
-)
-@click.option(
-    "--corrected-output",
-    "-o",
-    help="""(Optional) The file output of the output bam file. Otherwise the file will be outputted in the same folder of the input with the prefix `correct_`""",
-    default=None,
-    type=click.Path(exists=False, resolve_path=True, file_okay=True, dir_okay=False),
-)
-def dropest_bc_correct(bamfilepath: str, dropest_out: str, corrected_output: str) -> None:
+@app.command(name="dropest_bc_correct")
+def dropest_bc_correct(
+    bamfilepath: Path = typer.Argument(
+        ..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
+    ),
+    dropest_out: Path = typer.Argument(
+        ..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
+    ),
+    corrected_output: Optional[Path] = typer.Option(
+        None,
+        "-o",
+        "--corrected-output",
+        help="The file output of the output bam file. Otherwise the file will be outputted in the same folder of the input with the prefix `correct_`",
+    ),
+) -> None:
     """Using the output of DropEst:
     (1) Corrects barcodes directly in the bam file
     (2) Produces a valid barcodes list
@@ -54,34 +43,33 @@ def dropest_bc_correct(bamfilepath: str, dropest_out: str, corrected_output: str
 
     # bamfilepath = sys.argv[1]
     # filename = os.path.join(parentpath, f"{bamfilename.split('_')[0]}_dropEst.rds")
-    parentpath, bamfilename = os.path.split(bamfilepath)
+    parentpath = bamfilepath.parent
+    bamfilename = bamfilepath.name
     filename = dropest_out
     logging.info(f"Loading `merge_targets` from {filename} using R / rpy2")
     mapping = convert_r_obj(ro.r(f"rds <- readRDS('{filename}'); rds$merge_targets"))  # a dict
 
-    output_path = os.path.join(parentpath, f"barcodes_{bamfilename.split('_')[0]}.tsv")
+    output_path = parentpath.joinpath(f"barcodes_{bamfilename.split('_')[0]}.tsv")
     logging.info(f"Generating {output_path}")
     with open(output_path, "w") as fout:
         unique_bcs = set(list(mapping.values()))
         str_ = "\n".join(list(unique_bcs))
         fout.write(str_)
 
-    infile = pysam.AlignmentFile(bamfilepath, mode="rb")
     if corrected_output is None:
-        bam_out_path = os.path.join(parentpath, f"correct_{bamfilename}")
+        bam_out_path = parentpath.joinpath(f"correct_{bamfilename}")
     else:
         bam_out_path = corrected_output
 
-    outfile = pysam.AlignmentFile(bam_out_path, mode="wb", template=infile)
-
-    for read in infile:
-        # read: pysam.AlignedRead
-        cb = read.get_tag("CB")
-        if cb in mapping:
-            read.set_tag("CB", mapping[cb], value_type="Z")
-        outfile.write(read)
-    infile.close()
-    outfile.close()
+    with pysam.AlignmentFile(bamfilepath, mode="rb") as infile, pysam.AlignmentFile(
+        str(bam_out_path), mode="wb", template=infile
+    ) as outfile:
+        for read in infile:
+            # read: pysam.AlignedRead
+            cb = read.get_tag("CB")
+            if cb in mapping:
+                read.set_tag("CB", mapping[cb], value_type="Z")
+            outfile.write(read)
     logging.info("Done")
 
     return
