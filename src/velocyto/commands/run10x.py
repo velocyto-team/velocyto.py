@@ -9,10 +9,18 @@ from loguru import logger
 from ._run import _run
 from .common import logicType, loomdtype
 
-app = typer.Typer(name="velocyto-run10x", help="Run velocity analysis on 10X Genomics data")
+app = typer.Typer()#name="velocyto-run10x", help="Run velocity analysis on 10X Genomics data")
 
 
-@app.command(name="run10x")
+@app.callback(invoke_without_command=True)
+@app.command(
+    name="run10x",
+    no_args_is_help=True,
+    context_settings={
+        "allow_extra_args": True,
+        "ignore_unknown_options": True
+        },
+    )
 def run10x(
     samplefolder: Path = typer.Argument(
         ...,

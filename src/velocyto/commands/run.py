@@ -11,6 +11,7 @@ from .common import UMIExtension, logicType, loomdtype
 app = typer.Typer(name="velocyto-run", help="Run velocity analysis")
 
 
+@app.callback(invoke_without_command=True)
 @app.command(name="run")
 def run(
     bamfile: Path = typer.Argument(..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),

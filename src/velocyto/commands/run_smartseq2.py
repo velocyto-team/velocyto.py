@@ -11,6 +11,7 @@ from .common import loomdtype
 app = typer.Typer(name="velocyto-smartseq2", help="Run velocity analysis on SmartSeq2 data")
 
 
+@app.callback(invoke_without_command=True)
 @app.command()
 def run_smartseq2(
     bamfiles: Path = typer.Argument(

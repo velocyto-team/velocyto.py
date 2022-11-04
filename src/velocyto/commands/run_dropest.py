@@ -11,6 +11,7 @@ from .common import logicType, loomdtype
 app = typer.Typer(name="velocyto-dropest", help="Run velocity analysis on DropEst data")
 
 
+@app.callback(invoke_without_command=True)
 @app.command(help="Runs the velocity analysis on DropEst preprocessed data")
 def run_dropest(
     bamfile: Path = typer.Argument(..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),

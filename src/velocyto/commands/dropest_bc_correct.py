@@ -8,6 +8,7 @@ import typer
 app = typer.Typer(name="velocyto-run", help="Correct barcodes for DropEst data")
 
 
+@app.callback(invoke_without_command=True)
 @app.command(name="dropest_bc_correct")
 def dropest_bc_correct(
     bamfilepath: Path = typer.Argument(
