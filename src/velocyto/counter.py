@@ -422,7 +422,7 @@ class ExInCounter:
         curr_tags: str = tags
         curr_chromstrand: str = chromstrand
 
-        for line in gtf_lines:
+        for line in tqdm(gtf_lines):
 
             fields = line.rstrip().split("\t")
             (

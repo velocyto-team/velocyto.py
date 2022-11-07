@@ -18,7 +18,7 @@ app = typer.Typer()  # name="velocyto-run10x", help="Run velocity analysis on 10
     no_args_is_help=True,
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
-#TODO: add `outputfolder` argument
+# TODO: add `outputfolder` argument
 def run10x(
     samplefolder: Path = typer.Argument(
         ...,
@@ -122,12 +122,13 @@ def run10x(
         )
     elif "Pipestance completed successfully!" not in samplefolder.joinpath("_log").read_text():
         logger.error("The outputs are not ready")
-    
-    
+
     bamfile = list(samplefolder.rglob("sample_alignments.bam"))
     if not bamfile[0].exists():
         logger.error("BAM file was not found.  Are you sure you have the correct sample folder?")
-        print(f"BAM file was not found in any subdirectories of {samplefolder}.  Are you sure you have the correct sample folder?")
+        print(
+            f"BAM file was not found in any subdirectories of {samplefolder}.  Are you sure you have the correct sample folder?"
+        )
         exit()
     elif len(bamfile) > 1:
         logger.error("Too many BAM files found. Which one?")

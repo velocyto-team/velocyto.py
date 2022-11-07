@@ -59,7 +59,7 @@ def _run(
     if samtools is None:
         logger.error("samtools was not found")
         raise FileNotFoundError("Samtools was not found. Make sure that it is both installed and on the system path")
-    
+
     if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile.suffix in [".bam", ".sam"]:
         multi = True
     elif isinstance(bamfile, tuple) and len(bamfile) == 1:
@@ -108,9 +108,7 @@ def _run(
         outputfolder.mkdir()
 
     if logic not in logicType:
-        raise ValueError(
-            f"{logic} is not a valid logic. Choose one among {', '.join([_.value for _ in logicType])}"
-        )
+        raise ValueError(f"{logic} is not a valid logic. Choose one among {', '.join([_.value for _ in logicType])}")
     else:
         logger.debug(f"Using logic: {logic}")
         logic = choose_logic(logic)
@@ -227,7 +225,7 @@ def _run(
     annotations_by_chrm_strand = exincounter.read_transcriptmodels(gtffile)
     chrs = [v for k, v in annotations_by_chrm_strand.items()]
     tms = [itertools.chain.from_iterable((v.values() for v in chrs))]
-    ivls = [(itertools.chain.from_iterable(tms))
+    ivls = [(itertools.chain.from_iterable(tms))]
     logger.debug(f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}")
     del chrs, tms, ivls
 
