@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "velocyto"
-version = "0.19.1"
+version = "0.20.0"
 description = "RNA velocity analysis for single cell RNA-seq data"
 authors = ["Linnarsson Lab <sten.linnarsson@ki.se>"]
 license = "BSD-2-Clause"
@@ -33,6 +33,7 @@ rpy2 = "^3.5.5"
 typer = "^0.6.1"
 loguru = "^0.6.0"
 rich = "^12.6.0"
+tqdm = "^4.64.1"
 
 [tool.poetry.extras]
 R = ["rpy2"]

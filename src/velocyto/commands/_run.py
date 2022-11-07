@@ -5,6 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+from distutils.spawn import find_executable
 
 import loompy
 import numpy as np
@@ -16,7 +17,7 @@ from ..constants import BAM_COMPRESSION
 from ..counter import ExInCounter
 from ..logic import Logic
 from ..metadata import MetadataCollection
-from .common import id_generator
+from .common import id_generator, logicType, choose_logic
 
 
 def _run(
@@ -37,7 +38,7 @@ def _run(
     samtools_threads: int,
     samtools_memory: int,
     loom_numeric_dtype: str,
-    dump: bool,
+    dump: str,
     verbose: int,
     additional_ca: dict = {},
     **kwargs,
@@ -54,7 +55,11 @@ def _run(
     ########################
     #    Resolve Inputs    #
     ########################
-
+    samtools = find_executable("samtools")
+    if samtools is None:
+        logger.error("samtools was not found")
+        raise FileNotFoundError("Samtools was not found. Make sure that it is both installed and on the system path")
+    
     if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile.suffix in [".bam", ".sam"]:
         multi = True
     elif isinstance(bamfile, tuple) and len(bamfile) == 1:
@@ -102,12 +107,13 @@ def _run(
     if not outputfolder.exists():
         outputfolder.mkdir()
 
-    if not issubclass(logic, Logic):
+    if logic not in logicType:
         raise ValueError(
-            f"{logic} is not a valid logic. Choose one among {', '.join([k for k, v in logic.__dict__.items() if issubclass(v, Logic)])}"
+            f"{logic} is not a valid logic. Choose one among {', '.join([_.value for _ in logicType])}"
         )
     else:
         logger.debug(f"Using logic: {logic}")
+        logic = choose_logic(logic)
         logic_obj = logic()
 
     if bcfile is None:
@@ -116,7 +122,7 @@ def _run(
     else:
         # Get valid cell barcodes
         valid_bcs_list = (
-            (gzip.open(bcfile).read().decode() if bcfile.endswith(".gz") else open(bcfile).read()).rstrip().split()
+            (gzip.open(bcfile).read().decode() if bcfile.suffix == ".gz" else open(bcfile).read()).rstrip().split()
         )
         valid_cellid_list = np.array([f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list])  # with sample id and with -1
         if len(set(bc.split("-")[0] for bc in valid_bcs_list)) == 1:
@@ -191,18 +197,19 @@ def _run(
         exincounter.peek(bamfile[0])
         tagname = exincounter.cellbarcode_str
 
+    # TODO: if we can, should check to see if the bamfile is already sorted.
     if multi and onefilepercell:
         bamfile_cellsorted = list(bamfile)
     elif onefilepercell:
         bamfile_cellsorted = [bamfile[0]]
     else:
-        bamfile_cellsorted = [f"{bmf.parent.joinpath('cellsorted_', bmf.name)}" for bmf in bamfile]
+        bamfile_cellsorted = [f"{bmf.parent.joinpath(f'cellsorted_{bmf.name}')}" for bmf in bamfile]
 
     sorting_process: dict[int, Any] = {}
     for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):
         # Start a subprocess that sorts the bam file
         command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
-        if bmf_cellsorted.exists():
+        if Path(bmf_cellsorted).exists():
             # This should skip sorting in smartseq2
             logger.warning(
                 f"The file {bmf_cellsorted} already exists. The sorting step will be skipped and the existing file will be used."
@@ -218,9 +225,9 @@ def _run(
     # Load annotations
     logger.info(f"Load the annotation from {gtffile}")
     annotations_by_chrm_strand = exincounter.read_transcriptmodels(gtffile)
-    chrs = list(v for k, v in annotations_by_chrm_strand.items())
-    tms = list(itertools.chain.from_iterable((v.values() for v in chrs)))
-    ivls = list(itertools.chain.from_iterable(tms))
+    chrs = [v for k, v in annotations_by_chrm_strand.items()]
+    tms = [itertools.chain.from_iterable((v.values() for v in chrs))]
+    ivls = [(itertools.chain.from_iterable(tms))
     logger.debug(f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}")
     del chrs, tms, ivls
 
@@ -230,7 +237,7 @@ def _run(
         # mask_ivls_by_chromstrand = exincounter.read_repeats(repmask)
 
     # Go through the bam files a first time to markup introns
-    logger.info(f"Scan {' '.join(bamfile)} to validate intron intervals")
+    logger.info(f"Scan {' '.join((str(_) for _ in bamfile))} to validate intron intervals")
     if test:  # NOTE: Remove this after finishing testing, the only purpuso was to save 15min in the debugging process
         logger.warning("This place is for developer only!")
         import pickle

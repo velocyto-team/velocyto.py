@@ -6,9 +6,8 @@ try:
 except PackageNotFoundError:  # pragma: no cover
     __version__ = "unknown"
 
-import math
-
-import numpy as np
+from math import isclose
+from numpy import arange
 
 # from .analysis import VelocytoLoom, ixs_thatsort_a2b, load_velocyto_hdf5, scatter_viz
 # from .constants import *
@@ -44,8 +43,8 @@ and
 https://github.com/ContinuumIO/anaconda-issues/issues/10089
 """
 
-std_check = np.arange(1000000).std()
+std_check = arange(1000000).std()
 expected = 288675.1345946685
 
-if not math.isclose(std_check, expected):
+if not isclose(std_check, expected):
     raise RuntimeError(MKL_BUG_ERROR_MSG)

@@ -6,6 +6,8 @@ import string
 from collections import Counter, OrderedDict, defaultdict
 from itertools import chain
 from typing import DefaultDict, Iterable
+import gzip
+from tqdm.autonotebook import tqdm
 
 import h5py
 import numpy as np
@@ -252,7 +254,7 @@ class ExInCounter:
         or a tuple (Read, sam_line) if ``yield_line==True``
         NOTE: At the file change it yields a `None`
         """
-        # No peeking here, this will happen a layer above, and only once  on the not sorted file! before it was self.peek(samfile, lines=10)
+        # No peeking here, this will happen a layer above, and only once on the not sorted file! before it was self.peek(samfile, lines=10)
 
         # bamfile_name_seen: set[str] = set()
         counter_skipped_no_barcode = 0
@@ -369,7 +371,12 @@ class ExInCounter:
         repeat_ivls_list: list[Feature] = []
 
         # fin = open(gtf_file)
-        gtf_lines = [line for line in open(gtf_file) if not line.startswith("#")]
+        if gtf_file.suffix == ".gz":
+            with gzip.open(gtf_file, "rb") as gtf:
+                gtf_lines = [line.decode() for line in gtf if not line.decode().startswith("#")]
+        else:
+            with open(gtf_file, "r") as gtf:
+                gtf_lines = [line for line in gtf if not line.startswith("#")]
 
         def sorting_key(entry: str) -> tuple[str, bool, int, str]:
             """This sorting strategy is equivalent to sort -k1,1 -k7,7 -k4,4n"""
@@ -429,7 +436,7 @@ class ExInCounter:
                 junk,
                 tags,
             ) = fields
-            # Removing chr from the chromosome name to uniform different formats of gtf files, taht might or might not have the prefix "chr"
+            # Removing chr from the chromosome name to uniform different formats of gtf files, that might or might not have the prefix "chr"
             if chrom[:3].lower() == "chr":
                 chrom = chrom[3:]
             start = int(start_str)
@@ -522,7 +529,12 @@ class ExInCounter:
         # Initialize containers
         # headerlines: list[str] = []
 
-        gtf_lines = [line for line in open(gtf_file) if not line.startswith("#")]
+        if gtf_file.suffix == ".gz":
+            with gzip.open(gtf_file, "rb") as gtf:
+                gtf_lines = [line.decode() for line in gtf if not line.decode().startswith("#")]
+        else:
+            with open(gtf_file, "r") as gtf:
+                gtf_lines = [line for line in gtf if not line.startswith("#")]
 
         def sorting_key(entry: str) -> tuple[str, bool, int, str]:
             """This sorting strategy is equivalent to sort -k1,1 -k7,7 -k4,4n"""
@@ -761,7 +773,7 @@ class ExInCounter:
             for (
                 chromstrand_key,
                 annotions_ordered_dict,
-            ) in self.annotations_by_chrm_strand.items():
+            ) in tqdm(self.annotations_by_chrm_strand.items()):
                 self.feature_indexes[chromstrand_key] = FeatureIndex(
                     sorted(chain.from_iterable(annotions_ordered_dict.values()))
                 )
@@ -770,7 +782,7 @@ class ExInCounter:
             # Read the file
             currchrom = ""
             set_chromosomes_seen: set[str] = set()
-            for r in self.iter_alignments(bamfile, unique=not multimap):
+            for r in tqdm(self.iter_alignments(bamfile, unique=not multimap)):
                 # Don't consider spliced reads (exonic) in this step
                 # NOTE Can the exon be so short that we get splicing and exon-intron boundary
                 if r is None:

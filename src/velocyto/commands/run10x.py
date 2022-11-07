@@ -9,18 +9,16 @@ from loguru import logger
 from ._run import _run
 from .common import logicType, loomdtype
 
-app = typer.Typer()#name="velocyto-run10x", help="Run velocity analysis on 10X Genomics data")
+app = typer.Typer()  # name="velocyto-run10x", help="Run velocity analysis on 10X Genomics data")
 
 
 @app.callback(invoke_without_command=True)
 @app.command(
     name="run10x",
     no_args_is_help=True,
-    context_settings={
-        "allow_extra_args": True,
-        "ignore_unknown_options": True
-        },
-    )
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
+#TODO: add `outputfolder` argument
 def run10x(
     samplefolder: Path = typer.Argument(
         ...,
@@ -33,9 +31,9 @@ def run10x(
     gtffile: Path = typer.Argument(..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
     metadatatable: Optional[Path] = typer.Option(
         None,
-        "--mask",
-        "-m",
-        help=".gtf file containing intervals to mask",
+        "-s",
+        "--metadatatable",
+        help="Table containing metadata of the various samples (csv fortmated rows are samples and cols are entries)",
         resolve_path=True,
         file_okay=True,
         dir_okay=False,
@@ -43,8 +41,8 @@ def run10x(
     ),
     mask: Optional[Path] = typer.Option(
         None,
-        "--mask",
         "-m",
+        "--mask",
         help=".gtf file containing intervals to mask",
         resolve_path=True,
         file_okay=True,
@@ -81,10 +79,10 @@ def run10x(
         "-t",
         help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation",
     ),  # why is this even an option?
-    dump: bool = typer.Option(
-        False,
-        "--dump",
+    dump: str = typer.Option(
+        "0",
         "-d",
+        "--dump",
         help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed.",
         is_flag=True,
     ),
@@ -124,7 +122,19 @@ def run10x(
         )
     elif "Pipestance completed successfully!" not in samplefolder.joinpath("_log").read_text():
         logger.error("The outputs are not ready")
-    bamfile = next(samplefolder.joinpath("outs").rglob("sample_alignments"))
+    
+    
+    bamfile = list(samplefolder.rglob("sample_alignments.bam"))
+    if not bamfile[0].exists():
+        logger.error("BAM file was not found.  Are you sure you have the correct sample folder?")
+        print(f"BAM file was not found in any subdirectories of {samplefolder}.  Are you sure you have the correct sample folder?")
+        exit()
+    elif len(bamfile) > 1:
+        logger.error("Too many BAM files found. Which one?")
+        print(f"multiple matches for `sample_alignemts.bam` were found and now I am confused. Please fix.")
+        exit()
+    else:
+        bamfile = bamfile[0]
 
     bcmatches = list(samplefolder.joinpath("outs").rglob("sample_filtered_feature_bc_matrix/barcodes.tsv.gz"))
 
@@ -174,7 +184,7 @@ def run10x(
         samtools_threads=samtools_threads,
         samtools_memory=samtools_memory,
         dump=dump,
-        loom_numeric_dtype=dtype,
+        loom_numeric_dtype=str(dtype).split(".")[-1],
         verbose=verbose,
         additional_ca=additional_ca,
         is_10X=True,

@@ -71,7 +71,7 @@ def run_dropest(
         help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation",
     ),
     dump: str = typer.Option(
-        False,
+        "0",
         "-d",
         "--dump",
         help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed",
@@ -142,7 +142,7 @@ def run_dropest(
         test=False,
         samtools_threads=samtools_threads,
         samtools_memory=samtools_memory,
-        loom_numeric_dtype=dtype,
+        loom_numeric_dtype=str(dtype).split(".")[-1],
         dump=dump,
         verbose=verbose,
         additional_ca=additional_ca,
