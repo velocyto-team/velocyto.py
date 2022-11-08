@@ -1,8 +1,8 @@
-import logging
 from typing import Any
 
 import numpy as np
 import scipy.optimize
+from loguru import logger
 
 from .speedboosted import (
     _colDeltaCor,
@@ -450,7 +450,7 @@ def clusters_stats(
     for i, uid in enumerate(clusters_uid):
         cluster_filter = cluster_ix == i
         n_cells = np.sum(cluster_filter)
-        logging.info(f"Cluster: {uid} ({n_cells} cells)")
+        logger.info(f"Cluster: {uid} ({n_cells} cells)")
         if n_cells > size_limit:
             U_avgs[:, i], S_avgs[:, i] = U[:, cluster_filter].mean(1), S[:, cluster_filter].mean(1)
         else:

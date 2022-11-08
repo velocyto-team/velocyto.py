@@ -15,14 +15,14 @@
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
+# documentation root, use pathlib.Path().absolute to make it absolute, like shown here.
 #
-import os
+from pathlib import Path
 import subprocess
 import sys
 
-sys.path.insert(0, os.path.abspath(".."))
-sys.path.insert(0, os.path.abspath("_ext"))
+sys.path.insert(0, Path("..").absolute())
+sys.path.insert(0, Path("_ext").absolute())
 
 # Custom preprocessing for velocyto
 

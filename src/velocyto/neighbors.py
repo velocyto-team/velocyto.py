@@ -1,7 +1,7 @@
-import logging
 from typing import Any
 
 import numpy as np
+from loguru import logger
 from numba import jit
 from scipy import sparse
 from sklearn.neighbors import NearestNeighbors
@@ -287,7 +287,7 @@ class BalancedKNN:
         self.fitdata = data
         if sight_k is not None:
             self.sight_k = sight_k
-        logging.debug(f"First search the {self.sight_k} nearest neighbours for {self.n_samples}")
+        logger.debug(f"First search the {self.sight_k} nearest neighbours for {self.n_samples}")
         if self.metric == "correlation":
             self.nn = NearestNeighbors(
                 n_neighbors=self.sight_k + 1,
@@ -344,7 +344,7 @@ class BalancedKNN:
             self.maxl = maxl
 
         self.dist, self.dsi = self.nn.kneighbors(self.data, return_distance=True)
-        logging.debug(
+        logger.debug(
             f"Using the initialization network to find a {self.k}-NN graph with maximum connectivity of {self.maxl}"
         )
         self.dist_new, self.dsi_new, self.l = knn_balance(
@@ -381,7 +381,7 @@ class BalancedKNN:
 
         """
         dist_new, dsi_new, l = self.kneighbors(X=X, maxl=maxl, mode=mode)
-        logging.debug("Returning sparse matrix")
+        logger.debug("Returning sparse matrix")
         self.bknn = sparse.csr_matrix(
             (
                 np.ravel(dist_new),

@@ -1,110 +1,88 @@
-import logging
-import os
-import random
-import string
+from pathlib import Path
+from typing import Optional
 
-import click
+import typer
+from loguru import logger
 
 from ._run import _run
+from .common import init_logger, logicType, loomdtype
 
-# logging.basicConfig(stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s', level=logging.DEBUG)
-
-
-def id_generator(size: int = 6, chars: str = string.ascii_uppercase + string.digits) -> str:
-    return "".join(random.choice(chars) for _ in range(size))
+app = typer.Typer(name="velocyto-dropest", help="Run velocity analysis on DropEst data")
 
 
-@click.command(short_help="Runs the velocity analysis on DropEst preprocessed data")
-@click.argument(
-    "bamfile",
-    nargs=1,
-    required=True,
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
-)
-@click.argument(
-    "gtffile",
-    required=True,
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
-)
-@click.option(
-    "--bcfile",
-    "-b",
-    help="""Valid barcodes file, to filter the bam. If --bcfile is not specified the file will be searched in the default position outputted by ``velocyto tools dropest_bc_correct``. Otherwise an error will be thrown""",
-    default=None,
-    show_default=True,
-    type=click.Path(resolve_path=True, file_okay=True, dir_okay=False, readable=True),
-)
-@click.option(
-    "--logic",
-    "-l",
-    help="The logic to use for the filtering (default: Default)",
-    default="Default",
-)
-@click.option(
-    "--outputfolder",
-    "-o",
-    help="Output folder, if it does not exist it will be created.",
-    default=None,
-    type=click.Path(exists=False),
-)
-@click.option(
-    "--sampleid",
-    "-e",
-    help="The sample name that will be used as a the filename of the output.",
-    default=None,
-    type=click.Path(exists=False),
-)
-@click.option(
-    "--repmask",
-    "-m",
-    help=".gtf file containing intervals to mask (Optional)",
-    default=None,
-    type=click.Path(resolve_path=True, file_okay=True, dir_okay=False, readable=True),
-)
-@click.option(
-    "--samtools-threads",
-    "-@",
-    help="The number of threads to use to sort the bam by cellID file using samtools",
-    default=16,
-)
-@click.option(
-    "--samtools-memory",
-    help="The number of MB used for every thread by samtools to sort the bam file",
-    default=2048,
-)
-@click.option(
-    "--dtype",
-    "-t",
-    help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation (default run_dropest: uint32)",
-    default="uint32",
-)
-@click.option(
-    "--dump",
-    "-d",
-    help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed (default: 0)",
-    default="0",
-)
-@click.option(
-    "--verbose",
-    "-v",
-    help="Set the vebosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)",
-    count=True,
-    default=1,
-)
+@app.callback(invoke_without_command=True)
+@app.command(help="Runs the velocity analysis on DropEst preprocessed data")
 def run_dropest(
-    bamfile: str,
-    gtffile: str,
-    bcfile: str,
-    logic: str,
-    outputfolder: str,
-    sampleid: str,
-    repmask: str,
-    samtools_threads: int,
-    samtools_memory: int,
-    dtype: str,
-    dump: str,
-    verbose: int,
-    additional_ca: dict = {},
+    bamfile: Path = typer.Argument(..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
+    gtffile: Path = typer.Argument(..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
+    bcfile: Optional[Path] = typer.Option(
+        None,
+        "-b",
+        "--bcfile",
+        help="Valid barcodes file, to filter the bam. If --bcfile is not specified the file will be searched in the default position outputted by ``velocyto tools dropest_bc_correct``. Otherwise an error will be thrown",
+        resolve_path=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
+    logic: logicType = typer.Option(
+        logicType.Permissive10X, "-l", "--logic", help="The logic to use for the filtering"
+    ),
+    outputfolder: Optional[Path] = typer.Option(
+        None,
+        "-o",
+        "--outputfolder",
+        help="Output folder, if it does not exist it will be created.",
+        exists=False,
+    ),
+    sampleid: Optional[Path] = typer.Option(
+        None,
+        "--sampleid",
+        "-e",
+        help="The sample name that will be used as a the filename of the output.",
+        exists=False,
+    ),
+    repmask: Optional[Path] = typer.Option(
+        None,
+        "-m",
+        "--repmask",
+        help=".gtf file containing intervals to mask ",
+        resolve_path=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
+    samtools_threads: int = typer.Option(
+        16,
+        "-@",
+        "--samtools-threads",
+        help="The number of threads to use to sort the bam by cellID file using samtools",
+    ),
+    samtools_memory: int = typer.Option(
+        2048,
+        "--samtools-memory",
+        help="The number of MB used for every thread by samtools to sort the bam file",
+    ),
+    dtype: loomdtype = typer.Option(
+        loomdtype.uint32,
+        "-t",
+        "--dtype",
+        help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation",
+    ),
+    dump: str = typer.Option(
+        "0",
+        "-d",
+        "--dump",
+        help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed",
+    ),
+    verbose: int = typer.Option(
+        0,
+        "-v",
+        "--verbose",
+        help="Set the vebosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)",
+        count=True,
+    ),
+    additional_ca: typer.Context = typer.Option(...),
 ) -> None:
     """Runs the velocity analysis on DropEst preprocessed data
 
@@ -112,26 +90,32 @@ def run_dropest(
 
     GTFFILE genome annotation file
     """
+
+    init_logger(verbose)
+
+    additional_ca = {additional_ca[(i * 2)]: additional_ca[(i * 2) + 1] for i in range(len(additional_ca) // 2)}
+
     if bcfile is None:
-        parentpath, bamfilename = os.path.split(bamfile)
-        bcfile = os.path.join(parentpath, f"barcodes_{bamfilename.split('_')[0]}.tsv")
-        logging.info(f"Attempting to find automatically the valid barcode list file {bcfile}")
-        if os.path.exists(bcfile):
-            logging.info(f"{bcfile} found ")
+        parentpath = bamfile.parent
+        bamfilename = bamfile.name
+        bcfile = parentpath.joinpath(f"barcodes_{bamfilename.split('_')[0]}.tsv")
+        logger.info(f"Attempting to find automatically the valid barcode list file {bcfile}")
+        if bcfile.exists():
+            logger.info(f"{bcfile} found ")
             pass
         else:
-            logging.info(f"{bcfile} not found!")
-            logging.error(
+            logger.info(f"{bcfile} not found!")
+            logger.error(
                 "In ``run_dropest`` specifying the ``--bcfile/-b`` is required. Use ``run`` if you want to adventure in a more custom usage."
             )
-            logging.info("Exit without doing nothing")
+            logger.info("Exit without doing nothing")
             return
 
     if "correct" not in bamfile:
-        logging.warning(
+        logger.warning(
             "The file you are using does not start with the prefix ``correct_`` so it might not be the output of ``velocyto tools dropest_bc_correct``."
         )
-        logging.info(
+        logger.info(
             "The program will run despite the warning but be aware of the possible consequences of not correcting the barcodes"
         )
     return _run(
@@ -150,7 +134,7 @@ def run_dropest(
         test=False,
         samtools_threads=samtools_threads,
         samtools_memory=samtools_memory,
-        loom_numeric_dtype=dtype,
+        loom_numeric_dtype=str(dtype).split(".")[-1],
         dump=dump,
         verbose=verbose,
         additional_ca=additional_ca,

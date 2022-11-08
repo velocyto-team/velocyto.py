@@ -1,15 +1,18 @@
-import logging
+import gzip
 import os
 import random
 import re
 import string
 from collections import Counter, OrderedDict, defaultdict
 from itertools import chain
+from pathlib import Path
 from typing import DefaultDict, Iterable
 
 import h5py
 import numpy as np
 import pysam
+from loguru import logger
+from tqdm.rich import tqdm
 
 from .constants import LONGEST_INTRON_ALLOWED, LOOM_NUMERIC_DTYPE, PATCH_INDELS, PLACEHOLDER_UMI_LEN
 from .feature import Feature
@@ -75,7 +78,7 @@ class ExInCounter:
                 self.count_cell_batch = self._count_cell_batch_stranded
         else:
             self.count_cell_batch = self._count_cell_batch_non_stranded
-        # NOTE: by using a default dict and not logging access to keys that do not exist, we might miss bugs!!!
+        # NOTE: by using a default dict and not logger access to keys that do not exist, we might miss bugs!!!
         self.test_flag = None
         if dump_option[0] == "p":
             self.kind_of_report = "p"
@@ -136,7 +139,7 @@ class ExInCounter:
                 # else do nothing
                 # NOTE: maybe we should make so that the reads get discarded
             elif operation_id == 5:  # BAM_CHARD_CLIP
-                logging.warn("Hard clip was encountered! All mapping are assumed soft clipped")
+                logger.warning("Hard clip was encountered! All mapping are assumed soft clipped")
 
         # Merge segments separated by small insertions and deletions
         for a, b in enumerate(sorted(hole_to_remove)):  # NOTE maybe sorted is not required realy
@@ -146,7 +149,7 @@ class ExInCounter:
 
     def peek(self, bamfile: str, lines: int = 1000) -> None:
         """Peeks into the samfile to determine if it is a cellranger or dropseq file"""
-        logging.debug(f"Peeking into {bamfile}")
+        logger.debug(f"Peeking into {bamfile}")
         fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
         cellranger: int = 0
         dropseq: int = 0
@@ -159,7 +162,7 @@ class ExInCounter:
             elif read.has_tag("XC") and read.has_tag("XM"):
                 dropseq += 1
             else:
-                logging.warn(f"Not found cell and umi barcode in entry {i} of the bam file")
+                logger.warning(f"Not found cell and umi barcode in entry {i} of the bam file")
                 failed += 1
             if cellranger > lines:
                 self.cellbarcode_str = "CB"
@@ -179,7 +182,7 @@ class ExInCounter:
 
     def peek_umi_only(self, bamfile: str, lines: int = 30) -> None:
         """Peeks for umi into the samfile to determine if it is a cellranger or dropseq file"""
-        logging.debug(f"Peeking into {bamfile}")
+        logger.debug(f"Peeking into {bamfile}")
         fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
         cellranger: int = 0
         dropseq: int = 0
@@ -192,7 +195,7 @@ class ExInCounter:
             elif read.has_tag("XM"):
                 dropseq += 1
             else:
-                logging.warn(f"Not found cell and umi barcode in entry {i} of the bam file")
+                logger.warning(f"Not found cell and umi barcode in entry {i} of the bam file")
                 failed += 1
             if cellranger > lines:
                 self.umibarcode_str = "UB"
@@ -252,28 +255,26 @@ class ExInCounter:
         or a tuple (Read, sam_line) if ``yield_line==True``
         NOTE: At the file change it yields a `None`
         """
-        # No peeking here, this will happen a layer above, and only once  on the not sorted file! before it was self.peek(samfile, lines=10)
+        # No peeking here, this will happen a layer above, and only once on the not sorted file! before it was self.peek(samfile, lines=10)
 
         # bamfile_name_seen: set[str] = set()
         counter_skipped_no_barcode = 0
         if Counter(bamfiles).most_common(1)[0][1] != 1:
-            logging.warning(
-                "The bamfiles names are not unique. The full path to them will be used as unique identifier"
-            )
+            logger.warning("The bamfiles names are not unique. The full path to them will be used as unique identifier")
             use_basename = False
         else:
             use_basename = True
         for bamfile in bamfiles:
             if use_basename:
-                self._current_bamfile = os.path.basename(bamfile)
+                self._current_bamfile = Path(bamfile).name
             else:
                 self._current_bamfile = str(bamfile)
-            logging.debug(f"Reading {bamfile}")
+            logger.debug(f"Reading {bamfile}")
 
             fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
-            for i, read in enumerate(fin):
+            for i, read in enumerate(tqdm(fin)):
                 if i % 10000000 == 0:
-                    logging.debug(f"Read first {i // 1000000} million reads")
+                    logger.debug(f"Read first {i // 1000000} million reads")
                 if read.is_unmapped:
                     continue
                 # If unique parameter is set to True, skip not unique alignments
@@ -314,17 +315,17 @@ class ExInCounter:
                 )  # reads in pysam are always 0-based, but 1-based is more convenient to wor with in bioinformatics
                 segments, ref_skipped, clip5, clip3 = self.parse_cigar_tuple(read.cigartuples, pos)
                 if segments == []:
-                    logging.debug("No segments in read:%s" % read.qname)
+                    logger.debug("No segments in read:%s" % read.qname)
 
                 read_object = Read(bc, umi, chrom, strand, pos, segments, clip5, clip3, ref_skipped)
                 if yield_line:
                     if read_object.span > 3000000:  # Longest locus existing
-                        logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
+                        logger.warning(f"Trashing read, too long span\n{read.tostring(fin)}")
                     else:
                         yield read_object, read.tostring(fin)
                 else:
                     if read_object.span > 3000000:  # Longest locus existing
-                        logging.warn(f"Trashing read, too long span\n{read.tostring(fin)}")
+                        logger.warning(f"Trashing read, too long span\n{read.tostring(fin)}")
                     else:
                         yield read_object
             fin.close()
@@ -333,7 +334,7 @@ class ExInCounter:
                 yield None, None
             else:
                 yield None
-        logging.debug(
+        logger.debug(
             f"{counter_skipped_no_barcode} reads were skipped because no apropiate cell or umi barcode was found"
         )
 
@@ -357,19 +358,24 @@ class ExInCounter:
         """
         # Example code to sort the gtf file
         # sorted_filename = gtffile.split(".")[0] + "_sorted.gtf"
-        # logging.debug(f"Sorting by `sort -k1,1 -k7,7 -k4,4n {gtffile} > {sorted_filename}`")
+        # logger.debug(f"Sorting by `sort -k1,1 -k7,7 -k4,4n {gtffile} > {sorted_filename}`")
         # with open(sorted_filename, "w") as f:
         #     p1 = subprocess.run(["sort", "-k1,1", "-k7,7", "-k4,4n", gtffile],
         #                         stdout=f)
 
         # Parse arguments
-        logging.debug(f"Reading {gtf_file}, the file will be sorted in memory")
+        logger.debug(f"Reading {gtf_file}, the file will be sorted in memory")
 
         # Read up skipping headers up to the first valid entry
         repeat_ivls_list: list[Feature] = []
 
         # fin = open(gtf_file)
-        gtf_lines = [line for line in open(gtf_file) if not line.startswith("#")]
+        if gtf_file.suffix == ".gz":
+            with gzip.open(gtf_file, "rb") as gtf:
+                gtf_lines = [line.decode() for line in gtf if not line.decode().startswith("#")]
+        else:
+            with open(gtf_file, "r") as gtf:
+                gtf_lines = [line for line in gtf if not line.startswith("#")]
 
         def sorting_key(entry: str) -> tuple[str, bool, int, str]:
             """This sorting strategy is equivalent to sort -k1,1 -k7,7 -k4,4n"""
@@ -415,7 +421,7 @@ class ExInCounter:
         curr_tags: str = tags
         curr_chromstrand: str = chromstrand
 
-        for line in gtf_lines:
+        for line in tqdm(gtf_lines):
 
             fields = line.rstrip().split("\t")
             (
@@ -429,7 +435,7 @@ class ExInCounter:
                 junk,
                 tags,
             ) = fields
-            # Removing chr from the chromosome name to uniform different formats of gtf files, taht might or might not have the prefix "chr"
+            # Removing chr from the chromosome name to uniform different formats of gtf files, that might or might not have the prefix "chr"
             if chrom[:3].lower() == "chr":
                 chrom = chrom[3:]
             start = int(start_str)
@@ -472,13 +478,13 @@ class ExInCounter:
             feature_list.sort()  # relies on the __lt__ method of Feature
             n += len(feature_list)
 
-        logging.debug(f"Processed masked annotation .gtf and generated {n} intervals to mask!")
+        logger.debug(f"Processed masked annotation .gtf and generated {n} intervals to mask!")
 
         return self.mask_ivls_by_chromstrand
 
     def assign_indexes_to_genes(self, features: dict[str, TranscriptModel]) -> None:
         """Assign to each newly encoutered gene an unique index corresponding to the output matrix column ix"""
-        logging.debug("Assigning indexes to genes")
+        logger.debug("Assigning indexes to genes")
         for name, trmodel in features.items():
             if trmodel.geneid in self.geneid2ix:
                 if self.genes[trmodel.geneid].start > trmodel.start:
@@ -522,7 +528,12 @@ class ExInCounter:
         # Initialize containers
         # headerlines: list[str] = []
 
-        gtf_lines = [line for line in open(gtf_file) if not line.startswith("#")]
+        if gtf_file.suffix == ".gz":
+            with gzip.open(gtf_file, "rb") as gtf:
+                gtf_lines = [line.decode() for line in gtf if not line.decode().startswith("#")]
+        else:
+            with open(gtf_file, "r") as gtf:
+                gtf_lines = [line for line in gtf if not line.startswith("#")]
 
         def sorting_key(entry: str) -> tuple[str, bool, int, str]:
             """This sorting strategy is equivalent to sort -k1,1 -k7,7 -k4,4n"""
@@ -575,12 +586,12 @@ class ExInCounter:
                             "Genome annotation gtf file is not sorted correctly! Run the following command:\nsort -k1,1 -k7,7 -k4,4n -o [GTF_OUTFILE] [GTF_INFILE]"
                         )
                     else:
-                        logging.debug(f"Done with {curr_chromstrand} [line {nth_line-1}]")
+                        logger.debug(f"Done with {curr_chromstrand} [line {nth_line-1}]")
                     self.assign_indexes_to_genes(features)
                     self.annotations_by_chrm_strand[curr_chromstrand] = features
-                    logging.debug(f"Seen {len(self.geneid2ix)} genes until now")
+                    logger.debug(f"Seen {len(self.geneid2ix)} genes until now")
                 features = OrderedDict()
-                logging.debug(f"Parsing Chromosome {chrom} strand {strand} [line {nth_line}]")
+                logger.debug(f"Parsing Chromosome {chrom} strand {strand} [line {nth_line}]")
                 curr_chromstrand = chrom + strand
 
             if feature_type in ("exon"):
@@ -622,9 +633,9 @@ class ExInCounter:
         # Do it for the last chromosome
         self.assign_indexes_to_genes(features)
         self.annotations_by_chrm_strand[curr_chromstrand] = features
-        logging.debug(f"Done with {curr_chromstrand} [line {nth_line-1}]")
+        logger.debug(f"Done with {curr_chromstrand} [line {nth_line-1}]")
 
-        logging.debug(
+        logger.debug(
             f"Fixing corner cases of transcript models containg intron longer than {LONGEST_INTRON_ALLOWED//1000}Kbp"
         )
         # Fix corner cases of extremelly long introns ~1Mbp that would be masking genes that are found internally
@@ -676,7 +687,7 @@ class ExInCounter:
 
         # If at least one exon was missing the exon number create the entry for all the others
         if flag:
-            logging.warning(
+            logger.warning(
                 "The entry exon_number was not present in the gtf file. It will be infferred from the position."
             )
             regex_trid = re.compile('transcript_id "([^"]+)"')
@@ -761,7 +772,7 @@ class ExInCounter:
             for (
                 chromstrand_key,
                 annotions_ordered_dict,
-            ) in self.annotations_by_chrm_strand.items():
+            ) in tqdm(self.annotations_by_chrm_strand.items()):
                 self.feature_indexes[chromstrand_key] = FeatureIndex(
                     sorted(chain.from_iterable(annotions_ordered_dict.values()))
                 )
@@ -770,7 +781,7 @@ class ExInCounter:
             # Read the file
             currchrom = ""
             set_chromosomes_seen: set[str] = set()
-            for r in self.iter_alignments(bamfile, unique=not multimap):
+            for r in tqdm(self.iter_alignments(bamfile, unique=not multimap)):
                 # Don't consider spliced reads (exonic) in this step
                 # NOTE Can the exon be so short that we get splicing and exon-intron boundary
                 if r is None:
@@ -779,7 +790,7 @@ class ExInCounter:
                     set_chromosomes_seen = set()
                     # I need to reset indexes in position before the next file is restarted
                     # NOTE this is far from optimal for lots of cells
-                    logging.debug("End of file. Reset index: start scanning from initial position.")
+                    logger.debug("End of file. Reset index: start scanning from initial position.")
                     for (
                         chromstrand_key,
                         annotions_ordered_dict,
@@ -796,17 +807,17 @@ class ExInCounter:
                             f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)"
                         )
                     set_chromosomes_seen.add(r.chrom)
-                    logging.debug(f"Marking up chromosome {r.chrom}")
+                    logger.debug(f"Marking up chromosome {r.chrom}")
                     currchrom = r.chrom
                     if currchrom + "+" not in self.annotations_by_chrm_strand:
-                        logging.warn(
+                        logger.warning(
                             f"The .bam file refers to a chromosome '{currchrom}+' not present in the annotation (.gtf) file"
                         )
                         iif = FeatureIndex([])
                     else:
                         iif = self.feature_indexes[currchrom + "+"]
                     if currchrom + "-" not in self.annotations_by_chrm_strand:
-                        logging.warn(
+                        logger.warning(
                             f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file"
                         )
                         iir = FeatureIndex([])
@@ -859,31 +870,35 @@ class ExInCounter:
         for (
             chromstrand_key,
             annotions_ordered_dict,
-        ) in self.annotations_by_chrm_strand.items():
+        ) in tqdm(self.annotations_by_chrm_strand.items(), desc="Count molecules - feature indexes"):
             self.feature_indexes[chromstrand_key] = FeatureIndex(
                 sorted(chain.from_iterable(annotions_ordered_dict.values()))
             )
 
         self.mask_indexes: DefaultDict[str, FeatureIndex] = defaultdict(FeatureIndex)
-        for chromstrand_key, annotions_list in self.mask_ivls_by_chromstrand.items():
+        for chromstrand_key, annotions_list in tqdm(
+            self.mask_ivls_by_chromstrand.items(), desc="Count molecules - mask indexes"
+        ):
             self.mask_indexes[chromstrand_key] = FeatureIndex(annotions_list)  # This suould be sorted
 
-        logging.debug(f"Features available for chromosomes : {list(self.feature_indexes.keys())}")
-        logging.debug(f"Mask available for chromosomes : {list(self.mask_indexes.keys())}")
+        logger.debug(f"Features available for chromosomes : {list(self.feature_indexes.keys())}")
+        logger.debug(f"Mask available for chromosomes : {list(self.mask_indexes.keys())}")
 
         # Before counting, report how many features where validated
-        logging.debug("Summarizing the results of intron validation.")
+        logger.debug("Summarizing the results of intron validation.")
         n_is_intron = 0
         n_is_intron_valid = 0
         unique_valid = set()
-        for chromstrand_key, feature_index in self.feature_indexes.items():
+        for chromstrand_key, feature_index in tqdm(
+            self.feature_indexes.items(), desc="Count molecules - validate introns"
+        ):
             for ivl in feature_index.ivls:
                 if ivl.kind == ord("i"):
                     n_is_intron += 1
                 if ivl.is_validated:
                     n_is_intron_valid += 1
                     unique_valid.add((ivl.start, ivl.end))
-        logging.debug(
+        logger.debug(
             f"Validated {n_is_intron_valid} introns (of which unique intervals {len(unique_valid)}) out of {n_is_intron} total possible introns (considering each possible transcript models)."
         )
 
@@ -891,25 +906,23 @@ class ExInCounter:
         dict_list_arrays: dict[str, list[np.ndarray]] = {layer_name: [] for layer_name in self.logic.layers}
         nth = 0
         # Loop through the aligment of the bamfile
-        for r in self.iter_alignments(bamfile, unique=not multimap):
+        for r in tqdm(self.iter_alignments(bamfile, unique=not multimap), desc="Count molecules: count"):
             if (r is None) or (len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch):
                 # Perfrom the molecule counting
                 nth += 1
-                logging.debug(
+                logger.debug(
                     f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads"
                 )
                 dict_layer_columns, list_bcs = self.count_cell_batch()
 
                 # This is to avoid crazy big matrix output if the barcode selection is not chosen
                 if not self.filter_mode:
-                    logging.warning(
-                        "The barcode selection mode is off, no cell events will be identified by <80 counts"
-                    )
+                    logger.warning("The barcode selection mode is off, no cell events will be identified by <80 counts")
                     tot_mol = dict_layer_columns["spliced"].sum(0) + dict_layer_columns["unspliced"].sum(0)
                     cell_bcs_order += list(np.array(list_bcs)[tot_mol > 80])
                     for layer_name, layer_columns in dict_layer_columns.items():
                         dict_list_arrays[layer_name].append(layer_columns[:, tot_mol > 80])
-                    logging.warning(f"{np.sum(tot_mol < 80)} of the barcodes where without cell")
+                    logger.warning(f"{np.sum(tot_mol < 80)} of the barcodes where without cell")
                 else:
                     # The normal case
                     cell_bcs_order += list_bcs
@@ -934,7 +947,7 @@ class ExInCounter:
                 self.cell_batch.add(r.bc)
                 self.reads_to_count.append(r)
         # NOTE: Since iter_allignments is yielding None at each file change (even when only one bamfile) I do not need the following
-        # logging.debug(f"Counting molecule for last batch of {len(self.cell_batch)}, total reads {len(self.reads_to_count)}")
+        # logger.debug(f"Counting molecule for last batch of {len(self.cell_batch)}, total reads {len(self.reads_to_count)}")
         # spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch()
         # cell_bcs_order += list_bcs
         # list_spliced_arrays.append(spliced)
@@ -942,7 +955,7 @@ class ExInCounter:
         # list_ambiguous_arrays.append(ambiguous)
         # self.cell_batch = set()
         # self.reads_to_count = []
-        logging.debug("Counting done!")
+        logger.debug("Counting done!")
         return dict_list_arrays, cell_bcs_order
 
     def _count_cell_batch_stranded(self) -> tuple[dict[str, np.ndarray], list[str]]:
@@ -977,17 +990,18 @@ class ExInCounter:
             # Look for overlap between the intervals and the read
             mappings_record = ii.find_overlapping_ivls(r)
             if len(mappings_record):
-                # logging.debug("IN: Non empty mapping record")
+                # logger.debug("IN: Non empty mapping record")
                 bcumi = f"{r.bc}${r.umi}"
                 molitems[bcumi].add_mappings_record(mappings_record)
                 # if len(molitems[bcumi].mappings_record):
-                #     logging.debug("OUT: Non empty")
+                #     logger.debug("OUT: Non empty")
                 # else:
-                #     logging.debug("OUT: Empty")
-        logging.debug(
-            f"{repeats_reads_count} reads not considered because fully enclosed in repeat masked regions"
-        )  # VERBOSE
-        # initialize np.ndarray
+                #     logger.debug("OUT: Empty")
+        if repeats_reads_count > 0:
+            logger.debug(
+                f"{repeats_reads_count} reads not considered because fully enclosed in repeat masked regions"
+            )  # VERBOSE
+            # initialize np.ndarray
         shape = (len(self.geneid2ix), len(self.cell_batch))
 
         dict_layers_columns: dict[str, np.ndarray] = {}
@@ -1007,13 +1021,17 @@ class ExInCounter:
                 counter[rcode] += 1
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
         if failures > (0.25 * len(molitems)):
-            logging.warn(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed, of those:")
-            logging.warn(
+            logger.warning(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed, of those:")
+            logger.warning(
                 f"A situation where many genes were compatible with the observation in {(100*counter[1] / len(molitems)):.1f} cases"
             )
-            logging.warn(f"No gene is compatible with the observation in {(100*counter[2] / len(molitems)):.1f} cases")
-            logging.warn(f"Observation compatible with more genes {(100*counter[3] / len(molitems)):.1f} of the cases")
-            logging.warn(
+            logger.warning(
+                f"No gene is compatible with the observation in {(100*counter[2] / len(molitems)):.1f} cases"
+            )
+            logger.warning(
+                f"Observation compatible with more genes {(100*counter[3] / len(molitems)):.1f} of the cases"
+            )
+            logger.warning(
                 f"Situation that were not described by the logic in the {(100*counter[4] / len(molitems)):.1f} of the cases"
             )
 
@@ -1022,8 +1040,8 @@ class ExInCounter:
                 import pickle
 
                 first_cell_batch = next(iter(molitems.keys())).split("$")[0]
-                if not os.path.exists("pickle_dump"):
-                    os.makedirs("pickle_dump")
+                if not (x := Path("pickle_dump")).exists():
+                    x.mkdir()
                 pickle.dump(
                     molitems,
                     open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"),
@@ -1033,14 +1051,14 @@ class ExInCounter:
                     open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"),
                 )
             else:
-                if not os.path.exists(os.path.join(self.outputfolder, "dump")):
-                    os.makedirs(os.path.join(self.outputfolder, "dump"))
+                if not (x := Path(self.outputfolder).joinpath("dump")).exists():
+                    x.mkdir()
                 f = h5py.File(
-                    os.path.join(self.outputfolder, f"dump/{self.sampleid}.hdf5")
+                    Path(self.outputfolder).joinpath("dump", f"{self.sampleid}.hdf5")
                 )  # From the docs: Read/write if exists, create otherwise (default)
 
                 if "info/tr_id" not in f:
-                    logging.warning(
+                    logger.warning(
                         "The hdf5 report is less accurate in reporting exactly all the information than the pickle."
                     )
                     info_tr_id = []
@@ -1238,14 +1256,14 @@ class ExInCounter:
                 mappings_record = ii.find_overlapping_ivls(r)
 
             if len(mappings_record):
-                # logging.debug("IN: Non empty mapping record")
+                # logger.debug("IN: Non empty mapping record")
                 bcumi = f"{r.bc}${r.umi}"
                 molitems[bcumi].add_mappings_record(mappings_record)
                 # if len(molitems[bcumi].mappings_record):
-                #     logging.debug("OUT: Non empty")
+                #     logger.debug("OUT: Non empty")
                 # else:
-                #     logging.debug("OUT: Empty")
-        logging.debug(
+                #     logger.debug("OUT: Empty")
+        logger.debug(
             f"{repeats_reads_count} reads not considered because fully enclosed in repeat masked regions"
         )  # VERBOSE
         # initialize np.ndarray
@@ -1269,8 +1287,8 @@ class ExInCounter:
                 import pickle
 
                 first_cell_batch = next(iter(molitems.keys())).split("$")[0]
-                if not os.path.exists("pickle_dump"):
-                    os.makedirs("pickle_dump")
+                if not (x := Path("pickle_dump")).exists():
+                    x.mkdir()
                 pickle.dump(
                     molitems,
                     open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"),
@@ -1280,14 +1298,14 @@ class ExInCounter:
                     open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"),
                 )
             else:
-                if not os.path.exists(os.path.join(self.outputfolder, "dump")):
-                    os.makedirs(os.path.join(self.outputfolder, "dump"))
+                if not (x := Path(self.outputfolder).joinpath("dump")).exists():
+                    x.mkdir()
                 f = h5py.File(
-                    os.path.join(self.outputfolder, f"dump/{self.sampleid}.hdf5")
+                    Path(self.outputfolder).joinpath("dump", f"{self.sampleid}.hdf5")
                 )  # From the docs: Read/write if exists, create otherwise (default)
 
                 if "info/tr_id" not in f:
-                    logging.warning(
+                    logger.warning(
                         "The hdf5 report is less accurate in reporting exactly all the information than the pickle."
                     )
                     info_tr_id = []
@@ -1500,10 +1518,10 @@ class ExInCounter:
             if len(mappings_record) and len(mappings_record_r):
                 both_reads_count += 1
 
-        logging.debug(f"{repeats_reads_count} reads in repeat masked regions")  # VERBOSE
-        logging.debug(f"{plus_reads_count} reads overlapping with features on plus strand")  # VERBOSE
-        logging.debug(f"{minus_reads_count} reads overlapping with features on minus strand")  # VERBOSE
-        logging.debug(f"{both_reads_count} reads overlapping with features on both strands")  # VERBOSE
+        logger.debug(f"{repeats_reads_count} reads in repeat masked regions")  # VERBOSE
+        logger.debug(f"{plus_reads_count} reads overlapping with features on plus strand")  # VERBOSE
+        logger.debug(f"{minus_reads_count} reads overlapping with features on minus strand")  # VERBOSE
+        logger.debug(f"{both_reads_count} reads overlapping with features on both strands")  # VERBOSE
         # initialize np.ndarray
         shape = (len(self.geneid2ix), len(self.cell_batch))
 
@@ -1525,8 +1543,8 @@ class ExInCounter:
                 import pickle
 
                 first_cell_batch = next(iter(molitems.keys())).split("$")[0]
-                if not os.path.exists("pickle_dump"):
-                    os.makedirs("pickle_dump")
+                if not (x := Path("pickle_dump")).exists():
+                    x.mkdir()
                 pickle.dump(
                     molitems,
                     open(f"pickle_dump/molitems_dump_{first_cell_batch}.pickle", "wb"),
@@ -1536,14 +1554,14 @@ class ExInCounter:
                     open(f"pickle_dump/reads_to_count{first_cell_batch}.pickle", "wb"),
                 )
             else:
-                if not os.path.exists(os.path.join(self.outputfolder, "dump")):
-                    os.makedirs(os.path.join(self.outputfolder, "dump"))
+                if not (x := Path(self.outputfolder).joinpath("dump")).exists():
+                    x.mkdir()
                 f = h5py.File(
-                    os.path.join(self.outputfolder, f"dump/{self.sampleid}.hdf5")
+                    Path(self.outputfolder).joinpath("dump", f"{self.sampleid}.hdf5")
                 )  # From the docs: Read/write if exists, create otherwise (default)
 
                 if "info/tr_id" not in f:
-                    logging.warning(
+                    logger.warning(
                         "The hdf5 report is less accurate than the pickle in the completeness of the info it is reporting."
                     )
                     info_tr_id = []
