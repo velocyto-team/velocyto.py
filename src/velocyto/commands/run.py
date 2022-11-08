@@ -1,12 +1,10 @@
-import sys
 from pathlib import Path
 from typing import Optional
 
 import typer
-from loguru import logger
 
 from ._run import _run
-from .common import UMIExtension, logicType, loomdtype
+from .common import UMIExtension, init_logger, logicType, loomdtype
 
 app = typer.Typer(name="velocyto-run", help="Run velocity analysis")
 
@@ -133,14 +131,7 @@ def run(
     GTFFILE genome annotation file
     """
 
-    if verbose == 3:
-        logger.add(sys.stderr, level="DEBUG")
-    elif verbose == 2:
-        logger.add(sys.stderr, level="INFO")
-    elif verbose == 1:
-        logger.add(sys.stderr, level="WARNING")
-    else:
-        logger.add(sys.stderr, level="ERROR")
+    init_logger(verbose)
 
     additional_ca = {additional_ca[(i * 2)]: additional_ca[(i * 2) + 1] for i in range(len(additional_ca) // 2)}
 

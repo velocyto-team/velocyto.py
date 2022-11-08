@@ -1,4 +1,3 @@
-import logging
 import warnings
 from copy import deepcopy
 from typing import Any, Union
@@ -7,6 +6,7 @@ import loompy
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
+from loguru import logger
 from numba import jit
 from scipy import sparse
 from scipy.spatial.distance import pdist, squareform
@@ -79,12 +79,12 @@ class VelocytoLoom:
 
         try:
             if np.mean(self.ca["_Valid"]) < 1:
-                logging.warn(
+                logger.warning(
                     f"fraction of _Valid cells is {np.mean(self.ca['_Valid'])} but all will be taken in consideration"
                 )
         except KeyError:
             pass
-            # logging.debug("The file did not specify the _Valid column attribute")
+            # logger.debug("The file did not specify the _Valid column attribute")
 
     def to_hdf5(self, filename: str, **kwargs: dict[str, Any]) -> None:
         """Serialize the VelocytoLoom object in its current state
@@ -297,7 +297,7 @@ class VelocytoLoom:
             if winsorize:
                 if min_expr_cells <= ((100 - winsor_perc[1]) * self.S.shape[1] * 0.01):
                     min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.S.shape[0] * 0.01)) + 2
-                    logging.debug(
+                    logger.debug(
                         f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, upgrading to min_expr_cells ={min_expr_cells}"
                     )
 
@@ -322,7 +322,7 @@ class VelocytoLoom:
 
             if svr_gamma is None:
                 svr_gamma = 150.0 / len(mu)
-                logging.debug(f"svr_gamma set to {svr_gamma}")
+                logger.debug(f"svr_gamma set to {svr_gamma}")
             # Fit the Support Vector Regression
             clf = SVR(gamma=svr_gamma)
             clf.fit(log_m[:, None], log_cv)
@@ -359,7 +359,7 @@ class VelocytoLoom:
             if winsorize:
                 if min_expr_cells <= ((100 - winsor_perc[1]) * self.U.shape[1] * 0.01):
                     min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.U.shape[0] * 0.01)) + 2
-                    logging.debug(
+                    logger.debug(
                         f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, upgrading to min_expr_cells ={min_expr_cells}"
                     )
 
@@ -384,7 +384,7 @@ class VelocytoLoom:
 
             if svr_gamma is None:
                 svr_gamma = 150.0 / len(mu)
-                logging.debug(f"svr_gamma set to {svr_gamma}")
+                logger.debug(f"svr_gamma set to {svr_gamma}")
             # Fit the Support Vector Regression
             clf = SVR(gamma=svr_gamma)
             clf.fit(log_m[:, None], log_cv)
@@ -564,28 +564,28 @@ class VelocytoLoom:
         tmp_filter = np.ones(self.S.shape[0], dtype=bool)
         if by_cluster_expression:
             assert hasattr(self, "clu_avg_selected"), "clu_avg_selected was not found"
-            logging.debug("Filtering by cluster expression")
+            logger.debug("Filtering by cluster expression")
             tmp_filter = tmp_filter & self.clu_avg_selected
         if by_cv_vs_mean:
             assert hasattr(self, "cv_mean_selected"), "cv_mean_selected was not found"
-            logging.debug("Filtering by cv vs mean")
+            logger.debug("Filtering by cv vs mean")
             tmp_filter = tmp_filter & self.cv_mean_selected
         if by_detection_levels:
             assert hasattr(self, "detection_level_selected"), "detection_level_selected was not found"
-            logging.debug("Filtering by detection level")
+            logger.debug("Filtering by detection level")
             tmp_filter = tmp_filter & self.detection_level_selected
         if type(by_custom_array) is np.ndarray:
             if by_custom_array.dtype == bool:
-                logging.debug("Filtering by custom boolean array")
+                logger.debug("Filtering by custom boolean array")
                 tmp_filter = tmp_filter & by_custom_array
             elif by_custom_array.dtype == int:
-                logging.debug("Filtering by custom index array")
+                logger.debug("Filtering by custom index array")
                 bool_negative = ~np.in1d(np.arange(len(tmp_filter)), by_custom_array)
                 tmp_filter[bool_negative] = False
 
         if keep_unfiltered:
             if hasattr(self, "U_prefilter"):
-                logging.debug("Attributes *_prefilter are already present and were overwritten")
+                logger.debug("Attributes *_prefilter are already present and were overwritten")
             self.U_prefilter = sparse.csr_matrix(self.U)
             self.S_prefilter = sparse.csr_matrix(self.S)
             self.ra_prefilter = deepcopy(self.ra)
@@ -782,7 +782,7 @@ class VelocytoLoom:
         log: bool
             perform log normalization (if size==True, this comes after the size normalization)
         pcount: int, default: 1
-            The extra count added when logging (log2)
+            The extra count added when logger (log2)
         relative_size: np.ndarray, default=None
             if None it calculate the sums the molecules per cell (self.S.sum(0))
             if an array is provided it is used for the normalization
@@ -1113,7 +1113,7 @@ class VelocytoLoom:
         """
         if not hasattr(self, "small_U_pop") and skip_low_U_pop:
             self.small_U_pop = np.zeros(self.U_sz.shape[1], dtype=bool)
-            logging.warning(
+            logger.warning(
                 "object does not have the attribute `small_U_pop`, so all the unspliced will be normalized by relative size, this might cause the overinflation the unspliced counts of cells where only few unspliced molecules were detected"
             )
         if which == "renormalize":
@@ -1517,7 +1517,7 @@ class VelocytoLoom:
                 )
             else:
                 if limit_gamma:
-                    logging.warning("limit_gamma not implemented with this settings")
+                    logger.warning("limit_gamma not implemented with this settings")
                 self.gammas, self.q = fit_slope_offset(tmpU[:, self.steady_state], tmpS[:, self.steady_state])
         elif fixperc_q:
             if weighted:
@@ -1530,7 +1530,7 @@ class VelocytoLoom:
                 )
             else:
                 if limit_gamma:
-                    logging.warning("limit_gamma not implemented with this settings")
+                    logger.warning("limit_gamma not implemented with this settings")
                 self.gammas, self.q = fit_slope_offset(
                     tmpU[:, self.steady_state],
                     tmpS[:, self.steady_state],
@@ -1548,7 +1548,7 @@ class VelocytoLoom:
                 self.q = np.zeros_like(self.gammas)
             else:
                 if limit_gamma:
-                    logging.warning("limit_gamma not implemented with this settings")
+                    logger.warning("limit_gamma not implemented with this settings")
                 self.gammas = fit_slope(tmpU[:, self.steady_state], tmpS[:, self.steady_state])
                 self.q = np.zeros_like(self.gammas)
 
@@ -1651,7 +1651,7 @@ class VelocytoLoom:
         self.which_S_for_pred = which_S
         if which_offset is None:
             if hasattr(self, "q_W") or hasattr(self, "q"):
-                logging.warn(
+                logger.warning(
                     "Predicting U without intercept but intercept was previously fit! Set which_offset='q' or 'q_W' "
                 )
             self.Upred = getattr(self, which_gamma)[:, None] * getattr(self, which_S)
@@ -1766,7 +1766,7 @@ class VelocytoLoom:
     ) -> None:
         """Perform TSNE on the PCA using barnes hut approximation"""
         # Perform TSNE
-        logging.debug("Running bhtsne")
+        logger.debug("Running bhtsne")
         if initial_pos is None:
             initial_pos = "random"
         bh_tsne = TSNE(
@@ -1845,7 +1845,7 @@ class VelocytoLoom:
         if "n_neighbors" in kwargs:
             n_neighbors = kwargs.pop("n_neighbors")
             if len(kwargs) > 0:
-                logging.warning(f"keyword arguments were passed but could not be interpreted {kwargs}")
+                logger.warning(f"keyword arguments were passed but could not be interpreted {kwargs}")
         else:
             n_neighbors = None
 
@@ -1888,7 +1888,7 @@ class VelocytoLoom:
 
             embedding = getattr(self, embed)
             self.embedding = embedding
-            logging.debug("Calculate KNN in the embedding space")
+            logger.debug("Calculate KNN in the embedding space")
             nn = NearestNeighbors(n_neighbors=n_neighbors + 1, n_jobs=n_jobs)
             nn.fit(embedding)  # NOTE should support knn in high dimensions
             self.embedding_knn = nn.kneighbors_graph(mode="connectivity")
@@ -1927,7 +1927,7 @@ class VelocytoLoom:
                 shape=(neigh_ixs.shape[0], neigh_ixs.shape[0]),
             )
 
-            logging.debug(f"Correlation Calculation '{self.corr_calc}'")
+            logger.debug(f"Correlation Calculation '{self.corr_calc}'")
             if transform == "log":
                 delta_hi_dim = hi_dim_t - hi_dim
                 self.corrcoef = colDeltaCorLog10partial(
@@ -1938,7 +1938,7 @@ class VelocytoLoom:
                     psc=psc,
                 )
                 if calculate_randomized:
-                    logging.debug("Correlation Calculation for negative control")
+                    logger.debug("Correlation Calculation for negative control")
                     delta_hi_dim_rndm = hi_dim_t_rndm - hi_dim
                     self.corrcoef_random = colDeltaCorLog10partial(
                         hi_dim,
@@ -1952,13 +1952,13 @@ class VelocytoLoom:
                 delta_hi_dim = np.log2(np.abs(hi_dim_t) + psc) - log2hidim
                 self.corrcoef = colDeltaCorpartial(log2hidim, delta_hi_dim, neigh_ixs, threads=threads)
                 if calculate_randomized:
-                    logging.debug("Correlation Calculation for negative control")
+                    logger.debug("Correlation Calculation for negative control")
                     delta_hi_dim_rndm = np.log2(np.abs(hi_dim_t_rndm) + psc) - log2hidim
                     self.corrcoef_random = colDeltaCorpartial(log2hidim, delta_hi_dim_rndm, neigh_ixs, threads=threads)
             elif transform == "linear":
                 self.corrcoef = colDeltaCorpartial(hi_dim, hi_dim_t - hi_dim, neigh_ixs, threads=threads)
                 if calculate_randomized:
-                    logging.debug("Correlation Calculation for negative control")
+                    logger.debug("Correlation Calculation for negative control")
                     self.corrcoef_random = colDeltaCorpartial(
                         hi_dim, hi_dim_t_rndm - hi_dim, neigh_ixs, threads=threads
                     )
@@ -1972,7 +1972,7 @@ class VelocytoLoom:
                     psc=psc,
                 )
                 if calculate_randomized:
-                    logging.debug("Correlation Calculation for negative control")
+                    logger.debug("Correlation Calculation for negative control")
                     delta_hi_dim_rndm = hi_dim_t_rndm - hi_dim
                     self.corrcoef_random = colDeltaCorSqrtpartial(
                         hi_dim,
@@ -1986,17 +1986,17 @@ class VelocytoLoom:
             np.fill_diagonal(self.corrcoef, 0)
             if np.any(np.isnan(self.corrcoef)):
                 self.corrcoef[np.isnan(self.corrcoef)] = 1
-                logging.warning(
+                logger.warning(
                     "Nans encountered in corrcoef and corrected to 1s. If not identical cells were present it is probably a small isolated cluster converging after imputation."
                 )
             if calculate_randomized:
                 np.fill_diagonal(self.corrcoef_random, 0)
                 if np.any(np.isnan(self.corrcoef_random)):
                     self.corrcoef_random[np.isnan(self.corrcoef_random)] = 1
-                    logging.warning(
+                    logger.warning(
                         "Nans encountered in corrcoef_random and corrected to 1s. If not identical cells were present it is probably a small isolated cluster converging after imputation."
                     )
-            logging.debug("Done Correlation Calculation")
+            logger.debug("Done Correlation Calculation")
         else:
             self.corr_calc = "full"
             if "pcs" in hidim:  # sic
@@ -2016,12 +2016,12 @@ class VelocytoLoom:
 
             embedding = getattr(self, embed)
             self.embedding = embedding
-            logging.debug("Calculate KNN in the embedding space")
+            logger.debug("Calculate KNN in the embedding space")
             nn = NearestNeighbors(n_neighbors=n_neighbors + 1, n_jobs=n_jobs)
             nn.fit(embedding)
             self.embedding_knn = nn.kneighbors_graph(mode="connectivity")
 
-            logging.debug("Correlation Calculation 'full'")
+            logger.debug("Correlation Calculation 'full'")
             if transform == "log":
                 delta_hi_dim = hi_dim_t - hi_dim
                 self.corrcoef = colDeltaCorLog10(
@@ -2031,7 +2031,7 @@ class VelocytoLoom:
                     psc=psc,
                 )
                 if calculate_randomized:
-                    logging.debug("Correlation Calculation for negative control")
+                    logger.debug("Correlation Calculation for negative control")
                     delta_hi_dim_rndm = hi_dim_t_rndm - hi_dim
                     self.corrcoef_random = colDeltaCorLog10(
                         hi_dim,
@@ -2044,13 +2044,13 @@ class VelocytoLoom:
                 delta_hi_dim = np.log2(np.abs(hi_dim_t) + psc) - log2hidim
                 self.corrcoef = colDeltaCor(log2hidim, delta_hi_dim, threads=threads)
                 if calculate_randomized:
-                    logging.debug("Correlation Calculation for negative control")
+                    logger.debug("Correlation Calculation for negative control")
                     delta_hi_dim_rndm = np.log2(np.abs(hi_dim_t_rndm) + 1) - log2hidim
                     self.corrcoef_random = colDeltaCor(log2hidim, delta_hi_dim_rndm, threads=threads)
             elif transform == "linear":
                 self.corrcoef = colDeltaCor(hi_dim, hi_dim_t - hi_dim, threads=threads)
                 if calculate_randomized:
-                    logging.debug("Correlation Calculation for negative control")
+                    logger.debug("Correlation Calculation for negative control")
                     self.corrcoef_random = colDeltaCor(hi_dim, hi_dim_t_rndm - hi_dim, threads=threads, psc=psc)
             elif transform == "sqrt":
                 delta_hi_dim = hi_dim_t - hi_dim
@@ -2061,7 +2061,7 @@ class VelocytoLoom:
                     psc=psc,
                 )
                 if calculate_randomized:
-                    logging.debug("Correlation Calculation for negative control")
+                    logger.debug("Correlation Calculation for negative control")
                     delta_hi_dim_rndm = hi_dim_t_rndm - hi_dim
                     self.corrcoef_random = colDeltaCorSqrt(
                         hi_dim,
@@ -2102,7 +2102,7 @@ class VelocytoLoom:
             The resulting vector
         """
         # Kernel evaluation
-        logging.debug("Calculate transition probability")
+        logger.debug("Calculate transition probability")
 
         if self.corr_calc == "full" or self.corr_calc == "knn_random":
             # NOTE maybe sparse matrix here are slower than dense
@@ -2110,7 +2110,7 @@ class VelocytoLoom:
             self.transition_prob = np.exp(self.corrcoef / sigma_corr) * self.embedding_knn.A  # naive
             self.transition_prob /= self.transition_prob.sum(1)[:, None]
             if hasattr(self, "corrcoef_random"):
-                logging.debug("Calculate transition probability for negative control")
+                logger.debug("Calculate transition probability for negative control")
                 self.transition_prob_random = np.exp(self.corrcoef_random / sigma_corr) * self.embedding_knn.A  # naive
                 self.transition_prob_random /= self.transition_prob_random.sum(1)[:, None]
 
@@ -2355,7 +2355,7 @@ class VelocytoLoom:
         min_avg_S: float, default=None
             if cluster have been specified beforehand (using the function set_clusters) then this is the minimum average spliced molecules per cluster
         """
-        logging.warning(
+        logger.warning(
             "DEPRECATION WARNING - the current function is deprecated. Please refer to documentation for default parameters usage"
         )
         if min_expr_counts is None:
@@ -2406,7 +2406,7 @@ class VelocytoLoom:
         n_comps: int, default=None
             numbed of components in pca
         """
-        logging.warning(
+        logger.warning(
             "DEPRECATION WARNING - the current function is deprecated. Please refer to documetation for default parameters usage"
         )
         self.perform_PCA()
@@ -2526,7 +2526,7 @@ class VelocytoLoom:
                 Please run estimate_transition_prob or set `scale_type` to `absolute`"""
                 )
         else:
-            logging.warning(
+            logger.warning(
                 "The arrow scale was set to be 'absolute' make sure you know how to properly interpret the plots"
             )
 
@@ -2647,7 +2647,7 @@ class VelocytoLoom:
         """
         if choice == "auto":
             choice = int(self.S.shape[1] / 3)
-            logging.warning(
+            logger.warning(
                 f"Only {choice} arrows will be shown to avoid overcrowding, you can choose the exact number setting the `choice` argument"
             )
         _quiver_kwargs = {"angles": "xy", "scale_units": "xy", "minlength": 1.5}
@@ -2680,7 +2680,7 @@ class VelocytoLoom:
                 Please run estimate_transition_prob or set `scale_type` to `absolute`"""
                 )
         else:
-            logging.warning(
+            logger.warning(
                 "The arrow scale was set to be 'absolute' make sure you know how to properly interpret the plots"
             )
 

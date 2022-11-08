@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -7,7 +6,7 @@ import typer
 from loguru import logger
 
 from ._run import _run
-from .common import logicType, loomdtype
+from .common import init_logger, logicType, loomdtype
 
 app = typer.Typer()  # name="velocyto-run10x", help="Run velocity analysis on 10X Genomics data")
 
@@ -104,14 +103,7 @@ def run10x(
     GTFFILE genome annotation file
     """
 
-    if verbose == 3:
-        logger.add(sys.stderr, level="DEBUG")
-    elif verbose == 2:
-        logger.add(sys.stderr, level="INFO")
-    elif verbose == 1:
-        logger.add(sys.stderr, level="WARNING")
-    else:
-        logger.add(sys.stderr, level="ERROR")
+    init_logger(verbose)
 
     # additional_ca = {ctx[(i*2)]: ctx[(i*2)+1] for i in range(len(ctx)//2)}
 

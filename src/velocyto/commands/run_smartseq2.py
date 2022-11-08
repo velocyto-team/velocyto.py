@@ -1,12 +1,10 @@
-import sys
 from pathlib import Path
 from typing import Optional
 
 import typer
-from loguru import logger
 
 from ._run import _run
-from .common import loomdtype
+from .common import init_logger, loomdtype
 
 app = typer.Typer(name="velocyto-smartseq2", help="Run velocity analysis on SmartSeq2 data")
 
@@ -83,14 +81,7 @@ def run_smartseq2(
     GTFFILE genome annotation file
     """
 
-    if verbose == 3:
-        logger.add(sys.stderr, level="DEBUG")
-    elif verbose == 2:
-        logger.add(sys.stderr, level="INFO")
-    elif verbose == 1:
-        logger.add(sys.stderr, level="WARNING")
-    else:
-        logger.add(sys.stderr, level="ERROR")
+    init_logger(verbose)
 
     additional_ca = {additional_ca[(i * 2)]: additional_ca[(i * 2) + 1] for i in range(len(additional_ca) // 2)}
 

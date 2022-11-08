@@ -1,5 +1,6 @@
-import logging
 from collections import defaultdict
+
+from loguru import logger
 
 from .constants import MATCH_INSIDE, MATCH_OVER3END, MATCH_OVER5END, MIN_FLANK
 from .feature import Feature
@@ -40,7 +41,7 @@ class TransciptsIndex:
         """
         matched_transcripts: set[TranscriptModel] = set()
         if len(self.transcipt_models) == 0:
-            logging.error(f"TransciptsIndex {self} contains no intervals")
+            logger.error(f"TransciptsIndex {self} contains no intervals")
             return matched_transcripts
 
         tmodel = self.transcipt_models[self.tidx]  # current transcript model

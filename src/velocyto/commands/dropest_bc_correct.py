@@ -1,9 +1,9 @@
-import logging
 from pathlib import Path
 from typing import Optional
 
 import pysam
 import typer
+from loguru import logger
 
 app = typer.Typer(name="velocyto-run", help="Correct barcodes for DropEst data")
 
@@ -42,16 +42,14 @@ def dropest_bc_correct(
             "A problem was encountered importing rpy2. To run this `velocyto tools` rpy2 and R need to be installed (the use conda is recommended)"
         )
 
-    # bamfilepath = sys.argv[1]
-    # filename = os.path.join(parentpath, f"{bamfilename.split('_')[0]}_dropEst.rds")
     parentpath = bamfilepath.parent
     bamfilename = bamfilepath.name
     filename = dropest_out
-    logging.info(f"Loading `merge_targets` from {filename} using R / rpy2")
+    logger.info(f"Loading `merge_targets` from {filename} using R / rpy2")
     mapping = convert_r_obj(ro.r(f"rds <- readRDS('{filename}'); rds$merge_targets"))  # a dict
 
     output_path = parentpath.joinpath(f"barcodes_{bamfilename.split('_')[0]}.tsv")
-    logging.info(f"Generating {output_path}")
+    logger.info(f"Generating {output_path}")
     with open(output_path, "w") as fout:
         unique_bcs = set(list(mapping.values()))
         str_ = "\n".join(list(unique_bcs))
@@ -71,6 +69,6 @@ def dropest_bc_correct(
             if cb in mapping:
                 read.set_tag("CB", mapping[cb], value_type="Z")
             outfile.write(read)
-    logging.info("Done")
+    logger.info("Done")
 
     return

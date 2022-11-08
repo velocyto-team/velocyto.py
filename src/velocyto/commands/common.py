@@ -1,8 +1,12 @@
 import random
 import string
+from datetime import datetime
 from enum import Enum
-from .. import logic
+from sys import stderr
+
 from loguru import logger
+
+from .. import logic
 
 
 class logicType(str, Enum):
@@ -51,3 +55,26 @@ def choose_logic(choice: logicType) -> logic.Logic:
         logger.error(f"{choice.value} is not a valid logic type")
         print(f"{choice.value} is invalid. Please choose a valid option.")
         exit()
+
+
+def choose_dtype(choice: loomdtype) -> str:
+    if choice == "uint16":
+        return "uint16"
+    elif choice == "uint32":
+        return "uint32"
+    else:
+        return "uint64"
+
+
+def init_logger(verbose: int) -> None:
+
+    logger.add(f"velocyto_{datetime.now().strftime('%d-%m-%Y--%H-%M-%S')}.log", level="DEBUG")
+
+    if verbose == 3:
+        logger.add(stderr, level="DEBUG")
+    elif verbose == 2:
+        logger.add(stderr, level="INFO")
+    elif verbose == 1:
+        logger.add(stderr, level="WARNING")
+    else:
+        logger.add(sys.stderr, level="ERROR")

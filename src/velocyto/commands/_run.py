@@ -3,9 +3,9 @@ import itertools
 import multiprocessing
 import subprocess
 import sys
+from distutils.spawn import find_executable
 from pathlib import Path
 from typing import Any
-from distutils.spawn import find_executable
 
 import loompy
 import numpy as np
@@ -17,7 +17,7 @@ from ..constants import BAM_COMPRESSION
 from ..counter import ExInCounter
 from ..logic import Logic
 from ..metadata import MetadataCollection
-from .common import id_generator, logicType, choose_logic
+from .common import choose_dtype, choose_logic, id_generator, logicType
 
 
 def _run(
@@ -59,6 +59,8 @@ def _run(
     if samtools is None:
         logger.error("samtools was not found")
         raise FileNotFoundError("Samtools was not found. Make sure that it is both installed and on the system path")
+
+    loom_numeric_dtype = choose_dtype(loom_numeric_dtype)
 
     if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile.suffix in [".bam", ".sam"]:
         multi = True

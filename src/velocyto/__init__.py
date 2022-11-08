@@ -7,6 +7,7 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = "unknown"
 
 from math import isclose
+
 from numpy import arange
 
 # from .analysis import VelocytoLoom, ixs_thatsort_a2b, load_velocyto_hdf5, scatter_viz

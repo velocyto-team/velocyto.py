@@ -1,6 +1,6 @@
-import os
 import pickle
 import zlib
+from pathlib import Path
 from typing import Type
 
 import h5py
@@ -71,8 +71,8 @@ def dump_hdf5(
     -------
     Nothing but it creates a file ``filename``
     """
-    if os.path.isfile(filename):
-        os.remove(filename)
+    if (x := Path(filename)).is_file():
+        x.unlink()
     _file = h5py.File(filename, "w")
     for k in obj.__dict__.keys():
         attribute = getattr(obj, k)

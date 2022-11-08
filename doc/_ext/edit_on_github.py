@@ -5,7 +5,7 @@ sidebar.
 Loosely based on https://github.com/astropy/astropy/pull/347
 """
 
-import os
+from pathlib import PurePath
 import warnings
 
 __licence__ = "BSD (3 clause)"
@@ -30,7 +30,7 @@ def html_page_context(app, pagename, templatename, context, doctree):
 
     if not doctree:
         return
-    path = os.path.relpath(doctree.get("source"), app.builder.srcdir)
+    path = PurePath.relative_to(doctree.get("source"), app.builder.srcdir)
     show_url = get_github_url(app, "blob", path)
     edit_url = get_github_url(app, "edit", path)
 

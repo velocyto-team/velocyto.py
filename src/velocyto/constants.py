@@ -1,7 +1,6 @@
 import gzip
-import json
 import importlib.resources as ir
-
+import json
 
 # Should this all be dumped into a JSON file?
 MATCH_INSIDE = 1
