@@ -11,10 +11,11 @@ documentation = "http://velocyto.org/velocyto.py/index.html"
 keywords = ["RNAseq", "singlecell", "bioinformatics", "transcriptomics"]
 include = [
     # C extensions must be included in the wheel distributions
-    {path = "src/velocyto/*.so", format = "wheel"},
-    {path = "src/velocyto/*.csv", format = "wheel"},
-    {path = "src/velocyto/*.pyx", format = "wheel"},
-    {path = "src/velocyto/*.c", format = "wheel"},
+    { path = "src/velocyto/*.so", format = "wheel" },
+    { path = "src/velocyto/*.csv", format = "wheel" },
+    { path = "src/velocyto/*.pyx", format = "wheel" },
+    { path = "src/velocyto/*.c", format = "wheel" },
+    { path = "barcodes/*.gz", format = ["sdist", "wheel"] }
 ]
 
 [tool.poetry.dependencies]
