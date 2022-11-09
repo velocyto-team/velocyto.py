@@ -1,5 +1,4 @@
 import gzip
-import os
 import random
 import re
 import string
@@ -7,12 +6,13 @@ from collections import Counter, OrderedDict, defaultdict
 from itertools import chain
 from pathlib import Path
 from typing import DefaultDict, Iterable
+import scipy as sp
 
 import h5py
 import numpy as np
 import pysam
 from loguru import logger
-from tqdm.rich import tqdm
+from tqdm.auto import tqdm
 
 from .constants import LONGEST_INTRON_ALLOWED, LOOM_NUMERIC_DTYPE, PATCH_INDELS, PLACEHOLDER_UMI_LEN
 from .feature import Feature
@@ -272,7 +272,7 @@ class ExInCounter:
             logger.debug(f"Reading {bamfile}")
 
             fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
-            for i, read in enumerate(tqdm(fin)):
+            for i, read in enumerate(tqdm(fin, desc="Ingesting bamfile reads with barcodes")):
                 if i % 10000000 == 0:
                     logger.debug(f"Read first {i // 1000000} million reads")
                 if read.is_unmapped:
@@ -312,10 +312,10 @@ class ExInCounter:
                             chrom = "MT"
                 pos = (
                     read.reference_start + 1
-                )  # reads in pysam are always 0-based, but 1-based is more convenient to wor with in bioinformatics
+                )  # reads in pysam are always 0-based, but 1-based is more convenient to work with in bioinformatics
                 segments, ref_skipped, clip5, clip3 = self.parse_cigar_tuple(read.cigartuples, pos)
                 if segments == []:
-                    logger.debug("No segments in read:%s" % read.qname)
+                    logger.debug(f"No segments in read: {read.qname}")
 
                 read_object = Read(bc, umi, chrom, strand, pos, segments, clip5, clip3, ref_skipped)
                 if yield_line:
@@ -421,7 +421,7 @@ class ExInCounter:
         curr_tags: str = tags
         curr_chromstrand: str = chromstrand
 
-        for line in tqdm(gtf_lines):
+        for line in tqdm(gtf_lines, desc="parsing GTF"):
 
             fields = line.rstrip().split("\t")
             (
@@ -772,7 +772,7 @@ class ExInCounter:
             for (
                 chromstrand_key,
                 annotions_ordered_dict,
-            ) in tqdm(self.annotations_by_chrm_strand.items()):
+            ) in tqdm(self.annotations_by_chrm_strand.items(), desc="Reading feature indices"):
                 self.feature_indexes[chromstrand_key] = FeatureIndex(
                     sorted(chain.from_iterable(annotions_ordered_dict.values()))
                 )
@@ -781,7 +781,7 @@ class ExInCounter:
             # Read the file
             currchrom = ""
             set_chromosomes_seen: set[str] = set()
-            for r in tqdm(self.iter_alignments(bamfile, unique=not multimap)):
+            for r in tqdm(self.iter_alignments(bamfile, unique=not multimap), desc="Ingesting reads"):
                 # Don't consider spliced reads (exonic) in this step
                 # NOTE Can the exon be so short that we get splicing and exon-intron boundary
                 if r is None:
@@ -867,13 +867,8 @@ class ExInCounter:
         # Analysis is cell wise so the Feature Index swapping is happening often and it is worth to preload everything in memory
         # NOTE: for the features this was already done at markup time, maybe I should just reset them
         self.feature_indexes: DefaultDict[str, FeatureIndex] = defaultdict(FeatureIndex)
-        for (
-            chromstrand_key,
-            annotions_ordered_dict,
-        ) in tqdm(self.annotations_by_chrm_strand.items(), desc="Count molecules - feature indexes"):
-            self.feature_indexes[chromstrand_key] = FeatureIndex(
-                sorted(chain.from_iterable(annotions_ordered_dict.values()))
-            )
+        for (chromstrand_key, annotions_ordered_dict) in tqdm(self.annotations_by_chrm_strand.items(), desc="Count molecules - feature indexes"):
+            self.feature_indexes[chromstrand_key] = FeatureIndex(sorted(chain.from_iterable(annotions_ordered_dict.values())))
 
         self.mask_indexes: DefaultDict[str, FeatureIndex] = defaultdict(FeatureIndex)
         for chromstrand_key, annotions_list in tqdm(
@@ -932,15 +927,9 @@ class ExInCounter:
                 self.cell_batch = set()
                 # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
                 self.reads_to_count = []
-                for (
-                    chromstrand_key,
-                    annotions_ordered_dict,
-                ) in self.annotations_by_chrm_strand.items():
+                for (chromstrand_key, annotions_ordered_dict,) in self.annotations_by_chrm_strand.items():
                     self.feature_indexes[chromstrand_key].reset()
-                for (
-                    chromstrand_key,
-                    annotions_list,
-                ) in self.mask_ivls_by_chromstrand.items():
+                for (chromstrand_key,annotions_list,) in self.mask_ivls_by_chromstrand.items():
                     self.mask_indexes[chromstrand_key].reset()
 
             if r is not None:
@@ -1006,7 +995,8 @@ class ExInCounter:
 
         dict_layers_columns: dict[str, np.ndarray] = {}
         for layer_name in self.logic.layers:
-            dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
+            # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
+            dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
 
         bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
@@ -1022,18 +1012,14 @@ class ExInCounter:
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
         if failures > (0.25 * len(molitems)):
             logger.warning(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed, of those:")
-            logger.warning(
-                f"A situation where many genes were compatible with the observation in {(100*counter[1] / len(molitems)):.1f} cases"
-            )
-            logger.warning(
-                f"No gene is compatible with the observation in {(100*counter[2] / len(molitems)):.1f} cases"
-            )
-            logger.warning(
-                f"Observation compatible with more genes {(100*counter[3] / len(molitems)):.1f} of the cases"
-            )
-            logger.warning(
-                f"Situation that were not described by the logic in the {(100*counter[4] / len(molitems)):.1f} of the cases"
-            )
+            if (x := (100*counter[1] / len(molitems))) > 0.:
+                logger.warning(f"A situation where many genes were compatible with the observation in {x:.1f} cases")
+            if (y := (100*counter[2] / len(molitems))) > 0.:
+                logger.warning(f"No gene is compatible with the observation in {y:.1f} cases")
+            if (z := (100*counter[3] / len(molitems))) > 0.:
+                logger.warning(f"Observation compatible with more genes {z:.1f} of the cases")
+            if (w := (100*counter[4] / len(molitems))) > 0.:
+                logger.warning(f"Situation that were not described by the logic in the {w:.1f} of the cases")
 
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
             if self.kind_of_report == "p":
@@ -1271,7 +1257,8 @@ class ExInCounter:
 
         dict_layers_columns: dict[str, np.ndarray] = {}
         for layer_name in self.logic.layers:
-            dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
+            # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
+            dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
 
         bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
@@ -1527,7 +1514,8 @@ class ExInCounter:
 
         dict_layers_columns: dict[str, np.ndarray] = {}
         for layer_name in self.logic.layers:
-            dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
+            # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
+            dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
 
         bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting

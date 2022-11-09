@@ -186,17 +186,6 @@ def _run(
     mb_to_use = int(min(samtools_memory, mb_available / (len(bamfile) * threads_to_use)))
     compression = BAM_COMPRESSION
 
-    # I need to peek into the bam file to know wich cell barcode flag should be used
-    if onefilepercell and without_umi:
-        tagname = "NOTAG"
-    elif onefilepercell:
-        logger.debug("The multi input option ")
-        tagname = "NOTAG"
-        exincounter.peek_umi_only(bamfile[0])
-    else:
-        exincounter.peek(bamfile[0])
-        tagname = exincounter.cellbarcode_str
-
     # TODO: if we can, should check to see if the bamfile is already sorted.
     if multi and onefilepercell:
         bamfile_cellsorted = list(bamfile)
@@ -204,40 +193,7 @@ def _run(
         bamfile_cellsorted = [bamfile[0]]
     else:
         bamfile_cellsorted = [f"{bmf.parent.joinpath(f'cellsorted_{bmf.name}')}" for bmf in bamfile]
-
-    sorting_process: dict[int, Any] = {}
-    for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):
-        # Start a subprocess that sorts the bam file
-        command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
-        if Path(bmf_cellsorted).exists():
-            # This should skip sorting in smartseq2
-            logger.warning(
-                f"The file {bmf_cellsorted} already exists. The sorting step will be skipped and the existing file will be used."
-            )
-            check_end_process = False
-        else:
-            sorting_process[ni] = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-            logger.info(f"Starting the sorting process of {bamfile[ni]} the output will be at: {bmf_cellsorted}")
-            logger.info(f"Command being run is: {command}")
-            logger.info("While the bam sorting happens do other things...")
-            check_end_process = True
-
-    # Load annotations
-    logger.info(f"Load the annotation from {gtffile}")
-    annotations_by_chrm_strand = exincounter.read_transcriptmodels(gtffile)
-    chrs = [v for k, v in annotations_by_chrm_strand.items()]
-    tms = [itertools.chain.from_iterable((v.values() for v in chrs))]
-    ivls = [(itertools.chain.from_iterable(tms))]
-    logger.debug(f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}")
-    del chrs, tms, ivls
-
-    # Load annotations
-    if repmask is not None:
-        logger.info(f"Load the repeat masking annotation from {repmask}")
-        # mask_ivls_by_chromstrand = exincounter.read_repeats(repmask)
-
-    # Go through the bam files a first time to markup introns
-    logger.info(f"Scan {' '.join((str(_) for _ in bamfile))} to validate intron intervals")
+    
     if test:  # NOTE: Remove this after finishing testing, the only purpuso was to save 15min in the debugging process
         logger.warning("This place is for developer only!")
         import pickle
@@ -250,7 +206,52 @@ def _run(
             logger.debug("Dumping exincounter_dump.pickle BEFORE markup")
             pickle.dump(exincounter, open("exincounter_dump.pickle", "wb"))
             exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
+        check_end_process = False
     else:
+        # I need to peek into the bam file to know wich cell barcode flag should be used
+        if onefilepercell and without_umi:
+            tagname = "NOTAG"
+        elif onefilepercell:
+            logger.debug("The multi input option ")
+            tagname = "NOTAG"
+            exincounter.peek_umi_only(bamfile[0])
+        else:
+            exincounter.peek(bamfile[0])
+            tagname = exincounter.cellbarcode_str
+
+        sorting_process: dict[int, Any] = {}
+        for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):
+            # Start a subprocess that sorts the bam file
+            command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
+            if Path(bmf_cellsorted).exists():
+                # This should skip sorting in smartseq2
+                logger.warning(
+                    f"The file {bmf_cellsorted} already exists. The sorting step will be skipped and the existing file will be used."
+                )
+                check_end_process = False
+            else:
+                sorting_process[ni] = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+                logger.info(f"Starting the sorting process of {bamfile[ni]} the output will be at: {bmf_cellsorted}")
+                logger.info(f"Command being run is: {command}")
+                logger.info("While the bam sorting happens do other things...")
+                check_end_process = True
+
+        # Load annotations
+        logger.info(f"Load the annotation from {gtffile}")
+        annotations_by_chrm_strand = exincounter.read_transcriptmodels(gtffile)
+        chrs = [v for k, v in annotations_by_chrm_strand.items()]
+        tms = [itertools.chain.from_iterable((v.values() for v in chrs))]
+        ivls = [(itertools.chain.from_iterable(tms))]
+        logger.debug(f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}")
+        del chrs, tms, ivls
+
+        # Load annotations
+        if repmask is not None:
+            logger.info(f"Load the repeat masking annotation from {repmask}")
+            # mask_ivls_by_chromstrand = exincounter.read_repeats(repmask)
+
+        # Go through the bam files a first time to markup introns
+        logger.info(f"Scan {' '.join((str(_) for _ in bamfile))} to validate intron intervals")
         exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
 
     # Wait for child process to terminate
