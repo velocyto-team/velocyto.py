@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "velocyto"
-version = "0.21.0"
+version = "0.22.0"
 description = "RNA velocity analysis for single cell RNA-seq data"
 authors = ["Linnarsson Lab <sten.linnarsson@ki.se>"]
 license = "BSD-2-Clause"
@@ -47,6 +47,10 @@ flake8 = "^4.0.1"
 ipython = "^8.4.0"
 nox = "^2022.1.7"
 nox-poetry = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+memray = "^1.4.0"
+memory-profiler = "^0.60.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "cython", "numpy", "toml", "setuptools"]

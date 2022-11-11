@@ -7,9 +7,11 @@ from distutils.spawn import find_executable
 from pathlib import Path
 from typing import Any
 
+import joblib
 import loompy
 import numpy as np
 import pandas as pd
+import scipy as sp
 from loguru import logger
 
 from .. import version
@@ -40,6 +42,7 @@ def _run(
     loom_numeric_dtype: str,
     dump: str,
     verbose: int,
+    bughunting: bool = False,
     additional_ca: dict = {},
     **kwargs,
 ) -> None:
@@ -193,18 +196,17 @@ def _run(
         bamfile_cellsorted = [bamfile[0]]
     else:
         bamfile_cellsorted = [f"{bmf.parent.joinpath(f'cellsorted_{bmf.name}')}" for bmf in bamfile]
-    
+
     if test:  # NOTE: Remove this after finishing testing, the only purpuso was to save 15min in the debugging process
         logger.warning("This place is for developer only!")
-        import pickle
 
         if Path("exincounter_dump.pickle").exists():
             logger.debug("exincounter_dump.pickle is being loaded")
-            exincounter = pickle.load(open("exincounter_dump.pickle", "rb"))
+            exincounter = joblib.load(open("exincounter_dump.pickle", "rb"))
         else:
             logger.debug("exincounter_dump.pickle was not found")
             logger.debug("Dumping exincounter_dump.pickle BEFORE markup")
-            pickle.dump(exincounter, open("exincounter_dump.pickle", "wb"))
+            joblib.dump(exincounter, open("exincounter_dump.pickle", "wb"))
             exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
         check_end_process = False
     else:
@@ -253,6 +255,8 @@ def _run(
         # Go through the bam files a first time to markup introns
         logger.info(f"Scan {' '.join((str(_) for _ in bamfile))} to validate intron intervals")
         exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
+        if bughunting:
+            joblib.dump(exincounter, open("exincounter_dump.pickle", "wb"))
 
     # Wait for child process to terminate
     if check_end_process:
@@ -347,7 +351,7 @@ def _run(
     layers: dict[str, np.ndarray] = {}
 
     for layer_name in logic_obj.layers:
-        layers[layer_name] = np.concatenate(dict_list_arrays[layer_name], axis=1)
+        layers[layer_name] = sp.sparse.hstack(dict_list_arrays[layer_name])
         del dict_list_arrays[layer_name]
 
     for layer_name in logic_obj.layers:

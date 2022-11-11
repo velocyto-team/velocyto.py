@@ -100,9 +100,9 @@ class Permissive10X(Logic):
     ) -> int:
         # NOTE This can be simplified qyuite a bit, without loss of acuracy!
         # The hits are not compatible with any annotated transcript model
-        spliced = dict_layers_columns["spliced"] #.toarray()
-        unspliced = dict_layers_columns["unspliced"] #.toarray()
-        ambiguous = dict_layers_columns["ambiguous"] #.toarray()
+        spliced = dict_layers_columns["spliced"]  # .toarray()
+        unspliced = dict_layers_columns["unspliced"]  # .toarray()
+        ambiguous = dict_layers_columns["ambiguous"]  # .toarray()
         # The hits are not compatible with any annotated transcript model
         if len(molitem.mappings_record) == 0:
             return 2

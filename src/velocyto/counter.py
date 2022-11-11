@@ -6,11 +6,11 @@ from collections import Counter, OrderedDict, defaultdict
 from itertools import chain
 from pathlib import Path
 from typing import DefaultDict, Iterable
-import scipy as sp
 
 import h5py
 import numpy as np
 import pysam
+import scipy as sp
 from loguru import logger
 from tqdm.auto import tqdm
 
@@ -281,10 +281,9 @@ class ExInCounter:
                 if unique and read.get_tag("NH") != 1:
                     continue
                 try:
-                    bc = self.cell_barcode_get(
-                        read
-                    )  # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
-                    umi = self.umi_extract(read)  # read.get_tag(self.umibarcode_str)
+                    # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
+                    bc = self.cell_barcode_get(read)
+                    umi = self.umi_extract(read)
                 except KeyError:
                     if read.has_tag(self.cellbarcode_str) and read.has_tag(self.umibarcode_str):
                         raise KeyError(
@@ -781,10 +780,12 @@ class ExInCounter:
             # Read the file
             currchrom = ""
             set_chromosomes_seen: set[str] = set()
+            # TODO: feel like self.iter_alignments should not be a generator as we are currently running through it twice?
             for r in tqdm(self.iter_alignments(bamfile, unique=not multimap), desc="Ingesting reads"):
                 # Don't consider spliced reads (exonic) in this step
                 # NOTE Can the exon be so short that we get splicing and exon-intron boundary
                 if r is None:
+                    logger.debug(f"r is None")
                     # This happens only when there is a change of file
                     currchrom = ""
                     set_chromosomes_seen = set()
@@ -798,10 +799,12 @@ class ExInCounter:
                         self.feature_indexes[chromstrand_key].reset()
                     continue
                 if r.is_spliced:
+                    # logger.debug(f"{r.is_spliced=}")
                     continue
 
                 # When the chromosome mapping of the read changes, change interval index.
                 if r.chrom != currchrom:
+                    logger.debug(f"{r.chrom=}, {currchrom=}")
                     if r.chrom in set_chromosomes_seen:
                         raise IOError(
                             f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)"
@@ -816,6 +819,7 @@ class ExInCounter:
                         iif = FeatureIndex([])
                     else:
                         iif = self.feature_indexes[currchrom + "+"]
+                        logger.debug(f"{iif=}")
                     if currchrom + "-" not in self.annotations_by_chrm_strand:
                         logger.warning(
                             f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file"
@@ -823,6 +827,7 @@ class ExInCounter:
                         iir = FeatureIndex([])
                     else:
                         iir = self.feature_indexes[currchrom + "-"]
+                        logger.debug(f"{iif=}")
 
                 # Consider the correct strand
                 ii = iif if r.strand == "+" else iir
@@ -867,8 +872,12 @@ class ExInCounter:
         # Analysis is cell wise so the Feature Index swapping is happening often and it is worth to preload everything in memory
         # NOTE: for the features this was already done at markup time, maybe I should just reset them
         self.feature_indexes: DefaultDict[str, FeatureIndex] = defaultdict(FeatureIndex)
-        for (chromstrand_key, annotions_ordered_dict) in tqdm(self.annotations_by_chrm_strand.items(), desc="Count molecules - feature indexes"):
-            self.feature_indexes[chromstrand_key] = FeatureIndex(sorted(chain.from_iterable(annotions_ordered_dict.values())))
+        for (chromstrand_key, annotions_ordered_dict) in tqdm(
+            self.annotations_by_chrm_strand.items(), desc="Count molecules - feature indexes"
+        ):
+            self.feature_indexes[chromstrand_key] = FeatureIndex(
+                sorted(chain.from_iterable(annotions_ordered_dict.values()))
+            )
 
         self.mask_indexes: DefaultDict[str, FeatureIndex] = defaultdict(FeatureIndex)
         for chromstrand_key, annotions_list in tqdm(
@@ -902,6 +911,7 @@ class ExInCounter:
         nth = 0
         # Loop through the aligment of the bamfile
         for r in tqdm(self.iter_alignments(bamfile, unique=not multimap), desc="Count molecules: count"):
+            # if nth < 50:
             if (r is None) or (len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch):
                 # Perfrom the molecule counting
                 nth += 1
@@ -912,7 +922,9 @@ class ExInCounter:
 
                 # This is to avoid crazy big matrix output if the barcode selection is not chosen
                 if not self.filter_mode:
-                    logger.warning("The barcode selection mode is off, no cell events will be identified by <80 counts")
+                    logger.warning(
+                        "The barcode selection mode is off, no cell events will be identified by <80 counts"
+                    )
                     tot_mol = dict_layer_columns["spliced"].sum(0) + dict_layer_columns["unspliced"].sum(0)
                     cell_bcs_order += list(np.array(list_bcs)[tot_mol > 80])
                     for layer_name, layer_columns in dict_layer_columns.items():
@@ -927,9 +939,15 @@ class ExInCounter:
                 self.cell_batch = set()
                 # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
                 self.reads_to_count = []
-                for (chromstrand_key, annotions_ordered_dict,) in self.annotations_by_chrm_strand.items():
+                for (
+                    chromstrand_key,
+                    annotions_ordered_dict,
+                ) in self.annotations_by_chrm_strand.items():
                     self.feature_indexes[chromstrand_key].reset()
-                for (chromstrand_key,annotions_list,) in self.mask_ivls_by_chromstrand.items():
+                for (
+                    chromstrand_key,
+                    annotions_list,
+                ) in self.mask_ivls_by_chromstrand.items():
                     self.mask_indexes[chromstrand_key].reset()
 
             if r is not None:
@@ -993,10 +1011,13 @@ class ExInCounter:
             # initialize np.ndarray
         shape = (len(self.geneid2ix), len(self.cell_batch))
 
-        dict_layers_columns: dict[str, np.ndarray] = {}
-        for layer_name in self.logic.layers:
-            # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
-            dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
+        # dict_layers_columns: dict[str, np.ndarray] = {}
+        dict_layers_columns: dict[str, sp.sparse.lil_array] = {
+            layer_name: sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype) for layer_name in self.logic.layers
+        }
+        # for layer_name in self.logic.layers:
+        #     # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
+        #     dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
 
         bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
@@ -1012,13 +1033,13 @@ class ExInCounter:
             # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
         if failures > (0.25 * len(molitems)):
             logger.warning(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed, of those:")
-            if (x := (100*counter[1] / len(molitems))) > 0.:
+            if (x := (100 * counter[1] / len(molitems))) > 0.0:
                 logger.warning(f"A situation where many genes were compatible with the observation in {x:.1f} cases")
-            if (y := (100*counter[2] / len(molitems))) > 0.:
+            if (y := (100 * counter[2] / len(molitems))) > 0.0:
                 logger.warning(f"No gene is compatible with the observation in {y:.1f} cases")
-            if (z := (100*counter[3] / len(molitems))) > 0.:
+            if (z := (100 * counter[3] / len(molitems))) > 0.0:
                 logger.warning(f"Observation compatible with more genes {z:.1f} of the cases")
-            if (w := (100*counter[4] / len(molitems))) > 0.:
+            if (w := (100 * counter[4] / len(molitems))) > 0.0:
                 logger.warning(f"Situation that were not described by the logic in the {w:.1f} of the cases")
 
         if self.every_n_report and ((self.report_state % self.every_n_report) == 0):
