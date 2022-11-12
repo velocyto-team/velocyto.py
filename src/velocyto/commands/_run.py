@@ -254,9 +254,15 @@ def _run(
 
         # Go through the bam files a first time to markup introns
         logger.info(f"Scan {' '.join((str(_) for _ in bamfile))} to validate intron intervals")
-        exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
-        if bughunting:
-            joblib.dump(exincounter, open("exincounter_dump.pickle", "wb"))
+        if bughunting and (pickled_exincounter := Path("exincounter_dump.pickle")).exists():
+            with pickled_exincounter.open("rb") as exp:
+                exincounter = joblib.load(exp)
+        elif bughunting:
+            with pickled_exincounter.open("wb") as exp:
+                joblib.dump(exincounter, exp)
+        else:
+            exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
+
 
     # Wait for child process to terminate
     if check_end_process:
@@ -357,9 +363,9 @@ def _run(
     for layer_name in logic_obj.layers:
         total: np.ndarray  # This is just a type annotation to avoid mypy complaints
         try:
-            total += layers[layer_name]
+            total += layers[layer_name].toarray(order="C")
         except NameError:
-            total = np.array(layers[layer_name])
+            total = np.array(layers[layer_name].toarray(order="C"))
 
     logger.debug("Writing loom file")
     # seems more likely that loompy will be some version above 2, so would be better to attempt to use the loompy2 targeting code first
