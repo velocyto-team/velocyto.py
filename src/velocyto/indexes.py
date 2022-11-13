@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Optional
 
 from loguru import logger
 
@@ -69,8 +70,8 @@ class TransciptsIndex:
 class FeatureIndex:
     """Search help class used to find the intervals that a read is spanning"""
 
-    def __init__(self, ivls: list[Feature] = []) -> None:
-        self.ivls = ivls
+    def __init__(self, ivls: Optional[list[Feature]] = None) -> None:
+        self.ivls = ivls if ivls is not None else []
         self.ivls.sort()  # NOTE: maybe I am sorting twice check what I do upon creation
         self.iidx = 0  # index of the current interval
         self.maxiidx = len(ivls) - 1
@@ -163,7 +164,7 @@ class FeatureIndex:
             feature = self.ivls[self.iidx]
 
         # Loop trough the mapping segments of a read (e.g. just one of an internal exon, generally 2 for a splice. for intron???)
-        for n_seg, segment in enumerate(read.segments):
+        for _, segment in enumerate(read.segments):
             # Local search for each segment move a little forward (this just moves a couple of intervals)
             i = self.iidx
             feature = self.ivls[self.iidx]

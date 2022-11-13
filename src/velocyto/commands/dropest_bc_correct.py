@@ -51,7 +51,7 @@ def dropest_bc_correct(
     output_path = parentpath.joinpath(f"barcodes_{bamfilename.split('_')[0]}.tsv")
     logger.info(f"Generating {output_path}")
     with open(output_path, "w") as fout:
-        unique_bcs = set(list(mapping.values()))
+        unique_bcs = set(mapping.values())
         str_ = "\n".join(list(unique_bcs))
         fout.write(str_)
 

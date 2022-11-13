@@ -6,6 +6,7 @@ import sys
 from distutils.spawn import find_executable
 from pathlib import Path
 from typing import Any
+from importlib.metadata import version
 
 import joblib
 import loompy
@@ -17,7 +18,6 @@ from loguru import logger
 from .. import version
 from ..constants import BAM_COMPRESSION
 from ..counter import ExInCounter
-from ..logic import Logic
 from ..metadata import MetadataCollection
 from .common import choose_dtype, choose_logic, id_generator, logicType
 
@@ -128,11 +128,11 @@ def _run(
             (gzip.open(bcfile).read().decode() if bcfile.suffix == ".gz" else open(bcfile).read()).rstrip().split()
         )
         valid_cellid_list = np.array([f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list])  # with sample id and with -1
-        if len(set(bc.split("-")[0] for bc in valid_bcs_list)) == 1:
+        if len({bc.split("-")[0] for bc in valid_bcs_list}) == 1:
             gem_grp = f"-{valid_bcs_list[0].split('-')[-1]}"
         else:
             gem_grp = "x"
-        valid_bcset = set(bc.split("-")[0] for bc in valid_bcs_list)  # without -1
+        valid_bcset = {bc.split("-")[0] for bc in valid_bcs_list}  # without -1
         logger.info(f"Read {len(valid_bcs_list)} cell barcodes from {bcfile}")
         logger.debug(f"Example of barcode: {valid_bcs_list[0].split('-')[0]} and cell_id: {valid_cellid_list[0]}")
 
@@ -152,7 +152,7 @@ def _run(
                 # schema = sample[0].types
                 sample = sample[0].dict
             logger.debug(f"Collecting column attributes from {metadatatable}")
-        except (NameError, TypeError) as e:
+        except (NameError, TypeError):
             logger.warn("SAMPLEFILE was not specified. add -s SAMPLEFILE to add metadata.")
             sample = {}
     else:
@@ -371,24 +371,28 @@ def _run(
     # seems more likely that loompy will be some version above 2, so would be better to attempt to use the loompy2 targeting code first
     if int(loompy.__version__.split(".")[0]) >= 2:
         try:
-            tmp_layers = {"": total.astype("float32", order="C", copy=False)}
-            tmp_layers.update(
-                {
-                    layer_name: layers[layer_name].astype(loom_numeric_dtype, order="C", copy=False)
-                    for layer_name in logic_obj.layers
-                }
-            )
+            # tmp_layers = {"": total.astype("float32", order="C", copy=False)}
+            # tmp_layers.update(
+            #     {
+            #         layer_name: layers[layer_name].astype(loom_numeric_dtype, copy=False)
+            #         for layer_name in logic_obj.layers
+            #     }
+            # )
+            tmp_layers = {"": total.astype("float32", order="C", copy=False)} | {k: tmp_layers[k].astype(loom_numeric_dtype, copy=False) for k in tmp_layers}
             loompy.create(
-                filename=outfile,
+                filename=str(outfile),
                 layers=tmp_layers,
                 row_attrs=ra,
                 col_attrs=ca,
                 file_attrs={
-                    "velocyto.__version__": version(),
-                    "velocyto.logic": logic,
+                    "velocyto.__version__": version(__name__),
+                    "velocyto.logic": logic.name, # TODO: this doesn't work.  need to make string of logic type
                 },
             )
-        except TypeError:
+            logger.debug(f"Successfully wrote to {outfile}")
+        
+        except TypeError as e:
+            logger.error(e)
             sys.exit()
     elif int(loompy.__version__.split(".")[0]) < 2:
         try:

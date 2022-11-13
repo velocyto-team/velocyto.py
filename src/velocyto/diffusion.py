@@ -88,7 +88,7 @@ class Diffusion:
         uv = uv / norms[:, None]  # Convert to unit vector
 
         # Project the velocity vectors onto edges, and clip to zero
-        scalar_projection = np.array([a.dot(b) for a, b in zip(v[v0], uv)])  # Shape: (n_edges)
+        scalar_projection = np.array([a.dot(b) for a, b in zip(v[v0], uv, strict=True)])  # Shape: (n_edges)
         if reverse:
             scalar_projection = -scalar_projection
         scalar_projection += epsilon
@@ -110,26 +110,26 @@ class Diffusion:
         result = np.zeros(x.shape)
         if mode == "path_integral":
             x = sparse.csr_matrix(x / x.sum())
-            for ix in range(n_steps):
+            for _ix in range(n_steps):
                 x = x.dot(tr)
                 result = result + x
             return result
         elif mode == "time_evolution":
             x = sparse.csr_matrix(x / x.sum())
-            for ix in range(n_steps):
+            for _ix in range(n_steps):
                 x = x.dot(tr)
             return x.toarray()
         elif mode == "map_trajectory":
             x = sparse.csr_matrix(x / x.sum())
             result = [np.argmax(x.toarray())]
-            for ix in range(n_steps):
+            for _ix in range(n_steps):
                 x = x.dot(tr)
                 result.append(np.argmax(x.toarray()))
             return result
         elif mode == "frontier":
             x = sparse.csr_matrix(x / x.sum())
             result = [np.argmax(x.toarray())]
-            for ix in range(n_steps):
+            for _ix in range(n_steps):
                 x_next = x.dot(tr)
                 result.append(np.argmax((x_next.toarray() + 1) / (x.toarray() + 1)))
                 x = x_next
@@ -138,7 +138,7 @@ class Diffusion:
             rng = default_rng()
             node = rng.choice(np.arange(x.shape[0]), p=x)
             trajectories = [node]
-            for ix in range(n_steps):
+            for _ix in range(n_steps):
                 x = np.zeros(tr.shape[0])
                 x[node] = 1
                 x = sparse.csr_matrix(x)

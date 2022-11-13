@@ -1,6 +1,7 @@
 import warnings
 from copy import deepcopy
 from typing import Any, Union
+from types import MappingProxyType
 
 import loompy
 import matplotlib.pyplot as plt
@@ -1135,7 +1136,7 @@ class VelocytoLoom:
             else:
                 self.Ux_sz = self.Ux * (np.median(self.Ux.sum(0)) / self.Ux.sum(0))
 
-    def plot_pca(self, dim: list[int] = [0, 1, 2], elev: float = 60, azim: float = -140) -> None:
+    def plot_pca(self, dim: list[int] = (0, 1, 2), elev: float = 60, azim: float = -140) -> None:
         """Plot 3d PCA"""
         fig = plt.figure(figsize=(8, 6))
         ax = fig.add_subplot(111, projection="3d")
@@ -1152,7 +1153,7 @@ class VelocytoLoom:
         self.pcax = PCA(n_components=n_components)
         self.pcsx = self.pcax.fit_transform(self.Sx_norm.T)
 
-    def _plot_pca_imputed(self, dim: list[int] = [0, 1, 2], elev: float = 60, azim: float = -140) -> None:
+    def _plot_pca_imputed(self, dim: list[int] = (0, 1, 2), elev: float = 60, azim: float = -140) -> None:
         """Plot 3d PCA of the smoothed data"""
         fig = plt.figure(figsize=(8, 6))
         ax = fig.add_subplot(111, projection="3d")
@@ -1405,7 +1406,7 @@ class VelocytoLoom:
         weighted: bool = True,
         weights: np.ndarray = "maxmin_diag",
         limit_gamma: bool = False,
-        maxmin_perc: list[float] = [2, 98],
+        maxmin_perc: list[float] = (2, 98),
         maxmin_weighted_pow: float = 15,
     ) -> None:
         """Fit gamma using spliced and unspliced data
@@ -2602,7 +2603,7 @@ class VelocytoLoom:
         quiver_scale: Union[str, float] = "auto",
         scale_type: str = "relative",
         plot_scatter: bool = False,
-        scatter_kwargs: dict = {},
+        scatter_kwargs: dict = MappingProxyType({"kwarg": "default"}),
         color_arrow: str = "cluster",
         new_fig: bool = False,
         plot_random: bool = True,
@@ -2651,7 +2652,7 @@ class VelocytoLoom:
                 f"Only {choice} arrows will be shown to avoid overcrowding, you can choose the exact number setting the `choice` argument"
             )
         _quiver_kwargs = {"angles": "xy", "scale_units": "xy", "minlength": 1.5}
-        _scatter_kwargs = dict(c="0.8", alpha=0.4, s=10, edgecolor=(0, 0, 0, 1), lw=0.3)
+        _scatter_kwargs = {"c": "0.8", "alpha": 0.4, "s": 10, "edgecolor": (0, 0, 0, 1), "lw": 0.3}
         _scatter_kwargs.update(scatter_kwargs)
         if new_fig:
             if plot_random and hasattr(self, "delta_embedding_random"):
@@ -2794,7 +2795,7 @@ class VelocytoLoom:
         kwarg_plot = {"alpha": 0.5, "s": 8, "edgecolor": "0.8", "lw": 0.15}
         kwarg_plot.update(kwargs)
         if gs is None:
-            fig = plt.figure(figsize=(10, 10))
+            plt.figure(figsize=(10, 10))
             plt.subplot(111)
         else:
             plt.subplot(gs)
@@ -2805,7 +2806,7 @@ class VelocytoLoom:
         else:
             tmp_colorandum = self.Sx_t[ix, :] - self.Sx[ix, :]
         if (np.abs(tmp_colorandum) > 0.00005).sum() < 10:  # If S vs U scatterplot it is flat
-            print("S vs U scatterplot it is flat")
+            logger.warn("S vs U scatterplot it is flat")
             return
         limit = np.max(np.abs(np.percentile(tmp_colorandum, [1, 99])))  # upper and lowe limit / saturation
         tmp_colorandum = tmp_colorandum + limit  # that is: tmp_colorandum - (-limit)

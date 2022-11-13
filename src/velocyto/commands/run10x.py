@@ -124,7 +124,7 @@ def run10x(
         exit()
     elif len(bamfile) > 1:
         logger.error("Too many BAM files found. Which one?")
-        print(f"multiple matches for `sample_alignemts.bam` were found and now I am confused. Please fix.")
+        print("multiple matches for `sample_alignemts.bam` were found and now I am confused. Please fix.")
         exit()
     else:
         bamfile = bamfile[0]

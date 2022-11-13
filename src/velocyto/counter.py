@@ -284,11 +284,11 @@ class ExInCounter:
                     # NOTE: this rstrip is relevant only for cellranger, should not cause trouble in Dropseq
                     bc = self.cell_barcode_get(read)
                     umi = self.umi_extract(read)
-                except KeyError:
+                except KeyError as err:
                     if read.has_tag(self.cellbarcode_str) and read.has_tag(self.umibarcode_str):
                         raise KeyError(
                             f"Some errors in parsing the cell barcode has occurred {self.cellbarcode_str}, {self.umibarcode_str}\n{read}"
-                        )
+                        ) from err
                     counter_skipped_no_barcode += 1
                     continue  # NOTE: Here errors could go unnoticed
                 if bc not in self.valid_bcset:
@@ -473,7 +473,7 @@ class ExInCounter:
                 curr_tags = f"{curr_tags} gap {gap}; {tags}" if gap > 0 else curr_tags + tags
 
         n = 0
-        for chromstrand, feature_list in self.mask_ivls_by_chromstrand.items():
+        for _, feature_list in self.mask_ivls_by_chromstrand.items():
             feature_list.sort()  # relies on the __lt__ method of Feature
             n += len(feature_list)
 
@@ -484,7 +484,7 @@ class ExInCounter:
     def assign_indexes_to_genes(self, features: dict[str, TranscriptModel]) -> None:
         """Assign to each newly encoutered gene an unique index corresponding to the output matrix column ix"""
         logger.debug("Assigning indexes to genes")
-        for name, trmodel in features.items():
+        for _, trmodel in features.items():
             if trmodel.geneid in self.geneid2ix:
                 if self.genes[trmodel.geneid].start > trmodel.start:
                     self.genes[trmodel.geneid].start = trmodel.start
@@ -608,11 +608,11 @@ class ExInCounter:
                     genename = _genename_search.group(1)
                 try:
                     exonno = regex_exonno.search(tags).group(1)
-                except AttributeError:
+                except AttributeError as err:
                     # NOTE: Don't try to release this constraint, velocyto relies on it for safe calculations! Rather make a utility script that does putative annotation separatelly.
                     raise IOError(
                         "The genome annotation .gtf file provided does not contain exon_number. `exon_number` is described as a mandatory field by GENCODE gtf file specification and we rely on it for easier processing"
-                    )
+                    ) from err
                 start = int(start_str)
                 end = int(end_str)
                 chromstrand = chrom + strand
@@ -707,8 +707,8 @@ class ExInCounter:
                 if feature_type == "exon":
                     try:
                         trid = regex_trid.search(tags).group(1)
-                    except AttributeError:
-                        raise AttributeError(f"transcript_id entry not found in line: {lin}")
+                    except AttributeError as err:
+                        raise AttributeError(f"transcript_id entry not found in line: {lin}") from err
                     if strand == "-":
                         min_info_lines_minus.append([trid, int(start_str), int(end_str), lin])
                     else:
@@ -785,7 +785,7 @@ class ExInCounter:
                 # Don't consider spliced reads (exonic) in this step
                 # NOTE Can the exon be so short that we get splicing and exon-intron boundary
                 if r is None:
-                    logger.debug(f"r is None")
+                    logger.debug("r is None")
                     # This happens only when there is a change of file
                     currchrom = ""
                     set_chromosomes_seen = set()
@@ -911,48 +911,48 @@ class ExInCounter:
         nth = 0
         # Loop through the aligment of the bamfile
         for r in tqdm(self.iter_alignments(bamfile, unique=not multimap), desc="Count molecules: count"):
-            # if nth < 50:
-            if (r is None) or (len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch):
-                # Perfrom the molecule counting
-                nth += 1
-                logger.debug(
-                    f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads"
-                )
-                dict_layer_columns, list_bcs = self.count_cell_batch()
-
-                # This is to avoid crazy big matrix output if the barcode selection is not chosen
-                if not self.filter_mode:
-                    logger.warning(
-                        "The barcode selection mode is off, no cell events will be identified by <80 counts"
+            if nth < 50:
+                if (r is None) or (len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch):
+                    # Perfrom the molecule counting
+                    nth += 1
+                    logger.debug(
+                        f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads"
                     )
-                    tot_mol = dict_layer_columns["spliced"].sum(0) + dict_layer_columns["unspliced"].sum(0)
-                    cell_bcs_order += list(np.array(list_bcs)[tot_mol > 80])
-                    for layer_name, layer_columns in dict_layer_columns.items():
-                        dict_list_arrays[layer_name].append(layer_columns[:, tot_mol > 80])
-                    logger.warning(f"{np.sum(tot_mol < 80)} of the barcodes where without cell")
-                else:
-                    # The normal case
-                    cell_bcs_order += list_bcs
-                    for layer_name, layer_columns in dict_layer_columns.items():
-                        dict_list_arrays[layer_name].append(layer_columns)
+                    dict_layer_columns, list_bcs = self.count_cell_batch()
 
-                self.cell_batch = set()
-                # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
-                self.reads_to_count = []
-                for (
-                    chromstrand_key,
-                    annotions_ordered_dict,
-                ) in self.annotations_by_chrm_strand.items():
-                    self.feature_indexes[chromstrand_key].reset()
-                for (
-                    chromstrand_key,
-                    annotions_list,
-                ) in self.mask_ivls_by_chromstrand.items():
-                    self.mask_indexes[chromstrand_key].reset()
+                    # This is to avoid crazy big matrix output if the barcode selection is not chosen
+                    if not self.filter_mode:
+                        logger.warning(
+                            "The barcode selection mode is off, no cell events will be identified by <80 counts"
+                        )
+                        tot_mol = dict_layer_columns["spliced"].sum(0) + dict_layer_columns["unspliced"].sum(0)
+                        cell_bcs_order += list(np.array(list_bcs)[tot_mol > 80])
+                        for layer_name, layer_columns in dict_layer_columns.items():
+                            dict_list_arrays[layer_name].append(layer_columns[:, tot_mol > 80])
+                        logger.warning(f"{np.sum(tot_mol < 80)} of the barcodes where without cell")
+                    else:
+                        # The normal case
+                        cell_bcs_order += list_bcs
+                        for layer_name, layer_columns in dict_layer_columns.items():
+                            dict_list_arrays[layer_name].append(layer_columns)
 
-            if r is not None:
-                self.cell_batch.add(r.bc)
-                self.reads_to_count.append(r)
+                    self.cell_batch = set()
+                    # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
+                    self.reads_to_count = []
+                    for (
+                        chromstrand_key,
+                        annotions_ordered_dict,
+                    ) in self.annotations_by_chrm_strand.items():
+                        self.feature_indexes[chromstrand_key].reset()
+                    for (
+                        chromstrand_key,
+                        annotions_list,
+                    ) in self.mask_ivls_by_chromstrand.items():
+                        self.mask_indexes[chromstrand_key].reset()
+
+                if r is not None:
+                    self.cell_batch.add(r.bc)
+                    self.reads_to_count.append(r)
         # NOTE: Since iter_allignments is yielding None at each file change (even when only one bamfile) I do not need the following
         # logger.debug(f"Counting molecule for last batch of {len(self.cell_batch)}, total reads {len(self.reads_to_count)}")
         # spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch()
@@ -1019,7 +1019,7 @@ class ExInCounter:
         #     # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
         #     dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
 
-        bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
+        bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch)), strict=True))
         # After the whole file has been read, do the actual counting
         failures = 0
         counter: Counter = Counter()
@@ -1076,7 +1076,7 @@ class ExInCounter:
                     info_exino = []
                     info_strandplus = []
                     info_chrm = []
-                    for k, v_dict_tm in self.annotations_by_chrm_strand.items():
+                    for _k, v_dict_tm in self.annotations_by_chrm_strand.items():
                         for v1_tm in v_dict_tm.values():
                             for v2_ivl in v1_tm:
                                 info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,
@@ -1281,7 +1281,7 @@ class ExInCounter:
             # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
             dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
 
-        bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
+        bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch)), strict=True))
         # After the whole file has been read, do the actual counting
         for bcumi, molitem in molitems.items():
             bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
@@ -1324,7 +1324,7 @@ class ExInCounter:
                     info_exino = []
                     info_strandplus = []
                     info_chrm = []
-                    for k, v_dict_tm in self.annotations_by_chrm_strand.items():
+                    for _k, v_dict_tm in self.annotations_by_chrm_strand.items():
                         for v1_tm in v_dict_tm.values():
                             for v2_ivl in v1_tm:
                                 info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,
@@ -1538,7 +1538,7 @@ class ExInCounter:
             # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
             dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
 
-        bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
+        bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch)), strict=True))
         # After the whole file has been read, do the actual counting
         for bcumi, molitem in molitems.items():
             bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
@@ -1581,7 +1581,7 @@ class ExInCounter:
                     info_exino = []
                     info_strandplus = []
                     info_chrm = []
-                    for k, v_dict_tm in self.annotations_by_chrm_strand.items():
+                    for _k, v_dict_tm in self.annotations_by_chrm_strand.items():
                         for v1_tm in v_dict_tm.values():
                             for v2_ivl in v1_tm:
                                 info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,

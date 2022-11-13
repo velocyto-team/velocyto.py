@@ -1,5 +1,12 @@
 # Changelog
 
+** [0.24.0] - 2023-02-22
+
+*** Changed
+
+- Various code cleanups
+- Add ruff as package linter
+
 ## [0.19.1] - 2022-06-30
 
 ### Fixed
