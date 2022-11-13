@@ -6,6 +6,7 @@ import sys
 from distutils.spawn import find_executable
 from pathlib import Path
 from typing import Any
+from importlib.metadata import version
 
 import joblib
 import loompy
@@ -371,24 +372,28 @@ def _run(
     # seems more likely that loompy will be some version above 2, so would be better to attempt to use the loompy2 targeting code first
     if int(loompy.__version__.split(".")[0]) >= 2:
         try:
-            tmp_layers = {"": total.astype("float32", order="C", copy=False)}
-            tmp_layers.update(
-                {
-                    layer_name: layers[layer_name].astype(loom_numeric_dtype, order="C", copy=False)
-                    for layer_name in logic_obj.layers
-                }
-            )
+            # tmp_layers = {"": total.astype("float32", order="C", copy=False)}
+            # tmp_layers.update(
+            #     {
+            #         layer_name: layers[layer_name].astype(loom_numeric_dtype, copy=False)
+            #         for layer_name in logic_obj.layers
+            #     }
+            # )
+            tmp_layers = {"": total.astype("float32", order="C", copy=False)} | {k: tmp_layers[k].astype(loom_numeric_dtype, copy=False) for k in tmp_layers}
             loompy.create(
-                filename=outfile,
+                filename=str(outfile),
                 layers=tmp_layers,
                 row_attrs=ra,
                 col_attrs=ca,
                 file_attrs={
-                    "velocyto.__version__": version(),
-                    "velocyto.logic": logic,
+                    "velocyto.__version__": version(__name__),
+                    "velocyto.logic": logic.name, # TODO: this doesn't work.  need to make string of logic type
                 },
             )
-        except TypeError:
+            logger.debug(f"Successfully wrote to {outfile}")
+        
+        except TypeError as e:
+            logger.error(e)
             sys.exit()
     elif int(loompy.__version__.split(".")[0]) < 2:
         try:
