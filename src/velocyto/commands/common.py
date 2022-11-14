@@ -68,23 +68,16 @@ def choose_dtype(choice: loomdtype) -> str:
 
 def init_logger(verbose: int, msg_format: str = None) -> None:
 
+    if msg_format is None:
+        msg_format="<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan>·-·<level>{message}</level>"
+    
     logger.add(f"velocyto_{datetime.now().strftime('%d-%m-%Y--%H-%M-%S')}.log", level="DEBUG")
 
-    if format:
-        if verbose == 3:
-            logger.add(stderr, format=msg_format, level="DEBUG")
-        elif verbose == 2:
-            logger.add(stderr, format=msg_format, level="INFO")
-        elif verbose == 1:
-            logger.add(stderr, format=msg_format, level="WARNING")
-        else:
-            logger.add(stderr, format=msg_format, level="ERROR")
+    if verbose == 3:
+        logger.add(stderr, format=msg_format, level="DEBUG")
+    elif verbose == 2:
+        logger.add(stderr, format=msg_format, level="INFO")
+    elif verbose == 1:
+        logger.add(stderr, format=msg_format, level="WARNING")
     else:
-        if verbose == 3:
-            logger.add(stderr, level="DEBUG")
-        elif verbose == 2:
-            logger.add(stderr, level="INFO")
-        elif verbose == 1:
-            logger.add(stderr, level="WARNING")
-        else:
-            logger.add(stderr, level="ERROR")
+        logger.add(stderr, format=msg_format, level="ERROR")
