@@ -6,10 +6,13 @@ import sys
 from distutils.spawn import find_executable
 from pathlib import Path
 from typing import Any
+from importlib.metadata import version
 
+import joblib
 import loompy
 import numpy as np
 import pandas as pd
+import scipy as sp
 from loguru import logger
 
 from .. import version
@@ -40,6 +43,7 @@ def _run(
     loom_numeric_dtype: str,
     dump: str,
     verbose: int,
+    bughunting: bool = False,
     additional_ca: dict = {},
     **kwargs,
 ) -> None:
@@ -186,17 +190,6 @@ def _run(
     mb_to_use = int(min(samtools_memory, mb_available / (len(bamfile) * threads_to_use)))
     compression = BAM_COMPRESSION
 
-    # I need to peek into the bam file to know wich cell barcode flag should be used
-    if onefilepercell and without_umi:
-        tagname = "NOTAG"
-    elif onefilepercell:
-        logger.debug("The multi input option ")
-        tagname = "NOTAG"
-        exincounter.peek_umi_only(bamfile[0])
-    else:
-        exincounter.peek(bamfile[0])
-        tagname = exincounter.cellbarcode_str
-
     # TODO: if we can, should check to see if the bamfile is already sorted.
     if multi and onefilepercell:
         bamfile_cellsorted = list(bamfile)
@@ -205,53 +198,72 @@ def _run(
     else:
         bamfile_cellsorted = [f"{bmf.parent.joinpath(f'cellsorted_{bmf.name}')}" for bmf in bamfile]
 
-    sorting_process: dict[int, Any] = {}
-    for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):
-        # Start a subprocess that sorts the bam file
-        command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
-        if Path(bmf_cellsorted).exists():
-            # This should skip sorting in smartseq2
-            logger.warning(
-                f"The file {bmf_cellsorted} already exists. The sorting step will be skipped and the existing file will be used."
-            )
-            check_end_process = False
-        else:
-            sorting_process[ni] = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-            logger.info(f"Starting the sorting process of {bamfile[ni]} the output will be at: {bmf_cellsorted}")
-            logger.info(f"Command being run is: {command}")
-            logger.info("While the bam sorting happens do other things...")
-            check_end_process = True
-
-    # Load annotations
-    logger.info(f"Load the annotation from {gtffile}")
-    annotations_by_chrm_strand = exincounter.read_transcriptmodels(gtffile)
-    chrs = [v for k, v in annotations_by_chrm_strand.items()]
-    tms = [itertools.chain.from_iterable((v.values() for v in chrs))]
-    ivls = [(itertools.chain.from_iterable(tms))]
-    logger.debug(f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}")
-    del chrs, tms, ivls
-
-    # Load annotations
-    if repmask is not None:
-        logger.info(f"Load the repeat masking annotation from {repmask}")
-        # mask_ivls_by_chromstrand = exincounter.read_repeats(repmask)
-
-    # Go through the bam files a first time to markup introns
-    logger.info(f"Scan {' '.join((str(_) for _ in bamfile))} to validate intron intervals")
     if test:  # NOTE: Remove this after finishing testing, the only purpuso was to save 15min in the debugging process
         logger.warning("This place is for developer only!")
-        import pickle
 
         if Path("exincounter_dump.pickle").exists():
             logger.debug("exincounter_dump.pickle is being loaded")
-            exincounter = pickle.load(open("exincounter_dump.pickle", "rb"))
+            exincounter = joblib.load(open("exincounter_dump.pickle", "rb"))
         else:
             logger.debug("exincounter_dump.pickle was not found")
             logger.debug("Dumping exincounter_dump.pickle BEFORE markup")
-            pickle.dump(exincounter, open("exincounter_dump.pickle", "wb"))
+            joblib.dump(exincounter, open("exincounter_dump.pickle", "wb"))
             exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
+        check_end_process = False
     else:
-        exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
+        # I need to peek into the bam file to know wich cell barcode flag should be used
+        if onefilepercell and without_umi:
+            tagname = "NOTAG"
+        elif onefilepercell:
+            logger.debug("The multi input option ")
+            tagname = "NOTAG"
+            exincounter.peek_umi_only(bamfile[0])
+        else:
+            exincounter.peek(bamfile[0])
+            tagname = exincounter.cellbarcode_str
+
+        sorting_process: dict[int, Any] = {}
+        for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):
+            # Start a subprocess that sorts the bam file
+            command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
+            if Path(bmf_cellsorted).exists():
+                # This should skip sorting in smartseq2
+                logger.warning(
+                    f"The file {bmf_cellsorted} already exists. The sorting step will be skipped and the existing file will be used."
+                )
+                check_end_process = False
+            else:
+                sorting_process[ni] = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+                logger.info(f"Starting the sorting process of {bamfile[ni]} the output will be at: {bmf_cellsorted}")
+                logger.info(f"Command being run is: {command}")
+                logger.info("While the bam sorting happens do other things...")
+                check_end_process = True
+
+        # Load annotations
+        logger.info(f"Load the annotation from {gtffile}")
+        annotations_by_chrm_strand = exincounter.read_transcriptmodels(gtffile)
+        chrs = [v for k, v in annotations_by_chrm_strand.items()]
+        tms = [itertools.chain.from_iterable((v.values() for v in chrs))]
+        ivls = [(itertools.chain.from_iterable(tms))]
+        logger.debug(f"Generated {len(ivls)} features corresponding to {len(tms)} transcript models from {gtffile}")
+        del chrs, tms, ivls
+
+        # Load annotations
+        if repmask is not None:
+            logger.info(f"Load the repeat masking annotation from {repmask}")
+            # mask_ivls_by_chromstrand = exincounter.read_repeats(repmask)
+
+        # Go through the bam files a first time to markup introns
+        logger.info(f"Scan {' '.join((str(_) for _ in bamfile))} to validate intron intervals")
+        if bughunting and (pickled_exincounter := Path("exincounter_dump.pickle")).exists():
+            with pickled_exincounter.open("rb") as exp:
+                exincounter = joblib.load(exp)
+        elif bughunting:
+            with pickled_exincounter.open("wb") as exp:
+                joblib.dump(exincounter, exp)
+        else:
+            exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
+
 
     # Wait for child process to terminate
     if check_end_process:
@@ -346,38 +358,42 @@ def _run(
     layers: dict[str, np.ndarray] = {}
 
     for layer_name in logic_obj.layers:
-        layers[layer_name] = np.concatenate(dict_list_arrays[layer_name], axis=1)
+        layers[layer_name] = sp.sparse.hstack(dict_list_arrays[layer_name])
         del dict_list_arrays[layer_name]
 
     for layer_name in logic_obj.layers:
         total: np.ndarray  # This is just a type annotation to avoid mypy complaints
         try:
-            total += layers[layer_name]
+            total += layers[layer_name].toarray(order="C")
         except NameError:
-            total = np.array(layers[layer_name])
+            total = np.array(layers[layer_name].toarray(order="C"))
 
     logger.debug("Writing loom file")
     # seems more likely that loompy will be some version above 2, so would be better to attempt to use the loompy2 targeting code first
     if int(loompy.__version__.split(".")[0]) >= 2:
         try:
-            tmp_layers = {"": total.astype("float32", order="C", copy=False)}
-            tmp_layers.update(
-                {
-                    layer_name: layers[layer_name].astype(loom_numeric_dtype, order="C", copy=False)
-                    for layer_name in logic_obj.layers
-                }
-            )
+            # tmp_layers = {"": total.astype("float32", order="C", copy=False)}
+            # tmp_layers.update(
+            #     {
+            #         layer_name: layers[layer_name].astype(loom_numeric_dtype, copy=False)
+            #         for layer_name in logic_obj.layers
+            #     }
+            # )
+            tmp_layers = {"": total.astype("float32", order="C", copy=False)} | {k: layers[k].astype(loom_numeric_dtype, copy=False) for k in logic_obj.layers}
             loompy.create(
-                filename=outfile,
+                filename=str(outfile),
                 layers=tmp_layers,
                 row_attrs=ra,
                 col_attrs=ca,
                 file_attrs={
-                    "velocyto.__version__": version(),
-                    "velocyto.logic": logic,
+                    "velocyto.__version__": version("velocyto"),
+                    #"velocyto.logic": logic.name,
                 },
             )
-        except TypeError:
+            logger.debug(f"Successfully wrote to {outfile}")
+        
+        except TypeError as e:
+            logger.error(e)
             sys.exit()
     elif int(loompy.__version__.split(".")[0]) < 2:
         try:

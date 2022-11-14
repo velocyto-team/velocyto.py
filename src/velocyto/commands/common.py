@@ -66,15 +66,25 @@ def choose_dtype(choice: loomdtype) -> str:
         return "uint64"
 
 
-def init_logger(verbose: int) -> None:
+def init_logger(verbose: int, msg_format: str = None) -> None:
 
     logger.add(f"velocyto_{datetime.now().strftime('%d-%m-%Y--%H-%M-%S')}.log", level="DEBUG")
 
-    if verbose == 3:
-        logger.add(stderr, level="DEBUG")
-    elif verbose == 2:
-        logger.add(stderr, level="INFO")
-    elif verbose == 1:
-        logger.add(stderr, level="WARNING")
+    if format:
+        if verbose == 3:
+            logger.add(stderr, format=msg_format, level="DEBUG")
+        elif verbose == 2:
+            logger.add(stderr, format=msg_format, level="INFO")
+        elif verbose == 1:
+            logger.add(stderr, format=msg_format, level="WARNING")
+        else:
+            logger.add(stderr, format=msg_format, level="ERROR")
     else:
-        logger.add(sys.stderr, level="ERROR")
+        if verbose == 3:
+            logger.add(stderr, level="DEBUG")
+        elif verbose == 2:
+            logger.add(stderr, level="INFO")
+        elif verbose == 1:
+            logger.add(stderr, level="WARNING")
+        else:
+            logger.add(stderr, level="ERROR")
