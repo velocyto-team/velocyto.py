@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "velocyto"
-version = "0.23.0"
+version = "0.24.0"
 description = "RNA velocity analysis for single cell RNA-seq data"
 authors = ["Linnarsson Lab <sten.linnarsson@ki.se>"]
 license = "BSD-2-Clause"
