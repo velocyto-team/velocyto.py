@@ -44,14 +44,14 @@ def balance_knn_loop(
         indexes of the NN, first column is the sample itself
     dist_new : np.ndarray (samples, k+1)
         distances to the NN
-    l: np.ndarray (samples)
-        l[i] is the number of connections from other samples to the sample i
+    connections: np.ndarray (samples)
+        connections[i] is the number of connections from other samples to the sample i
 
     """
     assert dsi.shape[1] >= k, "sight needs to be bigger than k"
     # numba signature "Tuple((int64[:,:], float32[:, :], int64[:]))(int64[:,:], int64[:], int64, int64, bool)"
     dsi_new = -1 * np.ones((dsi.shape[0], k + 1), np.int64)  # maybe d.shape[0]
-    l = np.zeros(dsi.shape[0], np.int64)
+    connections = np.zeros(dsi.shape[0], np.int64)
     if return_distance:
         dist_new = np.zeros(dsi_new.shape, np.float64)
     for i in range(dsi.shape[0]):  # For every node
@@ -65,10 +65,10 @@ def balance_knn_loop(
             if el == m:
                 dsi_new[el, 0] = el
                 continue
-            if l[m] >= maxl:
+            if connections[m] >= maxl:
                 continue
             dsi_new[el, p + 1] = m
-            l[m] = l[m] + 1
+            connections[m] = connections[m] + 1
             if return_distance:
                 dist_new[el, p + 1] = dist[el, j]
             p += 1
@@ -79,7 +79,7 @@ def balance_knn_loop(
                 p += 1
     if not return_distance:
         dist_new = np.ones_like(dsi_new, np.float64)
-    return dist_new, dsi_new, l
+    return dist_new, dsi_new, connections
 
 
 @jit(
@@ -120,14 +120,14 @@ def balance_knn_loop_constrained(
         indexes of the NN, first column is the sample itself
     dist_new : np.ndarray (samples, k+1)
         distances to the NN
-    l: np.ndarray (samples)
-        l[i] is the number of connections from other samples to the sample i
+    connections: np.ndarray (samples)
+        connections[i] is the number of connections from other samples to the sample i
 
     """
     assert dsi.shape[1] >= k, "sight needs to be bigger than k"
     # numba signature "tuple((int64[:,:], float32[:, :], int64[:]))(int64[:,:], int64[:], int64, int64, bool)"
     dsi_new = -1 * np.ones((dsi.shape[0], k + 1), np.int64)  # maybe d.shape[0]
-    l = np.zeros(dsi.shape[0], np.int64)
+    connections = np.zeros(dsi.shape[0], np.int64)
     if return_distance:
         dist_new = np.zeros(dsi_new.shape, np.float64)
     for i in range(dsi.shape[0]):  # For every node
@@ -143,10 +143,10 @@ def balance_knn_loop_constrained(
                 continue
             if groups[el] != groups[m]:  # This is the constraint!
                 continue
-            if l[m] >= maxl:
+            if connections[m] >= maxl:
                 continue
             dsi_new[el, p + 1] = m
-            l[m] = l[m] + 1
+            connections[m] = connections[m] + 1
             if return_distance:
                 dist_new[el, p + 1] = dist[el, j]
             p += 1
@@ -157,7 +157,7 @@ def balance_knn_loop_constrained(
                 p += 1
     if not return_distance:
         dist_new = np.ones_like(dsi_new, np.float64)
-    return dist_new, dsi_new, l
+    return dist_new, dsi_new, connections
 
 
 def knn_balance(
@@ -188,13 +188,13 @@ def knn_balance(
         distances to the NN
     dsi_new : np.ndarray (samples, k+1)
         indexes of the NN, first column is the sample itself
-    l: np.ndarray (samples)
-        l[i] is the number of connections from other samples to the sample i
+    connections: np.ndarray (samples)
+        connections[i] is the number of connections from other samples to the sample i
 
 
     """
-    l = np.bincount(dsi.flat[:], minlength=dsi.shape[0])
-    lsi = np.argsort(l, kind="mergesort")[::-1]
+    connections = np.bincount(dsi.flat[:], minlength=dsi.shape[0])
+    lsi = np.argsort(connections, kind="mergesort")[::-1]
     if dist is None:
         dist = np.ones(dsi.shape, dtype="float64")
         dist[:, 0] = 0
@@ -380,7 +380,7 @@ class BalancedKNN:
         NOTE: The diagonal will be zero even though the value 0 is actually stored
 
         """
-        dist_new, dsi_new, l = self.kneighbors(X=X, maxl=maxl, mode=mode)
+        dist_new, dsi_new, _ = self.kneighbors(X=X, maxl=maxl, mode=mode)
         logger.debug("Returning sparse matrix")
         self.bknn = sparse.csr_matrix(
             (

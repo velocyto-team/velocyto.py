@@ -18,7 +18,6 @@ from loguru import logger
 from .. import version
 from ..constants import BAM_COMPRESSION
 from ..counter import ExInCounter
-from ..logic import Logic
 from ..metadata import MetadataCollection
 from .common import choose_dtype, choose_logic, id_generator, logicType
 
@@ -129,11 +128,11 @@ def _run(
             (gzip.open(bcfile).read().decode() if bcfile.suffix == ".gz" else open(bcfile).read()).rstrip().split()
         )
         valid_cellid_list = np.array([f"{sampleid}:{v_bc}" for v_bc in valid_bcs_list])  # with sample id and with -1
-        if len(set(bc.split("-")[0] for bc in valid_bcs_list)) == 1:
+        if len({bc.split("-")[0] for bc in valid_bcs_list}) == 1:
             gem_grp = f"-{valid_bcs_list[0].split('-')[-1]}"
         else:
             gem_grp = "x"
-        valid_bcset = set(bc.split("-")[0] for bc in valid_bcs_list)  # without -1
+        valid_bcset = {bc.split("-")[0] for bc in valid_bcs_list}  # without -1
         logger.info(f"Read {len(valid_bcs_list)} cell barcodes from {bcfile}")
         logger.debug(f"Example of barcode: {valid_bcs_list[0].split('-')[0]} and cell_id: {valid_cellid_list[0]}")
 
@@ -153,7 +152,7 @@ def _run(
                 # schema = sample[0].types
                 sample = sample[0].dict
             logger.debug(f"Collecting column attributes from {metadatatable}")
-        except (NameError, TypeError) as e:
+        except (NameError, TypeError):
             logger.warn("SAMPLEFILE was not specified. add -s SAMPLEFILE to add metadata.")
             sample = {}
     else:

@@ -81,7 +81,7 @@ def dump_hdf5(
             _file.create_dataset(
                 f"&{k}",
                 data=serialized,
-                chunks=tuple((min(1024, len(serialized)),)),
+                chunks=(min(1024, len(serialized)),),
                 compression="gzip",
                 compression_opts=data_compression,
                 fletcher32=False,

@@ -109,7 +109,7 @@ class Permissive10X(Logic):
         # Compatible with one or more transcript models:
         else:
             # Check that there are not different possible genes ??
-            if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
+            if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
                 gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
@@ -305,7 +305,7 @@ class Intermediate10X(Logic):
         # Compatible with one or more transcript models:
         else:
             # Check that there are not different possible genes ??
-            if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
+            if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
                 gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
@@ -494,7 +494,7 @@ class ValidatedIntrons10X(Logic):
         # Compatible with one or more transcript models:
         else:
             # Check that there are not different possible genes ??
-            if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
+            if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
                 gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
@@ -677,7 +677,7 @@ class Stricter10X(Logic):
         # Compatible with one or more transcript models:
         else:
             # Check that there are not different possible genes ??
-            if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
+            if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
                 gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
@@ -862,7 +862,7 @@ class ObservedSpanning10X(Logic):
         # Compatible with one or more transcript models:
         else:
             # Check that there are not different possible genes ??
-            if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
+            if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
                 gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
@@ -1037,7 +1037,7 @@ class Discordant10X(Logic):
         # Compatible with one or more transcript models:
         else:
             # Check that there are not different possible genes ??
-            if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
+            if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
                 gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
@@ -1223,7 +1223,7 @@ class SmartSeq2(Logic):
         # Compatible with one or more transcript models:
         else:
             # Check that there are not different possible genes ??
-            if len(set(i.geneid for i in molitem.mappings_record.keys())) == 1:
+            if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
                 gene_check: set[str] = set()
 
                 has_onlyintron_model = 0
