@@ -378,15 +378,15 @@ def _run(
             #         for layer_name in logic_obj.layers
             #     }
             # )
-            tmp_layers = {"": total.astype("float32", order="C", copy=False)} | {k: tmp_layers[k].astype(loom_numeric_dtype, copy=False) for k in tmp_layers}
+            tmp_layers = {"": total.astype("float32", order="C", copy=False)} | {k: layers[k].astype(loom_numeric_dtype, copy=False) for k in logic_obj.layers}
             loompy.create(
                 filename=str(outfile),
                 layers=tmp_layers,
                 row_attrs=ra,
                 col_attrs=ca,
                 file_attrs={
-                    "velocyto.__version__": version(__name__),
-                    "velocyto.logic": logic.name, # TODO: this doesn't work.  need to make string of logic type
+                    "velocyto.__version__": version("velocyto"),
+                    #"velocyto.logic": logic.name,
                 },
             )
             logger.debug(f"Successfully wrote to {outfile}")
