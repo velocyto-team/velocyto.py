@@ -98,7 +98,7 @@ def run(
         help="Number of threads to use to sort the bam by cellID file using samtools",
     ),
     samtools_memory: str = typer.Option(
-        "4G"",
+        "4G",
         "--samtools-memory",
         help="The amount of memory for samtools for each sorting thread. Accepts the same forms as samtools, so use # with K/M/G suffix",
     ),
