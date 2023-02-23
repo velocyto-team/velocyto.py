@@ -100,7 +100,7 @@ def run_smartseq2(
         multimap=False,
         test=False,
         samtools_threads=1,
-        samtools_memory=1,
+        samtools_memory="4G",
         dump=dump,
         loom_numeric_dtype=str(dtype).split(".")[-1],
         verbose=verbose,

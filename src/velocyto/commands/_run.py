@@ -6,7 +6,7 @@ import sys
 from distutils.spawn import find_executable
 from pathlib import Path
 from typing import Any
-from importlib.metadata import version
+from types import MappingProxyType
 
 import joblib
 import loompy
@@ -38,12 +38,12 @@ def _run(
     multimap: bool,
     test: bool,
     samtools_threads: int,
-    samtools_memory: int,
+    samtools_memory: str,
     loom_numeric_dtype: str,
     dump: str,
     verbose: int,
     bughunting: bool = False,
-    additional_ca: dict = {},
+    additional_ca: dict = MappingProxyType({}),
     **kwargs,
 ) -> None:
     """Runs the velocity analysis outputing a loom file
@@ -178,15 +178,16 @@ def _run(
     )
 
     # Heuristic to chose the memory/cpu effort
-    try:
-        mb_available = int(subprocess.check_output("grep MemAvailable /proc/meminfo".split()).split()[1]) / 1000
-    except subprocess.CalledProcessError:
-        logger.warning(
-            "Your system does not support calling `grep MemAvailable /proc/meminfo` so the memory effort for the samtools command could not be chosen appropriately. 32Gb will be assumed"
-        )
-        mb_available = 32000  # 64Gb
+    # try:
+    #     mb_available = int(subprocess.check_output("grep MemAvailable /proc/meminfo".split()).split()[1]) / 1000
+    # except subprocess.CalledProcessError:
+    #     logger.warning(
+    #         "Your system does not support calling `grep MemAvailable /proc/meminfo` so the memory effort for the samtools command could not be chosen appropriately. 32Gb will be assumed"
+    #     )
+    #     mb_available = 32000  # 64Gb
     threads_to_use = min(samtools_threads, multiprocessing.cpu_count())
-    mb_to_use = int(min(samtools_memory, mb_available / (len(bamfile) * threads_to_use)))
+    # No, I don't want anything overriding how much memory I've told samtools to use
+    # mb_to_use = int(min(samtools_memory, mb_available / (len(bamfile) * threads_to_use)))
     compression = BAM_COMPRESSION
 
     # TODO: if we can, should check to see if the bamfile is already sorted.
@@ -224,7 +225,7 @@ def _run(
         sorting_process: dict[int, Any] = {}
         for ni, bmf_cellsorted in enumerate(bamfile_cellsorted):
             # Start a subprocess that sorts the bam file
-            command = f"samtools sort -l {compression} -m {mb_to_use}M -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
+            command = f"samtools sort -l {compression} -m {samtools_memory} -t {tagname} -O BAM -@ {threads_to_use} -o {bmf_cellsorted} {bamfile[ni]}"
             if Path(bmf_cellsorted).exists():
                 # This should skip sorting in smartseq2
                 logger.warning(
@@ -378,15 +379,16 @@ def _run(
             #         for layer_name in logic_obj.layers
             #     }
             # )
-            tmp_layers = {"": total.astype("float32", order="C", copy=False)} | {k: layers[k].astype(loom_numeric_dtype, copy=False) for k in logic_obj.layers}
+            tmp_layers = {"": total.astype("float32", order="C", copy=False)}
+            # | {k: tmp_layers[k].astype(loom_numeric_dtype, copy=False) for k in tmp_layers}
             loompy.create(
                 filename=str(outfile),
                 layers=tmp_layers,
                 row_attrs=ra,
                 col_attrs=ca,
                 file_attrs={
-                    "velocyto.__version__": version("velocyto"),
-                    #"velocyto.logic": logic.name,
+                    "velocyto.__version__": version(__name__),
+                    "velocyto.logic": logic.name, # TODO: this doesn't work.  need to make string of logic type
                 },
             )
             logger.debug(f"Successfully wrote to {outfile}")

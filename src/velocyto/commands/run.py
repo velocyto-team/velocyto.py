@@ -97,10 +97,10 @@ def run(
         "--samtools-threads",
         help="Number of threads to use to sort the bam by cellID file using samtools",
     ),
-    samtools_memory: int = typer.Option(
-        2048,
+    samtools_memory: str = typer.Option(
+        "4G"",
         "--samtools-memory",
-        help="MB used for every thread by samtools to sort the bam file",
+        help="The amount of memory for samtools for each sorting thread. Accepts the same forms as samtools, so use # with K/M/G suffix",
     ),
     dtype: str = typer.Option(
         loomdtype.uint32,

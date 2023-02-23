@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "velocyto"
-version = "0.26.0"
+version = "0.27.0"
 description = "RNA velocity analysis for single cell RNA-seq data"
 authors = ["Linnarsson Lab <sten.linnarsson@ki.se>"]
 license = "BSD-2-Clause"
@@ -51,6 +51,7 @@ nox-poetry = "^1.0.1"
 [tool.poetry.group.dev.dependencies]
 memray = "^1.4.0"
 memory-profiler = "^0.60.0"
+ruff = "^0.0.252"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "cython", "numpy", "toml", "setuptools"]
@@ -67,3 +68,41 @@ script = "build.py"
 line-length = 120
 target-version = ['py39']
 skip-string-normalization = true
+
+[tool.ruff]
+target-version = "py310"
+select = ["B", "C", "E", "F", "T", "W", "Q"]
+# E127, E128 are hard to silence in certain nested formatting situations.
+# E265, E266 talk about comment formatting which is too opinionated.
+# E402 warns on imports coming after statements. There are important use cases
+# like demandimport (https://fburl.com/demandimport) that require statements
+# before imports.
+# E501 is not flexible enough, we're using B950 instead.
+# E722 is a duplicate of B001.
+# P207 is a duplicate of B003.
+# W503 talks about operator formatting which is too opinionated.
+# E203 conflicts with Black
+# ignore = ["E127", "E128", "E265", "E266", "E402", "E501", "E722", "P207", "W503", "E203", "T484"]
+ignore = ["E501", "B008"]
+line-length = 80
+exclude = [
+  ".git",
+  ".hg",
+  "__pycache__",
+  "_bin/*",
+  "_build/*",
+  "_ig_fbcode_wheel/*",
+  "buck-out/*",
+  "third-party-buck/*",
+  "third-party2/*",
+  "dist",
+  ".venv",
+  ".nox",
+  ".mypy_cache",
+  ".pytype",
+  ".svn",
+  "__pypackages__"
+]
+
+[tool.ruff.mccabe]
+max-complexity = 50
