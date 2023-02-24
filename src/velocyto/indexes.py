@@ -164,7 +164,7 @@ class FeatureIndex:
             feature = self.ivls[self.iidx]
 
         # Loop trough the mapping segments of a read (e.g. just one of an internal exon, generally 2 for a splice. for intron???)
-        for _, segment in enumerate(read.segments):
+        for segment in read.segments:
             # Local search for each segment move a little forward (this just moves a couple of intervals)
             i = self.iidx
             feature = self.ivls[self.iidx]
@@ -188,9 +188,7 @@ class FeatureIndex:
                             ####################
                     # if feature.contains(segment):
                     #     pass  # here the intron is not validated !
-                elif feature.kind == ord("e"):
-                    pass  # here I can pass if I do the proper checks at the intron level
-                else:
+                elif feature.kind != ord("e"):
                     raise ValueError(f"Unrecognized type of genomic feature {chr(feature.kind)}")
 
                 #  move to the next interval
@@ -238,7 +236,7 @@ class FeatureIndex:
             feature = self.ivls[self.iidx]
 
         # Loop trough the mapping segments of a read (e.g. just one of an internal exon, generally 2 for a splice. for intron???)
-        for _, segment in enumerate(read.segments):
+        for segment in read.segments:
             # Local search for each segment move a little forward (this just moves a couple of intervals)
             i = self.iidx
             feature = self.ivls[i]
@@ -256,7 +254,7 @@ class FeatureIndex:
         # NOTE: Removing first the one with less match and then requiring a splicing matching the transcript model is very stringent
         # It could be that for short ~10bp SKIP sequences the alligner has made a mistake and this might kill the whole molecule
         # NOTE: the code below is not very efficient
-        if len(mapping_record) != 0:
+        if mapping_record:
             # Remove transcript models that are suboptimal match
             # in alternative one could use len(read.segment)
             max_n_segments = len(max(mapping_record.values(), key=len))
@@ -266,7 +264,7 @@ class FeatureIndex:
 
         # NOTE: the code below is not very efficient, would be nice to avoid for loops
         # NOTE: potentailly bad effects: it could kill a lot of molecules if transcript models are not annotated correctly or missing
-        if len(mapping_record) != 0:
+        if mapping_record:
             # A SKIP mapping needs to be explainaible by some kind of exon-exon exon-intron junction!
             # So if it falls internally, the TM needs to be removed from the mapping record
             for tm, segmatch_list in list(mapping_record.items()):

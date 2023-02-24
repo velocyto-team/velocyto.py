@@ -1,3 +1,4 @@
+import contextlib
 import warnings
 from copy import deepcopy
 from typing import Any, Union
@@ -78,13 +79,11 @@ class VelocytoLoom:
         self.initial_cell_size = self.S.sum(0)
         self.initial_Ucell_size = self.U.sum(0)
 
-        try:
+        with contextlib.suppress(KeyError):
             if np.mean(self.ca["_Valid"]) < 1:
                 logger.warning(
                     f"fraction of _Valid cells is {np.mean(self.ca['_Valid'])} but all will be taken in consideration"
                 )
-        except KeyError:
-            pass
             # logger.debug("The file did not specify the _Valid column attribute")
 
     def to_hdf5(self, filename: str, **kwargs: dict[str, Any]) -> None:
@@ -176,20 +175,14 @@ class VelocytoLoom:
         self.S, self.U, self.A = (X[:, bool_array] for X in (self.S, self.U, self.A))
         self.initial_cell_size = self.initial_cell_size[bool_array]
         self.initial_Ucell_size = self.initial_Ucell_size[bool_array]
-        try:
+        with contextlib.suppress(Exception):
             self.ts = self.ts[bool_array]  # type: np.ndarray
-        except:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             self.size_factor = self.size_factor[bool_array]  # type: np.ndarray
-        except:
-            pass
         self.ca = {k: v[bool_array] for k, v in self.ca.items()}
-        try:
+        with contextlib.suppress(AttributeError):
             self.cluster_labels = self.cluster_labels[bool_array]  # type: np.ndarray
             self.colorandum = self.colorandum[bool_array, :]  # type: np.ndarray
-        except AttributeError:
-            pass
 
     def set_clusters(
         self,
@@ -221,21 +214,19 @@ class VelocytoLoom:
             self.colorandum = np.array([cluster_colors_dict[i] for i in cluster_labels])
             self.cluster_colors_dict = cluster_colors_dict
             self.colormap = None
+        elif colormap is None:
+            self.colorandum = colormap_fun(self.cluster_ix)
+            cluster_uid = self.cluster_uid
+            self.cluster_colors_dict = {cluster_uid[i]: colormap_fun(i) for i in range(len(cluster_uid))}
         else:
-            if colormap is None:
-                self.colorandum = colormap_fun(self.cluster_ix)
-                cluster_uid = self.cluster_uid
-                self.cluster_colors_dict = {cluster_uid[i]: colormap_fun(i) for i in range(len(cluster_uid))}
-            else:
-                self.colormap = colormap
-                self.colorandum = self.colormap(self.cluster_ix)
-                cluster_uid = self.cluster_uid
-                self.cluster_colors_dict = {cluster_uid[i]: self.colormap(i) for i in range(len(cluster_uid))}
+            self.colormap = colormap
+            self.colorandum = self.colormap(self.cluster_ix)
+            cluster_uid = self.cluster_uid
+            self.cluster_colors_dict = {cluster_uid[i]: self.colormap(i) for i in range(len(cluster_uid))}
 
     @property
     def cluster_uid(self) -> np.ndarray:
-        clusters_uid = np.unique(self.cluster_labels)
-        return clusters_uid
+        return np.unique(self.cluster_labels)
 
     @property
     def cluster_ix(self) -> np.ndarray:
@@ -295,12 +286,13 @@ class VelocytoLoom:
         To perform the filtering use the method `filter_genes`
         """
         if which == "S":
-            if winsorize:
-                if min_expr_cells <= ((100 - winsor_perc[1]) * self.S.shape[1] * 0.01):
-                    min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.S.shape[0] * 0.01)) + 2
-                    logger.debug(
-                        f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, upgrading to min_expr_cells ={min_expr_cells}"
-                    )
+            if winsorize and min_expr_cells <= (
+                (100 - winsor_perc[1]) * self.S.shape[1] * 0.01
+            ):
+                min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.S.shape[0] * 0.01)) + 2
+                logger.debug(
+                    f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, upgrading to min_expr_cells ={min_expr_cells}"
+                )
 
             detected_bool = (
                 ((self.S > 0).sum(1) > min_expr_cells)
@@ -357,12 +349,13 @@ class VelocytoLoom:
             self.cv_mean_score[detected_bool] = score
             self.cv_mean_selected = self.cv_mean_score >= nth_score
         else:
-            if winsorize:
-                if min_expr_cells <= ((100 - winsor_perc[1]) * self.U.shape[1] * 0.01):
-                    min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.U.shape[0] * 0.01)) + 2
-                    logger.debug(
-                        f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, upgrading to min_expr_cells ={min_expr_cells}"
-                    )
+            if winsorize and min_expr_cells <= (
+                (100 - winsor_perc[1]) * self.U.shape[1] * 0.01
+            ):
+                min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.U.shape[0] * 0.01)) + 2
+                logger.debug(
+                    f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, upgrading to min_expr_cells ={min_expr_cells}"
+                )
 
             detected_bool = (
                 ((self.U > 0).sum(1) > min_expr_cells)
@@ -438,17 +431,7 @@ class VelocytoLoom:
         ----
         Before running this method `score_cv_vs_mean` need to be run with sort_inverse=True, since only lowly variable genes are used for this size estimation
         """
-        if which == "both":
-            Y = np.log2(self.S[self.cv_mean_selected, :] + pc)
-            Y_avg = Y.mean(1)
-            self.size_factor: np.ndarray = np.median(2 ** (Y - Y_avg[:, None]), axis=0)
-            self.size_factor = self.size_factor / np.mean(self.size_factor)
-
-            Y = np.log2(self.U[self.Ucv_mean_selected, :] + pc)
-            Y_avg = Y.mean(1)
-            self.Usize_factor: np.ndarray = np.median(2 ** (Y - Y_avg[:, None]), axis=0)
-            self.Usize_factor = self.Usize_factor / np.mean(self.Usize_factor)
-        elif which == "S":
+        if which == "S":
             Y = np.log2(self.S[self.cv_mean_selected, :] + pc)
             Y_avg = Y.mean(1)
             self.size_factor: np.ndarray = np.median(2 ** (Y - Y_avg[:, None]), axis=0)
@@ -458,6 +441,20 @@ class VelocytoLoom:
             Y_avg = Y.mean(1)
             self.Usize_factor: np.ndarray = np.median(2 ** (Y - Y_avg[:, None]), axis=0)
             self.Usize_factor = self.Usize_factor / np.mean(self.Usize_factor)
+        elif which == "both":
+            self._extracted_from_robust_size_factor_31(pc)
+
+    # TODO Rename this here and in `robust_size_factor`
+    def _extracted_from_robust_size_factor_31(self, pc):
+        Y = np.log2(self.S[self.cv_mean_selected, :] + pc)
+        Y_avg = Y.mean(1)
+        self.size_factor: np.ndarray = np.median(2 ** (Y - Y_avg[:, None]), axis=0)
+        self.size_factor = self.size_factor / np.mean(self.size_factor)
+
+        Y = np.log2(self.U[self.Ucv_mean_selected, :] + pc)
+        Y_avg = Y.mean(1)
+        self.Usize_factor: np.ndarray = np.median(2 ** (Y - Y_avg[:, None]), axis=0)
+        self.Usize_factor = self.Usize_factor / np.mean(self.Usize_factor)
 
     def score_cluster_expression(self, min_avg_U: float = 0.02, min_avg_S: float = 0.08) -> np.ndarray:
         """Prepare filtering genes on the basis of cluster-wise expression threshold
@@ -646,10 +643,7 @@ class VelocytoLoom:
                 self.cell_size = relative_size
             else:
                 self.cell_size = self.S.sum(0)
-            if target_size is None:
-                self.avg_size = self.cell_size.mean()
-            else:
-                self.avg_size = target_size
+            self.avg_size = self.cell_size.mean() if target_size is None else target_size
             self.norm_factor = self.avg_size / self.cell_size
         else:
             self.norm_factor = 1
@@ -669,19 +663,13 @@ class VelocytoLoom:
         """Internal function for the unspliced molecule filtering. The `normalize` method should be used as a standard interface"""
         if size:
             if use_S_size:
-                if hasattr(self, "cell_size"):
-                    cell_size = self.cell_size
-                else:
-                    cell_size = self.S.sum(0)
+                cell_size = self.cell_size if hasattr(self, "cell_size") else self.S.sum(0)
             elif type(relative_size) is np.ndarray:
                 cell_size = relative_size
             else:
                 cell_size = self.U.sum(0)
             self.Ucell_size = cell_size
-            if target_size is None:
-                avg_size = cell_size.mean()
-            else:
-                avg_size = target_size
+            avg_size = cell_size.mean() if target_size is None else target_size
             self.Uavg_size = avg_size
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -706,14 +694,8 @@ class VelocytoLoom:
     ) -> np.ndarray:
         """Internal function for the smoothed spliced molecule filtering. The `normalize` method should be used as a standard interface"""
         if size:
-            if relative_size:
-                self.xcell_size = relative_size
-            else:
-                self.xcell_size = self.Sx.sum(0)
-            if target_size is None:
-                self.xavg_size = self.xcell_size.mean()
-            else:
-                self.xavg_size = target_size
+            self.xcell_size = relative_size or self.Sx.sum(0)
+            self.xavg_size = self.xcell_size.mean() if target_size is None else target_size
             self.xnorm_factor = self.xavg_size / self.xcell_size
         else:
             self.xnorm_factor = 1
@@ -733,19 +715,13 @@ class VelocytoLoom:
         """Internal function for the smoothed unspliced molecule filtering. The `normalize` method should be used as a standard interface"""
         if size:
             if use_Sx_size:
-                if hasattr(self, "cell_size"):
-                    cell_size = self.xcell_size
-                else:
-                    cell_size = self.Sx.sum(0)
+                cell_size = self.xcell_size if hasattr(self, "cell_size") else self.Sx.sum(0)
             elif type(relative_size) is np.ndarray:
                 cell_size = relative_size
             else:
                 cell_size = self.Ux.sum(0)
             self.xUcell_size = cell_size
-            if target_size is None:
-                avg_size = cell_size.mean()
-            else:
-                avg_size = target_size
+            avg_size = cell_size.mean() if target_size is None else target_size
             self.xUavg_size = avg_size
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -798,7 +774,7 @@ class VelocytoLoom:
         Nothing but creates the attributes `U_norm`, `U_sz` and `S_norm`, "S_sz"
         or `Ux_norm`, `Ux_sz` and `Sx_norm`, "Sx_sz"
         """
-        if which == "both":
+        if which == "S":
             self._normalize_S(
                 size=size,
                 log=log,
@@ -806,32 +782,7 @@ class VelocytoLoom:
                 relative_size=relative_size,
                 target_size=target_size[0],
             )
-            self._normalize_U(
-                size=size,
-                log=log,
-                pcount=pcount,
-                use_S_size=use_S_size_for_U,
-                relative_size=relative_size,
-                target_size=target_size[1],
-            )
-        if "S" == which:
-            self._normalize_S(
-                size=size,
-                log=log,
-                pcount=pcount,
-                relative_size=relative_size,
-                target_size=target_size[0],
-            )
-        if "U" == which:
-            self._normalize_U(
-                size=size,
-                log=log,
-                pcount=pcount,
-                use_S_size=use_S_size_for_U,
-                relative_size=relative_size,
-                target_size=target_size[1],
-            )
-        if which == "imputed":
+        elif which == "Sx":
             self._normalize_Sx(
                 size=size,
                 log=log,
@@ -839,6 +790,16 @@ class VelocytoLoom:
                 relative_size=relative_size,
                 target_size=target_size[0],
             )
+        elif which == "U":
+            self._normalize_U(
+                size=size,
+                log=log,
+                pcount=pcount,
+                use_S_size=use_S_size_for_U,
+                relative_size=relative_size,
+                target_size=target_size[1],
+            )
+        elif which == "Ux":
             self._normalize_Ux(
                 size=size,
                 log=log,
@@ -847,7 +808,23 @@ class VelocytoLoom:
                 relative_size=relative_size,
                 target_size=target_size[1],
             )
-        if "Sx" == which:
+        elif which == "both":
+            self._normalize_S(
+                size=size,
+                log=log,
+                pcount=pcount,
+                relative_size=relative_size,
+                target_size=target_size[0],
+            )
+            self._normalize_U(
+                size=size,
+                log=log,
+                pcount=pcount,
+                use_S_size=use_S_size_for_U,
+                relative_size=relative_size,
+                target_size=target_size[1],
+            )
+        elif which == "imputed":
             self._normalize_Sx(
                 size=size,
                 log=log,
@@ -855,7 +832,6 @@ class VelocytoLoom:
                 relative_size=relative_size,
                 target_size=target_size[0],
             )
-        if "Ux" == which:
             self._normalize_Ux(
                 size=size,
                 log=log,
@@ -933,34 +909,7 @@ class VelocytoLoom:
             target_Ucell_size = np.median(self.initial_Ucell_size[~self.small_U_pop])  # 0.15 * target_cell_size
 
         if plot:
-            plt.figure(None, (12, 6))
-            plt.subplot(121)
-
-            plt.scatter(self.initial_cell_size, self.initial_Ucell_size, s=3, alpha=0.1)
-            plt.xlabel("total spliced")
-            plt.ylabel("total unspliced")
-            plt.scatter(
-                self.initial_cell_size[bool_f],
-                self.initial_Ucell_size[bool_f],
-                s=3,
-                alpha=0.1,
-            )
-            plt.subplot(122)
-            plt.scatter(
-                np.log2(self.initial_cell_size),
-                np.log2(self.initial_Ucell_size),
-                s=7,
-                alpha=0.3,
-            )
-            plt.scatter(
-                np.log2(self.initial_cell_size)[bool_f],
-                np.log2(self.initial_Ucell_size)[bool_f],
-                s=7,
-                alpha=0.3,
-            )
-            plt.xlabel("log total spliced")
-            plt.ylabel("log total unspliced")
-
+            self._extracted_from_normalize_by_total_43(bool_f)
         self._normalize_S(relative_size=self.initial_cell_size, target_size=target_cell_size)
         if skip_low_U_pop:
             self._normalize_U(
@@ -969,6 +918,36 @@ class VelocytoLoom:
             )
         else:
             self._normalize_U(relative_size=self.initial_Ucell_size, target_size=target_Ucell_size)
+
+    # TODO Rename this here and in `normalize_by_total`
+    def _extracted_from_normalize_by_total_43(self, bool_f):
+        plt.figure(None, (12, 6))
+        plt.subplot(121)
+
+        plt.scatter(self.initial_cell_size, self.initial_Ucell_size, s=3, alpha=0.1)
+        plt.xlabel("total spliced")
+        plt.ylabel("total unspliced")
+        plt.scatter(
+            self.initial_cell_size[bool_f],
+            self.initial_Ucell_size[bool_f],
+            s=3,
+            alpha=0.1,
+        )
+        plt.subplot(122)
+        plt.scatter(
+            np.log2(self.initial_cell_size),
+            np.log2(self.initial_Ucell_size),
+            s=7,
+            alpha=0.3,
+        )
+        plt.scatter(
+            np.log2(self.initial_cell_size)[bool_f],
+            np.log2(self.initial_Ucell_size)[bool_f],
+            s=7,
+            alpha=0.3,
+        )
+        plt.xlabel("log total spliced")
+        plt.ylabel("log total unspliced")
 
     def normalize_by_size_factor(
         self,
@@ -1014,18 +993,7 @@ class VelocytoLoom:
             target_Ucell_size = np.median(Ucell_size[~self.small_U_pop])
 
         if plot:
-            plt.figure(None, (12, 6))
-            plt.subplot(121)
-            plt.scatter(cell_size, Ucell_size, s=3, alpha=0.1)
-            plt.xlabel("S cell_size")
-            plt.ylabel("U cell_size")
-            plt.scatter(cell_size[bool_f], Ucell_size[bool_f], s=3, alpha=0.1)
-            plt.subplot(122)
-            plt.scatter(np.log2(cell_size), np.log2(Ucell_size), s=7, alpha=0.3)
-            plt.scatter(np.log2(cell_size)[bool_f], np.log2(Ucell_size)[bool_f], s=7, alpha=0.3)
-            plt.xlabel("log S cell_size")
-            plt.ylabel("log U cell_size")
-
+            self._extracted_from_normalize_by_size_factor_45(cell_size, Ucell_size, bool_f)
         self._normalize_S(relative_size=self.size_factor, target_size=target_cell_size)
         if skip_low_U_pop:
             self._normalize_U(
@@ -1034,6 +1002,20 @@ class VelocytoLoom:
             )
         else:
             self._normalize_U(relative_size=self.initial_Ucell_size, target_size=target_Ucell_size)
+
+    # TODO Rename this here and in `normalize_by_size_factor`
+    def _extracted_from_normalize_by_size_factor_45(self, cell_size, Ucell_size, bool_f):
+        plt.figure(None, (12, 6))
+        plt.subplot(121)
+        plt.scatter(cell_size, Ucell_size, s=3, alpha=0.1)
+        plt.xlabel("S cell_size")
+        plt.ylabel("U cell_size")
+        plt.scatter(cell_size[bool_f], Ucell_size[bool_f], s=3, alpha=0.1)
+        plt.subplot(122)
+        plt.scatter(np.log2(cell_size), np.log2(Ucell_size), s=7, alpha=0.3)
+        plt.scatter(np.log2(cell_size)[bool_f], np.log2(Ucell_size)[bool_f], s=7, alpha=0.3)
+        plt.xlabel("log S cell_size")
+        plt.ylabel("log U cell_size")
 
     def adjust_totS_totU(
         self,
@@ -1232,10 +1214,7 @@ class VelocytoLoom:
             b_sight = np.maximum(int(k * 8), N - 1)
         if b_maxl is None and balanced:
             b_maxl = np.maximum(int(k * 4), N - 1)
-        if pca_space:
-            space = self.pcs[:, :n_pca_dims]
-        else:
-            space = self.S_norm.T
+        space = self.pcs[:, :n_pca_dims] if pca_space else self.S_norm.T
         if balanced:
             if group_constraint is not None:
                 if isinstance(group_constraint, str) and group_constraint == "clusters":
@@ -1260,10 +1239,10 @@ class VelocytoLoom:
                 )
             bknn.fit(space)
             self.knn = bknn.kneighbors_graph(mode="distance")
-        else:
-            if group_constraint is not None:
-                raise ValueError("group_constraint is currently supported only if the argument balanced is set to True")
+        elif group_constraint is None:
             self.knn = knn_distance_matrix(space, metric=metric, k=k, mode="distance", n_jobs=n_jobs)
+        else:
+            raise ValueError("group_constraint is currently supported only if the argument balanced is set to True")
         connectivity = (self.knn > 0).astype(float)
         with warnings.catch_warnings():
             warnings.simplefilter(
@@ -1445,11 +1424,7 @@ class VelocytoLoom:
             The vector of squared coefficient of determination
 
         """
-        if steady_state_bool:
-            self.steady_state = steady_state_bool
-        else:
-            self.steady_state = np.ones(self.S.shape[1], dtype=bool)
-
+        self.steady_state = steady_state_bool or np.ones(self.S.shape[1], dtype=bool)
         if use_imputed_data:
             if use_size_norm:
                 tmpS = self.Sx_sz
@@ -1457,56 +1432,40 @@ class VelocytoLoom:
             else:
                 tmpS = self.Sx
                 tmpU = self.Ux
+        elif use_size_norm:
+            tmpS = self.S_sz
+            tmpU = self.U_sz
         else:
-            if use_size_norm:
-                tmpS = self.S_sz
-                tmpU = self.U_sz
-            else:
-                tmpS = self.S
-                tmpU = self.U
+            tmpS = self.S
+            tmpU = self.U
 
-        if weighted:
-            if type(weights) is np.ndarray:
+        if type(weights) is np.ndarray:
+            if weighted:
                 W = weights
-            elif weights == "sum":
+        elif weights == "sum":
+            if weighted:
                 W = (tmpS / np.percentile(tmpS, 99, 1)[:, None]) + (tmpU / np.percentile(tmpU, 99, 1)[:, None])
-            elif weights == "prod":
+        elif weights == "prod":
+            if weighted:
                 W = (tmpS / np.percentile(tmpS, 99, 1)[:, None]) * (tmpU / np.percentile(tmpU, 99, 1)[:, None])
-            elif weights == "maxmin_weighted":
+        elif weights == "maxmin_weighted":
+            if weighted:
                 # Slightly smoother than just takin top and bottom percentile
                 down, up = np.percentile(tmpS, maxmin_perc, 1)  # Do this asymmetrically, data is sparse!
                 Srange = np.clip(tmpS, down[:, None], up[:, None])
                 Srange -= Srange.min(1)[:, None]
                 Srange /= Srange.max(1)[:, None]
                 W = 0.5 * (Srange**maxmin_weighted_pow + (1 - Srange) ** maxmin_weighted_pow)
-            elif weights == "maxmin":
+        elif weights == "maxmin":
+            if weighted:
                 down, up = np.percentile(tmpS, maxmin_perc, 1)  # Do this asymmetrically, data is sparse!
                 W = ((tmpS <= down[:, None]) | (tmpS >= up[:, None])).astype(float)
-            elif weights == "maxmin_diag":
-                denom_Sx = np.percentile(self.Sx, 99.9, 1)
-                if np.sum(denom_Sx == 0):
-                    denom_Sx[denom_Sx == 0] = np.maximum(np.max(self.Sx[denom_Sx == 0, :], 1), 0.001)
-                denom_Ux = np.percentile(self.Ux, 99.9, 1)
-                if np.sum(denom_Ux == 0):
-                    denom_Ux[denom_Ux == 0] = np.maximum(np.max(self.Ux[denom_Ux == 0, :], 1), 0.001)
-                Sx_maxnorm = self.Sx / denom_Sx[:, None]
-                Ux_maxnorm = self.Ux / denom_Ux[:, None]
-                X = Sx_maxnorm + Ux_maxnorm
-                down, up = np.percentile(X, maxmin_perc, axis=1)
-                W = ((X <= down[:, None]) | (X >= up[:, None])).astype(float)
-            elif weights == "maxmin_double":
-                denom_Sx = np.percentile(self.Sx, 99.9, 1)
-                denom_Sx[denom_Sx == 0] = np.maximum(np.max(self.Sx[denom_Sx == 0, :], 1), 0.001)
-                denom_Ux = np.percentile(self.Ux, 99.9, 1)
-                denom_Ux[denom_Ux == 0] = np.maximum(np.max(self.Ux[denom_Ux == 0, :], 1), 0.001)
-                Sx_maxnorm = self.Sx / denom_Sx[:, None]
-                Ux_maxnorm = self.Ux / denom_Ux[:, None]
-                X = Sx_maxnorm + Ux_maxnorm
-                down, up = np.percentile(X, maxmin_perc, axis=1)
-                W = ((X <= down[:, None]) | (X >= up[:, None])).astype(float)
-                down, up = np.percentile(self.Sx, maxmin_perc, 1)
-                W += ((self.Sx <= down[:, None]) | (self.Sx >= up[:, None])).astype(float)
-
+        elif weights == "maxmin_diag":
+            if weighted:
+                W = self._extracted_from_fit_gammas_83(maxmin_perc)
+        elif weights == "maxmin_double":
+            if weighted:
+                W = self._extracted_from_fit_gammas_95(maxmin_perc)
         if fit_offset:
             if weighted:
                 self.gammas, self.q, self.R2 = fit_slope_weighted_offset(
@@ -1546,15 +1505,43 @@ class VelocytoLoom:
                     return_R2=True,
                     limit_gamma=limit_gamma,
                 )
-                self.q = np.zeros_like(self.gammas)
             else:
                 if limit_gamma:
                     logger.warning("limit_gamma not implemented with this settings")
                 self.gammas = fit_slope(tmpU[:, self.steady_state], tmpS[:, self.steady_state])
-                self.q = np.zeros_like(self.gammas)
-
+            self.q = np.zeros_like(self.gammas)
         # Fix gammas
         self.gammas[~np.isfinite(self.gammas)] = 0
+
+    # TODO Rename this here and in `fit_gammas`
+    def _extracted_from_fit_gammas_95(self, maxmin_perc):
+        denom_Sx = np.percentile(self.Sx, 99.9, 1)
+        denom_Sx[denom_Sx == 0] = np.maximum(np.max(self.Sx[denom_Sx == 0, :], 1), 0.001)
+        denom_Ux = np.percentile(self.Ux, 99.9, 1)
+        denom_Ux[denom_Ux == 0] = np.maximum(np.max(self.Ux[denom_Ux == 0, :], 1), 0.001)
+        Sx_maxnorm = self.Sx / denom_Sx[:, None]
+        Ux_maxnorm = self.Ux / denom_Ux[:, None]
+        X = Sx_maxnorm + Ux_maxnorm
+        down, up = np.percentile(X, maxmin_perc, axis=1)
+        result = ((X <= down[:, None]) | (X >= up[:, None])).astype(float)
+        down, up = np.percentile(self.Sx, maxmin_perc, 1)
+        result += ((self.Sx <= down[:, None]) | (self.Sx >= up[:, None])).astype(float)
+
+        return result
+
+    # TODO Rename this here and in `fit_gammas`
+    def _extracted_from_fit_gammas_83(self, maxmin_perc):
+        denom_Sx = np.percentile(self.Sx, 99.9, 1)
+        if np.sum(denom_Sx == 0):
+            denom_Sx[denom_Sx == 0] = np.maximum(np.max(self.Sx[denom_Sx == 0, :], 1), 0.001)
+        denom_Ux = np.percentile(self.Ux, 99.9, 1)
+        if np.sum(denom_Ux == 0):
+            denom_Ux[denom_Ux == 0] = np.maximum(np.max(self.Ux[denom_Ux == 0, :], 1), 0.001)
+        Sx_maxnorm = self.Sx / denom_Sx[:, None]
+        Ux_maxnorm = self.Ux / denom_Ux[:, None]
+        X = Sx_maxnorm + Ux_maxnorm
+        down, up = np.percentile(X, maxmin_perc, axis=1)
+        return ((X <= down[:, None]) | (X >= up[:, None])).astype(float)
 
     def filter_genes_good_fit(self, minR: float = 0.1, min_gamma: float = 0.01) -> None:
         """For backwards compatibility a wrapper around filter_genes_by_phase_portrait"""
@@ -1681,16 +1668,15 @@ class VelocytoLoom:
             U_measured - U_predicted
 
         """
-        if kind == "residual":
-            if self.which_S_for_pred == "Sx_sz":
-                self.velocity = self.Ux_sz - self.Upred
-            elif self.which_S_for_pred == "Sx":
-                self.velocity = self.Ux - self.Upred
-            else:
-                NotImplementedError(f"Not implemented with which_S = {self.which_S_for_pred}")
-        else:
+        if kind != "residual":
             raise NotImplementedError(f"Velocity calculation kind={kind} is not implemented")
 
+        if self.which_S_for_pred == "Sx_sz":
+            self.velocity = self.Ux_sz - self.Upred
+        elif self.which_S_for_pred == "Sx":
+            self.velocity = self.Ux - self.Upred
+        else:
+            NotImplementedError(f"Not implemented with which_S = {self.which_S_for_pred}")
         if eps:
             minimal_signed_res = self.Upred.max(1) * eps
             self.velocity[np.abs(self.velocity) < minimal_signed_res[:, None]] = 0
@@ -1712,15 +1698,15 @@ class VelocytoLoom:
         delta_S: np.ndarray
             The variation in gene expression
         """
-        if assumption == "constant_velocity":
-            self.delta_S = delta_t * self.velocity
-        elif assumption == "constant_unspliced":
+        if assumption == "constant_unspliced":
             # Ux_sz = self.Ux_sz - offset; Ux_sz[Ux_sz<0] = 0
             # maybe I should say ratio see below
             Ux_szo = self.Ux_sz - self.q[:, None]
             Ux_szo[Ux_szo < 0] = 0
             egt = np.exp(-self.gammas * delta_t)[:, None]
             self.delta_S = self.Sx_sz * egt + (1 - egt) * Ux_szo / self.gammas[:, None] - self.Sx_sz
+        elif assumption == "constant_velocity":
+            self.delta_S = delta_t * self.velocity
         else:
             raise NotImplementedError(f"Assumption {assumption} is not implemented")
 
@@ -1845,7 +1831,7 @@ class VelocytoLoom:
 
         if "n_neighbors" in kwargs:
             n_neighbors = kwargs.pop("n_neighbors")
-            if len(kwargs) > 0:
+            if kwargs:
                 logger.warning(f"keyword arguments were passed but could not be interpreted {kwargs}")
         else:
             n_neighbors = None
@@ -1861,20 +1847,21 @@ class VelocytoLoom:
         if n_sight is not None and n_neighbors is None:
             n_neighbors = n_sight
 
-        if psc is None:
-            if transform == "log" or transform == "logratio":
+        if transform in {"log", "logratio"}:
+            if psc is None:
                 psc = 1.0
-            elif transform == "sqrt":
+        elif transform == "sqrt":
+            if psc is None:
                 psc = 1e-10  # for numerical stablity
-            else:  # transform == "linear":
-                psc = 0
+        elif psc is None:  # transform == "linear":
+            psc = 0
 
         if knn_random:
             np.random.seed(random_seed)
             self.corr_calc = "knn_random"
             if "pcs" in hidim:  # sic
                 hi_dim = np.array(getattr(self, hidim).T[:, :ndims], order="C")
-                hi_dim_t = np.array(getattr(self, hidim + "_t").T[:, :ndims], order="C")
+                hi_dim_t = np.array(getattr(self, f"{hidim}_t").T[:, :ndims], order="C")
             else:
                 if ndims is not None:
                     raise ValueError(
@@ -1883,10 +1870,7 @@ class VelocytoLoom:
                 hi_dim = getattr(self, hidim)  # [:, :ndims]
                 hi_dim_t = hi_dim + self.used_delta_t * self.delta_S  # [:, :ndims] [:, :ndims]
                 if calculate_randomized:
-                    self.delta_S_rndm = np.copy(self.delta_S)
-                    permute_rows_nsign(self.delta_S_rndm)
-                    hi_dim_t_rndm = hi_dim + self.used_delta_t * self.delta_S_rndm
-
+                    hi_dim_t_rndm = self._extracted_from_estimate_transition_prob_105(hi_dim)
             embedding = getattr(self, embed)
             self.embedding = embedding
             logger.debug("Calculate KNN in the embedding space")
@@ -1912,7 +1896,7 @@ class VelocytoLoom:
                         replace=False,
                         p=p,
                     )
-                    for i in range(neigh_ixs.shape[0])
+                    for _ in range(neigh_ixs.shape[0])
                 ),
                 0,
             )
@@ -1929,7 +1913,14 @@ class VelocytoLoom:
             )
 
             logger.debug(f"Correlation Calculation '{self.corr_calc}'")
-            if transform == "log":
+            if transform == "linear":
+                self.corrcoef = colDeltaCorpartial(hi_dim, hi_dim_t - hi_dim, neigh_ixs, threads=threads)
+                if calculate_randomized:
+                    logger.debug("Correlation Calculation for negative control")
+                    self.corrcoef_random = colDeltaCorpartial(
+                        hi_dim, hi_dim_t_rndm - hi_dim, neigh_ixs, threads=threads
+                    )
+            elif transform == "log":
                 delta_hi_dim = hi_dim_t - hi_dim
                 self.corrcoef = colDeltaCorLog10partial(
                     hi_dim,
@@ -1956,13 +1947,6 @@ class VelocytoLoom:
                     logger.debug("Correlation Calculation for negative control")
                     delta_hi_dim_rndm = np.log2(np.abs(hi_dim_t_rndm) + psc) - log2hidim
                     self.corrcoef_random = colDeltaCorpartial(log2hidim, delta_hi_dim_rndm, neigh_ixs, threads=threads)
-            elif transform == "linear":
-                self.corrcoef = colDeltaCorpartial(hi_dim, hi_dim_t - hi_dim, neigh_ixs, threads=threads)
-                if calculate_randomized:
-                    logger.debug("Correlation Calculation for negative control")
-                    self.corrcoef_random = colDeltaCorpartial(
-                        hi_dim, hi_dim_t_rndm - hi_dim, neigh_ixs, threads=threads
-                    )
             elif transform == "sqrt":
                 delta_hi_dim = hi_dim_t - hi_dim
                 self.corrcoef = colDeltaCorSqrtpartial(
@@ -2002,7 +1986,7 @@ class VelocytoLoom:
             self.corr_calc = "full"
             if "pcs" in hidim:  # sic
                 hi_dim = np.array(getattr(self, hidim).T[:, :ndims], order="C")
-                hi_dim_t = np.array(getattr(self, hidim + "_t").T[:, :ndims], order="C")
+                hi_dim_t = np.array(getattr(self, f"{hidim}_t").T[:, :ndims], order="C")
             else:
                 if ndims is not None:
                     raise ValueError(
@@ -2011,10 +1995,7 @@ class VelocytoLoom:
                 hi_dim = getattr(self, hidim)  # [:, :ndims]
                 hi_dim_t = hi_dim + self.used_delta_t * self.delta_S  # [:, :ndims] [:, :ndims]
                 if calculate_randomized:
-                    self.delta_S_rndm = np.copy(self.delta_S)
-                    permute_rows_nsign(self.delta_S_rndm)
-                    hi_dim_t_rndm = hi_dim + self.used_delta_t * self.delta_S_rndm
-
+                    hi_dim_t_rndm = self._extracted_from_estimate_transition_prob_105(hi_dim)
             embedding = getattr(self, embed)
             self.embedding = embedding
             logger.debug("Calculate KNN in the embedding space")
@@ -2023,7 +2004,12 @@ class VelocytoLoom:
             self.embedding_knn = nn.kneighbors_graph(mode="connectivity")
 
             logger.debug("Correlation Calculation 'full'")
-            if transform == "log":
+            if transform == "linear":
+                self.corrcoef = colDeltaCor(hi_dim, hi_dim_t - hi_dim, threads=threads)
+                if calculate_randomized:
+                    logger.debug("Correlation Calculation for negative control")
+                    self.corrcoef_random = colDeltaCor(hi_dim, hi_dim_t_rndm - hi_dim, threads=threads, psc=psc)
+            elif transform == "log":
                 delta_hi_dim = hi_dim_t - hi_dim
                 self.corrcoef = colDeltaCorLog10(
                     hi_dim,
@@ -2048,11 +2034,6 @@ class VelocytoLoom:
                     logger.debug("Correlation Calculation for negative control")
                     delta_hi_dim_rndm = np.log2(np.abs(hi_dim_t_rndm) + 1) - log2hidim
                     self.corrcoef_random = colDeltaCor(log2hidim, delta_hi_dim_rndm, threads=threads)
-            elif transform == "linear":
-                self.corrcoef = colDeltaCor(hi_dim, hi_dim_t - hi_dim, threads=threads)
-                if calculate_randomized:
-                    logger.debug("Correlation Calculation for negative control")
-                    self.corrcoef_random = colDeltaCor(hi_dim, hi_dim_t_rndm - hi_dim, threads=threads, psc=psc)
             elif transform == "sqrt":
                 delta_hi_dim = hi_dim_t - hi_dim
                 self.corrcoef = colDeltaCorSqrt(
@@ -2075,6 +2056,12 @@ class VelocytoLoom:
             np.fill_diagonal(self.corrcoef, 0)
             if calculate_randomized:
                 np.fill_diagonal(self.corrcoef_random, 0)
+
+    # TODO Rename this here and in `estimate_transition_prob`
+    def _extracted_from_estimate_transition_prob_105(self, hi_dim):
+        self.delta_S_rndm = np.copy(self.delta_S)
+        permute_rows_nsign(self.delta_S_rndm)
+        return hi_dim + self.used_delta_t * self.delta_S_rndm
 
     def calculate_embedding_shift(
         self,
@@ -2105,54 +2092,53 @@ class VelocytoLoom:
         # Kernel evaluation
         logger.debug("Calculate transition probability")
 
-        if self.corr_calc == "full" or self.corr_calc == "knn_random":
-            # NOTE maybe sparse matrix here are slower than dense
-            # NOTE if knn_random this could be made much faster either using sparse matrix or neigh_ixs
-            self.transition_prob = np.exp(self.corrcoef / sigma_corr) * self.embedding_knn.A  # naive
-            self.transition_prob /= self.transition_prob.sum(1)[:, None]
-            if hasattr(self, "corrcoef_random"):
-                logger.debug("Calculate transition probability for negative control")
-                self.transition_prob_random = np.exp(self.corrcoef_random / sigma_corr) * self.embedding_knn.A  # naive
-                self.transition_prob_random /= self.transition_prob_random.sum(1)[:, None]
-
-            unitary_vectors = self.embedding.T[:, None, :] - self.embedding.T[:, :, None]  # shape (2,ncells,ncells)
-            with np.errstate(divide="ignore", invalid="ignore"):
-                unitary_vectors /= np.linalg.norm(unitary_vectors, ord=2, axis=0)  # divide by L2
-                np.fill_diagonal(unitary_vectors[0, ...], 0)  # fix nans
-                np.fill_diagonal(unitary_vectors[1, ...], 0)
-
-            self.delta_embedding = (self.transition_prob * unitary_vectors).sum(2)
-            self.delta_embedding -= (self.embedding_knn.A * unitary_vectors).sum(2) / self.embedding_knn.sum(1).A.T
-            self.delta_embedding = self.delta_embedding.T
-
-            if expression_scaling:
-                hi_dim = getattr(self, self.which_hidim)
-                estim_delta = hi_dim.dot(self.transition_prob.T) - hi_dim.dot(
-                    (self.embedding_knn.A / self.embedding_knn.sum(1).A).T
-                )
-                cos_proj = (self.delta_S * estim_delta).sum(0) / np.sqrt((estim_delta**2).sum(0))
-                self.scaling = np.clip(cos_proj / scaling_penalty, 0, 1)
-                self.delta_embedding = self.delta_embedding * self.scaling[:, None]
-
-            if hasattr(self, "corrcoef_random"):
-                self.delta_embedding_random = (self.transition_prob_random * unitary_vectors).sum(2)
-                self.delta_embedding_random -= (self.embedding_knn.A * unitary_vectors).sum(2) / self.embedding_knn.sum(
-                    1
-                ).A.T
-                self.delta_embedding_random = self.delta_embedding_random.T
-
-                if expression_scaling:
-                    estim_delta_rndm = hi_dim.dot(self.transition_prob_random.T) - hi_dim.dot(
-                        (self.embedding_knn.A / self.embedding_knn.sum(1).A).T
-                    )
-                    cos_proj_rndm = (self.delta_S_rndm * estim_delta_rndm).sum(0) / np.sqrt(
-                        (estim_delta_rndm**2).sum(0)
-                    )
-                    self.scaling_rndm = np.clip(cos_proj_rndm / scaling_penalty, 0, 1)
-                    self.delta_embedding_random = self.delta_embedding_random * self.scaling_rndm[:, None]
-        else:
+        if self.corr_calc not in ["full", "knn_random"]:
             # NOTE should implement a version with cython
             raise NotImplementedError(f"Weird value self.corr_calc={self.corr_calc}")
+        # NOTE maybe sparse matrix here are slower than dense
+        # NOTE if knn_random this could be made much faster either using sparse matrix or neigh_ixs
+        self.transition_prob = np.exp(self.corrcoef / sigma_corr) * self.embedding_knn.A  # naive
+        self.transition_prob /= self.transition_prob.sum(1)[:, None]
+        if hasattr(self, "corrcoef_random"):
+            logger.debug("Calculate transition probability for negative control")
+            self.transition_prob_random = np.exp(self.corrcoef_random / sigma_corr) * self.embedding_knn.A  # naive
+            self.transition_prob_random /= self.transition_prob_random.sum(1)[:, None]
+
+        unitary_vectors = self.embedding.T[:, None, :] - self.embedding.T[:, :, None]  # shape (2,ncells,ncells)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            unitary_vectors /= np.linalg.norm(unitary_vectors, ord=2, axis=0)  # divide by L2
+            np.fill_diagonal(unitary_vectors[0, ...], 0)  # fix nans
+            np.fill_diagonal(unitary_vectors[1, ...], 0)
+
+        self.delta_embedding = (self.transition_prob * unitary_vectors).sum(2)
+        self.delta_embedding -= (self.embedding_knn.A * unitary_vectors).sum(2) / self.embedding_knn.sum(1).A.T
+        self.delta_embedding = self.delta_embedding.T
+
+        if expression_scaling:
+            hi_dim = getattr(self, self.which_hidim)
+            estim_delta = hi_dim.dot(self.transition_prob.T) - hi_dim.dot(
+                (self.embedding_knn.A / self.embedding_knn.sum(1).A).T
+            )
+            cos_proj = (self.delta_S * estim_delta).sum(0) / np.sqrt((estim_delta**2).sum(0))
+            self.scaling = np.clip(cos_proj / scaling_penalty, 0, 1)
+            self.delta_embedding = self.delta_embedding * self.scaling[:, None]
+
+        if hasattr(self, "corrcoef_random"):
+            self.delta_embedding_random = (self.transition_prob_random * unitary_vectors).sum(2)
+            self.delta_embedding_random -= (self.embedding_knn.A * unitary_vectors).sum(2) / self.embedding_knn.sum(
+                1
+            ).A.T
+            self.delta_embedding_random = self.delta_embedding_random.T
+
+            if expression_scaling:
+                estim_delta_rndm = hi_dim.dot(self.transition_prob_random.T) - hi_dim.dot(
+                    (self.embedding_knn.A / self.embedding_knn.sum(1).A).T
+                )
+                cos_proj_rndm = (self.delta_S_rndm * estim_delta_rndm).sum(0) / np.sqrt(
+                    (estim_delta_rndm**2).sum(0)
+                )
+                self.scaling_rndm = np.clip(cos_proj_rndm / scaling_penalty, 0, 1)
+                self.delta_embedding_random = self.delta_embedding_random * self.scaling_rndm[:, None]
 
     def calculate_grid_arrows(
         self,
@@ -2199,12 +2185,11 @@ class VelocytoLoom:
 
         """
         embedding = getattr(self, embed)
-        if hasattr(self, f"delta_{embed}"):
-            delta_embedding = getattr(self, f"delta_{embed}")
-            if hasattr(self, "corrcoef_random"):
-                delta_embedding_random = getattr(self, f"delta_{embed}_random")
-        else:
+        if not hasattr(self, f"delta_{embed}"):
             raise KeyError("This embedding does not have a delta_*")
+        delta_embedding = getattr(self, f"delta_{embed}")
+        if hasattr(self, "corrcoef_random"):
+            delta_embedding_random = getattr(self, f"delta_{embed}_random")
         # Prepare the grid
         grs = []
         for dim_i in range(embedding.shape[1]):
@@ -2493,10 +2478,11 @@ class VelocytoLoom:
             keyword arguments to pass to quiver
             By default the following are passed angles='xy', scale_units='xy', minlength=1.5. But they can be overridden.
         """
-        # plt.figure(figsize=(10, 10))
-        _quiver_kwargs = {"angles": "xy", "scale_units": "xy", "minlength": 1.5}
-        _quiver_kwargs.update(quiver_kwargs)
-
+        _quiver_kwargs = {
+            "angles": "xy",
+            "scale_units": "xy",
+            "minlength": 1.5,
+        } | quiver_kwargs
         scatter_dict = {
             "s": 20,
             "zorder": -1,
@@ -2505,27 +2491,27 @@ class VelocytoLoom:
             "c": self.colorandum,
         }
         if scatter_kwargs_dict is not None:
-            scatter_dict.update(scatter_kwargs_dict)
+            scatter_dict |= scatter_kwargs_dict
 
         # Determine quiver scale
         if scale_type == "relative":
-            if hasattr(self, "flow_rndm"):
-                plot_scale = np.linalg.norm(
-                    np.max(self.flow_grid, 0) - np.min(self.flow_grid, 0), 2
-                )  # Diagonal of the plot
-                arrows_scale = np.percentile(
-                    np.linalg.norm(self.flow_rndm[self.total_p_mass >= min_mass, :], 2, 1),
-                    90,
-                )  # Tipical lenght of an arrow
-                if quiver_scale == "auto":
-                    quiver_scale = arrows_scale / (plot_scale * 0.0025)
-                else:
-                    quiver_scale = quiver_scale * arrows_scale / (plot_scale * 0.0025)
-            else:
+            if not hasattr(self, "flow_rndm"):
                 raise ValueError(
                     """"`scale_type` was set to 'relative' but the randomized control was not computed when running estimate_transition_prob
                 Please run estimate_transition_prob or set `scale_type` to `absolute`"""
                 )
+            plot_scale = np.linalg.norm(
+                np.max(self.flow_grid, 0) - np.min(self.flow_grid, 0), 2
+            )  # Diagonal of the plot
+            arrows_scale = np.percentile(
+                np.linalg.norm(self.flow_rndm[self.total_p_mass >= min_mass, :], 2, 1),
+                90,
+            )  # Tipical lenght of an arrow
+            quiver_scale = (
+                arrows_scale / (plot_scale * 0.0025)
+                if quiver_scale == "auto"
+                else quiver_scale * arrows_scale / (plot_scale * 0.0025)
+            )
         else:
             logger.warning(
                 "The arrow scale was set to be 'absolute' make sure you know how to properly interpret the plots"
@@ -2651,9 +2637,13 @@ class VelocytoLoom:
             logger.warning(
                 f"Only {choice} arrows will be shown to avoid overcrowding, you can choose the exact number setting the `choice` argument"
             )
-        _quiver_kwargs = {"angles": "xy", "scale_units": "xy", "minlength": 1.5}
-        _scatter_kwargs = {"c": "0.8", "alpha": 0.4, "s": 10, "edgecolor": (0, 0, 0, 1), "lw": 0.3}
-        _scatter_kwargs.update(scatter_kwargs)
+        _scatter_kwargs = {
+            "c": "0.8",
+            "alpha": 0.4,
+            "s": 10,
+            "edgecolor": (0, 0, 0, 1),
+            "lw": 0.3,
+        } | scatter_kwargs
         if new_fig:
             if plot_random and hasattr(self, "delta_embedding_random"):
                 plt.figure(figsize=(22, 12))
@@ -2664,22 +2654,22 @@ class VelocytoLoom:
 
         # Determine quiver scale
         if scale_type == "relative":
-            if hasattr(self, "delta_embedding_random"):
-                plot_scale = np.linalg.norm(
-                    np.max(self.flow_grid, 0) - np.min(self.flow_grid, 0), 2
-                )  # Diagonal of the plot
-                arrows_scale = np.percentile(
-                    np.linalg.norm(self.delta_embedding_random, 2, 1), 80
-                )  # Tipical length of an arrow
-                if quiver_scale == "auto":
-                    quiver_scale = arrows_scale / (plot_scale * 0.005)
-                else:
-                    quiver_scale = quiver_scale * arrows_scale / (plot_scale * 0.005)
-            else:
+            if not hasattr(self, "delta_embedding_random"):
                 raise ValueError(
                     """`scale_type` was set to 'relative' but the randomized control was not computed when running estimate_transition_prob
                 Please run estimate_transition_prob or set `scale_type` to `absolute`"""
                 )
+            plot_scale = np.linalg.norm(
+                np.max(self.flow_grid, 0) - np.min(self.flow_grid, 0), 2
+            )  # Diagonal of the plot
+            arrows_scale = np.percentile(
+                np.linalg.norm(self.delta_embedding_random, 2, 1), 80
+            )  # Tipical length of an arrow
+            quiver_scale = (
+                arrows_scale / (plot_scale * 0.005)
+                if quiver_scale == "auto"
+                else quiver_scale * arrows_scale / (plot_scale * 0.005)
+            )
         else:
             logger.warning(
                 "The arrow scale was set to be 'absolute' make sure you know how to properly interpret the plots"
@@ -2690,9 +2680,12 @@ class VelocytoLoom:
         else:
             colorandum = color_arrow
 
-        _quiver_kwargs.update({"color": colorandum})
-        _quiver_kwargs.update(quiver_kwargs)
-
+        _quiver_kwargs = {
+            "angles": "xy",
+            "scale_units": "xy",
+            "minlength": 1.5,
+            "color": colorandum,
+        } | quiver_kwargs
         if plot_random and hasattr(self, "delta_embedding_random"):
             plt.subplot(122)
             plt.title("Randomized")
@@ -2792,8 +2785,7 @@ class VelocytoLoom:
         """
 
         ix = np.where(self.ra["Gene"] == gene_name)[0][0]
-        kwarg_plot = {"alpha": 0.5, "s": 8, "edgecolor": "0.8", "lw": 0.15}
-        kwarg_plot.update(kwargs)
+        kwarg_plot = {"alpha": 0.5, "s": 8, "edgecolor": "0.8", "lw": 0.15} | kwargs
         if gs is None:
             plt.figure(figsize=(10, 10))
             plt.subplot(111)
@@ -2848,8 +2840,7 @@ class VelocytoLoom:
         Nothing
         """
         ix = np.where(self.ra["Gene"] == gene_name)[0][0]
-        kwarg_plot = {"alpha": 0.5, "s": 8, "edgecolor": "0.8", "lw": 0.15}
-        kwarg_plot.update(kwargs)
+        kwarg_plot = {"alpha": 0.5, "s": 8, "edgecolor": "0.8", "lw": 0.15} | kwargs
         if gs is None:
             # fig = plt.figure(figsize=(10, 10))
             plt.subplot(111)
@@ -2882,8 +2873,8 @@ class VelocytoLoom:
             if True `S, U, A, ca, ra` will be all overwritten
             if False `S, U, A, ca, ra` will be loaded separately as `raw_S, raw_U, raw_A, raw_ca, raw_ra`
         """
+        ds = loompy.connect(self.loom_filepath)
         if substitute:
-            ds = loompy.connect(self.loom_filepath)
             self.S = ds.layer["spliced"][:, :]
             self.U = ds.layer["unspliced"][:, :]
             self.A = ds.layer["ambiguous"][:, :]
@@ -2891,9 +2882,7 @@ class VelocytoLoom:
             self.initial_Ucell_size = self.U.sum(0)
             self.ca = dict(ds.col_attrs.items())
             self.ra = dict(ds.row_attrs.items())
-            ds.close()
         else:
-            ds = loompy.connect(self.loom_filepath)
             self.raw_S = ds.layer["spliced"][:, :]
             self.raw_U = ds.layer["unspliced"][:, :]
             self.raw_A = ds.layer["ambiguous"][:, :]
@@ -2901,7 +2890,8 @@ class VelocytoLoom:
             self.raw_initial_Ucell_size = self.raw_U.sum(0)
             self.raw_ca = dict(ds.col_attrs.items())
             self.raw_ra = dict(ds.row_attrs.items())
-            ds.close()
+
+        ds.close()
 
 
 def scatter_viz(x: np.ndarray, y: np.ndarray, *args: Any, **kwargs: Any) -> Any:
@@ -2934,8 +2924,12 @@ def scatter_viz(x: np.ndarray, y: np.ndarray, *args: Any, **kwargs: Any) -> Any:
             kwargs_new[karg] = varg[ix_x_sort][ix_yx_sort]
         else:
             kwargs_new[karg] = varg
-    ax = plt.scatter(x[ix_x_sort][ix_yx_sort], y[ix_x_sort][ix_yx_sort], *args_new, **kwargs_new)
-    return ax
+    return plt.scatter(
+        x[ix_x_sort][ix_yx_sort],
+        y[ix_x_sort][ix_yx_sort],
+        *args_new,
+        **kwargs_new
+    )
 
 
 def ixs_thatsort_a2b(a: np.ndarray, b: np.ndarray, check_content: bool = True) -> np.ndarray:

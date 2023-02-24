@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import scipy.optimize
@@ -197,18 +197,17 @@ def colDeltaCorSqrtpartial(
 def _fit1_slope(y: np.ndarray, x: np.ndarray) -> float:
     """Simple function that fit a linear regression model without intercept"""
     if not np.any(x):
-        m = np.NAN  # It is definetelly not at steady state!!!
+        return np.NAN
     elif not np.any(y):
-        m = 0
+        return 0
     else:
-        result, rnorm = scipy.optimize.nnls(x[:, None], y)  # Fastest but costrains result >= 0
-        m = result[0]
-        # Second fastest: m, _ = scipy.optimize.leastsq(lambda m: x*m - y, x0=(0,))
-        # Third fastest: m = scipy.optimize.minimize_scalar(lambda m: np.sum((x*m - y)**2 )).x
-        # Before I was doinf fastest: scipy.optimize.minimize_scalar(lambda m: np.sum((y - m * x)**2), bounds=(0, 3), method="bounded").x
-        # Optionally one could clip m if high value make no sense
-        # m = np.clip(m,0,3)
-    return m
+        result, _ = scipy.optimize.nnls(x[:, None], y)  # Fastest but costrains result >= 0
+        return result[0]
+            # Second fastest: m, _ = scipy.optimize.leastsq(lambda m: x*m - y, x0=(0,))
+            # Third fastest: m = scipy.optimize.minimize_scalar(lambda m: np.sum((x*m - y)**2 )).x
+            # Before I was doinf fastest: scipy.optimize.minimize_scalar(lambda m: np.sum((y - m * x)**2), bounds=(0, 3), method="bounded").x
+            # Optionally one could clip m if high value make no sense
+            # m = np.clip(m,0,3)
 
 
 def _fit1_slope_weighted(
@@ -223,23 +222,22 @@ def _fit1_slope_weighted(
         m = np.NAN  # It is definetelly not at steady state!!!
     elif not np.any(y):
         m = 0
-    else:
-        if limit_gamma:
-            if np.median(y) > np.median(x):
-                high_x = x > np.percentile(x, 90)
-                up_gamma = np.percentile(y[high_x], 10) / np.median(x[high_x])
-                up_gamma = np.maximum(1.5, up_gamma)
-            else:
-                up_gamma = 1.5  # Just a bit more than 1
-            m = scipy.optimize.minimize_scalar(
-                lambda m: np.sum(w * (x * m - y) ** 2),
-                bounds=(1e-8, up_gamma),
-                method="bounded",
-            ).x
+    elif limit_gamma:
+        if np.median(y) > np.median(x):
+            high_x = x > np.percentile(x, 90)
+            up_gamma = np.percentile(y[high_x], 10) / np.median(x[high_x])
+            up_gamma = np.maximum(1.5, up_gamma)
         else:
-            m = scipy.optimize.minimize_scalar(
-                lambda m: np.sum(w * (x * m - y) ** 2), bounds=bounds, method="bounded"
-            ).x
+            up_gamma = 1.5  # Just a bit more than 1
+        m = scipy.optimize.minimize_scalar(
+            lambda m: np.sum(w * (x * m - y) ** 2),
+            bounds=(1e-8, up_gamma),
+            method="bounded",
+        ).x
+    else:
+        m = scipy.optimize.minimize_scalar(
+            lambda m: np.sum(w * (x * m - y) ** 2), bounds=bounds, method="bounded"
+        ).x
     return m
 
 
@@ -257,34 +255,33 @@ def _fit1_slope_weighted_offset(
         m = (np.NAN, 0)  # It is definetelly not at steady state!!!
     elif not np.any(y):
         m = (0, 0)
+    elif fixperc_q:
+        m1 = np.percentile(y[x <= np.percentile(x, 1)], 50)
+        m0 = scipy.optimize.minimize_scalar(
+            lambda m: np.sum(w * (x * m - y + m1) ** 2),
+            bounds=(0, 20),
+            method="bounded",
+        ).x
+        m = (m0, m1)
     else:
-        if fixperc_q:
-            m1 = np.percentile(y[x <= np.percentile(x, 1)], 50)
-            m0 = scipy.optimize.minimize_scalar(
-                lambda m: np.sum(w * (x * m - y + m1) ** 2),
-                bounds=(0, 20),
-                method="bounded",
-            ).x
-            m = (m0, m1)
-        else:
-            # m, _ = scipy.optimize.leastsq(lambda m: np.sqrt(w) * (-y + x * m[0] + m[1]), x0=(0, 0))  # This is probably faster but it can have negative slope
-            # NOTE: The up_gamma is to deal with cases where consistently y > x. Those should have positive velocity everywhere
-            if limit_gamma:
-                if np.median(y) > np.median(x):
-                    high_x = x > np.percentile(x, 90)
-                    up_gamma = np.percentile(y[high_x], 10) / np.median(x[high_x])
-                    up_gamma = np.maximum(1.5, up_gamma)
-                else:
-                    up_gamma = 1.5  # Just a bit more than 1
+        # m, _ = scipy.optimize.leastsq(lambda m: np.sqrt(w) * (-y + x * m[0] + m[1]), x0=(0, 0))  # This is probably faster but it can have negative slope
+        # NOTE: The up_gamma is to deal with cases where consistently y > x. Those should have positive velocity everywhere
+        if limit_gamma:
+            if np.median(y) > np.median(x):
+                high_x = x > np.percentile(x, 90)
+                up_gamma = np.percentile(y[high_x], 10) / np.median(x[high_x])
+                up_gamma = np.maximum(1.5, up_gamma)
             else:
-                up_gamma = 20
-            up_q = 2 * np.sum(y * w) / np.sum(w)
-            m = scipy.optimize.minimize(
-                lambda m: np.sum(w * (-y + x * m[0] + m[1]) ** 2),
-                x0=(0.1, 1e-16),
-                method="L-BFGS-B",
-                bounds=[(1e-8, up_gamma), (0, up_q)],
-            ).x  # If speedup is needed either the gradient or numexpr could be used
+                up_gamma = 1.5  # Just a bit more than 1
+        else:
+            up_gamma = 20
+        up_q = 2 * np.sum(y * w) / np.sum(w)
+        m = scipy.optimize.minimize(
+            lambda m: np.sum(w * (-y + x * m[0] + m[1]) ** 2),
+            x0=(0.1, 1e-16),
+            method="L-BFGS-B",
+            bounds=[(1e-8, up_gamma), (0, up_q)],
+        ).x  # If speedup is needed either the gradient or numexpr could be used
     return m[0], m[1]
 
 
@@ -294,23 +291,16 @@ def _fit1_slope_offset(y: np.ndarray, x: np.ndarray, fixperc_q: bool = False) ->
         m = (np.NAN, 0)  # It is definetelly not at steady state!!!
     elif not np.any(y):
         m = (0, 0)
+    elif fixperc_q:
+        m1 = np.percentile(y[x <= np.percentile(x, 1)], 50)
+        m0 = scipy.optimize.minimize_scalar(
+            lambda m: np.sum((x * m - y + m1) ** 2),
+            bounds=(0, 20),
+            method="bounded",
+        ).x
+        m = (m0, m1)
     else:
-        # result, rnorm = scipy.optimize.nnls(x[:, None], y)  # Fastest but costrains result >= 0
-        # m = result[0]
-        if fixperc_q:
-            m1 = np.percentile(y[x <= np.percentile(x, 1)], 50)
-            m0 = scipy.optimize.minimize_scalar(
-                lambda m: np.sum((x * m - y + m1) ** 2),
-                bounds=(0, 20),
-                method="bounded",
-            ).x
-            m = (m0, m1)
-        else:
-            m, _ = scipy.optimize.leastsq(lambda m: -y + x * m[0] + m[1], x0=(0, 0))
-        # Third fastest: m = scipy.optimize.minimize_scalar(lambda m: np.sum((x*m - y)**2 )).x
-        # Before I was doinf fastest: scipy.optimize.minimize_scalar(lambda m: np.sum((y - m * x)**2), bounds=(0, 3), method="bounded").x
-        # Optionally one could clip m if high value make no sense
-        # m = np.clip(m,0,3)
+        m, _ = scipy.optimize.leastsq(lambda m: -y + x * m[0] + m[1], x0=(0, 0))
     return m[0], m[1]
 
 
@@ -323,12 +313,11 @@ def fit_slope(Y: np.ndarray, X: np.ndarray) -> np.ndarray:
         the independent variable (spliced)
     """
     # NOTE this could be easily parallelized
-    slopes = np.fromiter(
+    return np.fromiter(
         (_fit1_slope(Y[i, :], X[i, :]) for i in range(Y.shape[0])),
         dtype="float32",
         count=Y.shape[0],
     )
-    return slopes
 
 
 def fit_slope_offset(Y: np.ndarray, X: np.ndarray, fixperc_q: bool = False) -> tuple[np.ndarray, np.ndarray]:
@@ -356,7 +345,7 @@ def fit_slope_weighted(
     return_R2: bool = False,
     limit_gamma: bool = False,
     bounds: tuple[float, float] = (0, 20),
-) -> np.ndarray:
+) -> Union[np.ndarray, tuple[np.ndarray, np.ndarray]]:
     """Loop through the genes and fits the slope
 
     Y: np.ndarray, shape=(genes, cells)
@@ -384,13 +373,8 @@ def fit_slope_weighted(
                 SSres = np.sum((m * X[i, :] - Y[i, :]) ** 2)
                 SStot = np.sum((Y[i, :].mean() - Y[i, :]) ** 2)
                 _R2 = 1 - (SSres / SStot)
-            if np.isfinite(_R2):
-                R2[i] = _R2
-            else:
-                R2[i] = -1e16
-    if return_R2:
-        return slopes, R2
-    return slopes
+            R2[i] = _R2 if np.isfinite(_R2) else -1e16
+    return (slopes, R2) if return_R2 else slopes
 
 
 def fit_slope_weighted_offset(
@@ -423,13 +407,8 @@ def fit_slope_weighted_offset(
                 SSres = np.sum((m * X[i, :] + q - Y[i, :]) ** 2)
                 SStot = np.sum((Y[i, :].mean() - Y[i, :]) ** 2)
                 _R2 = 1 - (SSres / SStot)
-            if np.isfinite(_R2):
-                R2[i] = _R2
-            else:
-                R2[i] = -1e16
-    if return_R2:
-        return slopes, offsets, R2
-    return slopes, offsets
+            R2[i] = _R2 if np.isfinite(_R2) else -1e16
+    return (slopes, offsets, R2) if return_R2 else (slopes, offsets)
 
 
 def clusters_stats(

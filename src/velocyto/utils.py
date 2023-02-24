@@ -59,30 +59,22 @@ def closest_3prime(segment_match: SegmentMatch) -> int:
             curr_exon = curr_intron.get_downstream_exon()
             to_end_of_exon += len(curr_exon)
 
-        dist23prime += to_end_of_exon
-        while True:
-            try:
-                curr_exon = jump_next_3p_exon(curr_exon)
-                dist23prime += len(curr_exon)
-            except IndexError:
-                break
-    else:  # "-" strand
-        if segment_match.maps_to_exon:
-            curr_exon = segment_match.feature
-            to_end_of_exon = segment_match.segment[-1] - curr_exon.start + 1
-        else:  # maps_to_intron
-            curr_intron = segment_match.feature
-            to_end_of_exon = segment_match.segment[-1] - curr_intron.start + 1
-            curr_exon = curr_intron.get_upstream_exon()
-            to_end_of_exon += len(curr_exon)
+    elif segment_match.maps_to_exon:
+        curr_exon = segment_match.feature
+        to_end_of_exon = segment_match.segment[-1] - curr_exon.start + 1
+    else:  # maps_to_intron
+        curr_intron = segment_match.feature
+        to_end_of_exon = segment_match.segment[-1] - curr_intron.start + 1
+        curr_exon = curr_intron.get_upstream_exon()
+        to_end_of_exon += len(curr_exon)
 
-        dist23prime += to_end_of_exon
-        while True:
-            try:
-                curr_exon = jump_next_3p_exon(curr_exon)
-                dist23prime += len(curr_exon)
-            except IndexError:
-                break
+    dist23prime += to_end_of_exon
+    while True:
+        try:
+            curr_exon = jump_next_3p_exon(curr_exon)
+            dist23prime += len(curr_exon)
+        except IndexError:
+            break
     return dist23prime
 
 
@@ -115,19 +107,21 @@ def spliced_iter(segments_list: list[SegmentMatch], read_len: int = 99) -> Itera
             sm_list = [sm]
             while segments_list[0].is_spliced:
                 sm_list.append(segments_list.pop(0))
-                if sum([s.segment[1] - s.segment[0] + 1 for s in sm_list]) + segments_list[0] > read_len:
+                if (
+                    sum(s.segment[1] - s.segment[0] + 1 for s in sm_list)
+                    + segments_list[0]
+                    > read_len
+                ):
                     break
             if len(segments_list) != 2:
                 # just for safety let's ignore those counts otherwise we could make a mess
                 continue
 
+            i += len(sm_list)
             if sm_list[0].feature.transcript_model.chromstrand[-1] == "+":
                 if sm_list[-1].feature.kind == ord("i"):
-                    i += len(sm_list)
                     yield SegmentMatch(segment=sm_list[0].segment, feature=sm_list[-1].feature)
                 else:  # ord("e")
-                    # in this way the distance should be calculated correctly
-                    i += len(sm_list)
                     yield SegmentMatch(
                         segment=(
                             sm_list[-1].feature.start - (sm_list[0].segment[-1] - sm_list[0].segment[0]),
@@ -135,20 +129,17 @@ def spliced_iter(segments_list: list[SegmentMatch], read_len: int = 99) -> Itera
                         ),
                         feature=sm_list[-1].feature,
                     )
-            else:  # "-" strand
-                if sm_list[0].feature.kind == ord("i"):
-                    i += len(sm_list)
-                    yield SegmentMatch(segment=sm_list[-1].segment, feature=sm_list[0].feature)
-                else:  # ord("e")
-                    i += len(sm_list)
-                    yield SegmentMatch(
-                        segment=(
-                            -1,
-                            sm_list[-1].feature.end + (sm_list[0].segment[-1] - sm_list[0].segment[0]),
-                            -1,
-                        ),
-                        feature=sm_list[0].feature,
-                    )
+            elif sm_list[0].feature.kind == ord("i"):
+                yield SegmentMatch(segment=sm_list[-1].segment, feature=sm_list[0].feature)
+            else:  # ord("e")
+                yield SegmentMatch(
+                    segment=(
+                        -1,
+                        sm_list[-1].feature.end + (sm_list[0].segment[-1] - sm_list[0].segment[0]),
+                        -1,
+                    ),
+                    feature=sm_list[0].feature,
+                )
         else:
             i += 1
             yield sm

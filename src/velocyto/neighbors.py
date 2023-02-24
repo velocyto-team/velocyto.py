@@ -195,24 +195,9 @@ def knn_balance(
     """
     connections = np.bincount(dsi.flat[:], minlength=dsi.shape[0])
     lsi = np.argsort(connections, kind="mergesort")[::-1]
-    if dist is None:
-        dist = np.ones(dsi.shape, dtype="float64")
-        dist[:, 0] = 0
-        if constraint is not None:
-            return balance_knn_loop_constrained(
-                dsi,
-                dist,
-                lsi,
-                constraint.astype("int64"),
-                maxl,
-                k,
-                return_distance=False,
-            )
-        else:
-            return balance_knn_loop(dsi, dist, lsi, maxl, k, return_distance=False)
-    else:
-        if constraint is not None:
-            return balance_knn_loop_constrained(
+    if dist is not None:
+        return (
+            balance_knn_loop_constrained(
                 dsi,
                 dist,
                 lsi,
@@ -221,8 +206,25 @@ def knn_balance(
                 k,
                 return_distance=True,
             )
-        else:
-            return balance_knn_loop(dsi, dist, lsi, maxl, k, return_distance=True)
+            if constraint is not None
+            else balance_knn_loop(
+                dsi, dist, lsi, maxl, k, return_distance=True
+            )
+        )
+    dist = np.ones(dsi.shape, dtype="float64")
+    dist[:, 0] = 0
+    if constraint is not None:
+        return balance_knn_loop_constrained(
+            dsi,
+            dist,
+            lsi,
+            constraint.astype("int64"),
+            maxl,
+            k,
+            return_distance=False,
+        )
+    else:
+        return balance_knn_loop(dsi, dist, lsi, maxl, k, return_distance=False)
 
 
 class BalancedKNN:
@@ -413,10 +415,7 @@ class BalancedKNN:
         if self.bknn is None:
             assert (X is None) and (maxl is None), "graph was already fit with different parameters"
             self.kneighbors_graph(X=X, maxl=maxl, mode=self.mode)
-        if mutual:
-            connectivity = make_mutual(self.bknn > 0)
-        else:
-            connectivity = self.bknn.T > 0
+        connectivity = make_mutual(self.bknn > 0) if mutual else self.bknn.T > 0
         connectivity = connectivity.tolil()
         connectivity.setdiag(1)
         w = connectivity_to_weights(connectivity).T
@@ -428,10 +427,7 @@ class BalancedKNN:
         else:
             raise ValueError(f"Incorrect size of matrix, none of the axis correspond to the one of graph. {w.shape}")
 
-        if only_increase:
-            return np.maximum(result, data_to_smooth)
-        else:
-            return result
+        return np.maximum(result, data_to_smooth) if only_increase else result
 
 
 # Mutual KNN version
@@ -451,15 +447,14 @@ def knn_distance_matrix(
     """
     if metric == "correlation":
         nn = NearestNeighbors(n_neighbors=k, metric="correlation", algorithm="brute", n_jobs=n_jobs)
-        nn.fit(data)
-        return nn.kneighbors_graph(X=None, mode=mode)
     else:
         nn = NearestNeighbors(
             n_neighbors=k,
             n_jobs=n_jobs,
         )
-        nn.fit(data)
-        return nn.kneighbors_graph(X=None, mode=mode)
+
+    nn.fit(data)
+    return nn.kneighbors_graph(X=None, mode=mode)
 
 
 def make_mutual(knn: sparse.csr.csr_matrix) -> sparse.coo_matrix:

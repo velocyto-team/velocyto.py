@@ -24,9 +24,6 @@ import sys
 sys.path.insert(0, Path("..").absolute())
 sys.path.insert(0, Path("_ext").absolute())
 
-# Custom preprocessing for velocyto
-
-processes = []
 command_list = [
     ("velocyto", "velocyto --help"),
     ("run", "velocyto run --help"),
@@ -36,11 +33,10 @@ command_list = [
     ("dropest_bc_correct", "velocyto tools dropest_bc_correct --help"),
 ]
 
-for filename, command in command_list:
-    processes.append(
-        (filename, subprocess.Popen(command.split(), stdout=subprocess.PIPE))
-    )
-
+processes = [
+    (filename, subprocess.Popen(command.split(), stdout=subprocess.PIPE))
+    for filename, command in command_list
+]
 for filename, running in processes:
     message = running.communicate()[0]
     formatted_message = "::\n\n\t" + b"\n\t\t".join(message.split(b"\n")).decode(

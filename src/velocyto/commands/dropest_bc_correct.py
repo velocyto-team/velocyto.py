@@ -37,7 +37,7 @@ def dropest_bc_correct(
         import rpy2.robjects as ro
 
         from ..r_interface import convert_r_obj
-    except:
+    except Exception:
         ImportError(
             "A problem was encountered importing rpy2. To run this `velocyto tools` rpy2 and R need to be installed (the use conda is recommended)"
         )

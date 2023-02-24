@@ -25,6 +25,7 @@ if C_COMPILE:
                 extra_compile_args=[
                     "-fopenmp",
                     "-ffast-math",
+                    "-O3"
                 ],  # NOTE optional flags -O3 -ffast-math -march=native
                 extra_link_args=["-fopenmp"],
             )

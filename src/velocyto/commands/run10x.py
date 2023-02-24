@@ -17,7 +17,6 @@ app = typer.Typer()  # name="velocyto-run10x", help="Run velocity analysis on 10
     no_args_is_help=True,
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
-# TODO: add `outputfolder` argument
 def run10x(
     samplefolder: Path = typer.Argument(
         ...,
@@ -131,7 +130,7 @@ def run10x(
 
     bcmatches = list(samplefolder.joinpath("outs").rglob("sample_filtered_feature_bc_matrix/barcodes.tsv.gz"))
 
-    if len(bcmatches) == 0:
+    if not bcmatches:
         logger.error("Can not locate the barcodes.tsv file!")
     bcfile = bcmatches[0]
 

@@ -152,7 +152,7 @@ def run(
         samtools_threads=samtools_threads,
         samtools_memory=samtools_memory,
         dump=dump,
-        loom_numeric_dtype=str(dtype).split(".")[-1],
+        loom_numeric_dtype=dtype.split(".")[-1],
         verbose=verbose,
         additional_ca=additional_ca,
     )

@@ -1,5 +1,11 @@
 # Changelog
 
+** [0.28.0] - 2023-02-24
+
+*** Changed
+
+- Code cleanup and improvements thanks to sourcery
+
 ** [0.27.0] - 2023-02-23
 
 *** Changed

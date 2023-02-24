@@ -19,8 +19,7 @@ class TranscriptModel:
         self.list_features: list[Feature] = []
 
     def __iter__(self) -> Feature:
-        for i in self.list_features:
-            yield i
+        yield from self.list_features
 
     def __lt__(self, other: Any) -> bool:
         assert self.chromstrand == other.chromstrand, "`<`(.__lt__) not implemented for different chromosomes"
@@ -63,10 +62,7 @@ class TranscriptModel:
             A feature object represneting an exon to add to the transcript model.
         """
         exon_feature.transcript_model = self
-        if len(self.list_features) == 0:
-            # first/last exon
-            self.list_features.append(exon_feature)
-        else:
+        if len(self.list_features) != 0:
             # Some exon already exissted
             if self.chromstrand[-1] == "+":
                 intron_number = self.list_features[-1].exin_no
@@ -81,7 +77,8 @@ class TranscriptModel:
                     transcript_model=self,
                 )
             )
-            self.list_features.append(exon_feature)
+        # first/last exon
+        self.list_features.append(exon_feature)
 
     def chop_if_long_intron(self, maxlen: int = LONGEST_INTRON_ALLOWED) -> None:
         """Modify a Transcript model choppin the 5' region upstram of a very long intron
@@ -104,8 +101,8 @@ class TranscriptModel:
                 self._remove_upstream_of(long_feats[-1])
             else:  # self.chromstrand[-1] == "-"
                 self._remove_downstream_of(long_feats[0])
-            self.trid = self.trid + "_mod"
-            self.trname = self.trname + "_mod"
+            self.trid = f"{self.trid}_mod"
+            self.trname = f"{self.trname}_mod"
 
     def _remove_upstream_of(self, longest_feat: Feature) -> None:
         tmp = []

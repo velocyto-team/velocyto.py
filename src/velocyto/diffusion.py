@@ -34,11 +34,7 @@ class Diffusion:
         n_neighbors = 20
 
         # project into the past or future
-        if reverse:
-            x1 = x0 - v
-        else:
-            x1 = x0 + v
-
+        x1 = x0 - v if reverse else x0 + v
         # Find nearest neighbors
         nn = NearestNeighbors(n_neighbors=n_neighbors, algorithm="auto", n_jobs=4)
         (dists, nearest) = nn.fit(x0).kneighbors(x1)  # These are shaped (n_cells, n_neighbors), but we flatten them
@@ -97,8 +93,7 @@ class Diffusion:
 
         # Calculate transition probabilities
         p = scalar_projection * (1 / norms)
-        tr = normalize(sparse.coo_matrix((p, (v0, v1))).tocsr(), axis=1, norm="l1")
-        return tr
+        return normalize(sparse.coo_matrix((p, (v0, v1))).tocsr(), axis=1, norm="l1")
 
     def diffuse(
         self,

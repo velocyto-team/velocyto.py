@@ -32,13 +32,9 @@ class MetadataCollection:
                         types = [r.split(":")[1] for r in row]  # NOTE: I don't use type anymore
                     else:
                         keys = row
-                        types = ["None" for r in row]
+                        types = ["None" for _ in row]
                 else:
                     self.items.append(Metadata(keys, row, types))
 
     def where(self, key: Any, value: Any) -> list:
-        result = []  # type: list
-        for item in self.items:
-            if getattr(item, key) == value:
-                result.append(item)
-        return result
+        return [item for item in self.items if getattr(item, key) == value]

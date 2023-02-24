@@ -102,7 +102,6 @@ def run_dropest(
         logger.info(f"Attempting to find automatically the valid barcode list file {bcfile}")
         if bcfile.exists():
             logger.info(f"{bcfile} found ")
-            pass
         else:
             logger.info(f"{bcfile} not found!")
             logger.error(

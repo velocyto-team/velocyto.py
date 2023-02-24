@@ -1,3 +1,4 @@
+import contextlib
 import gzip
 import random
 import re
@@ -58,9 +59,9 @@ class ExInCounter:
             self.umi_extract = self._no_extension
         elif umi_extension.lower() == "chr":
             self.umi_extract = self._extension_chr
-        elif umi_extension.lower() == "gene" or umi_extension.lower() == "gx":
+        elif umi_extension.lower() in {"gene", "gx"}:
             self.umi_extract = self._extension_Gene
-        elif umi_extension[-2:] == "bp":
+        elif umi_extension.endswith("bp"):
             self.umi_bp = int(umi_extension[:-2])
             self.umi_extract = self._extension_Nbp
         elif umi_extension.lower() == "without_umi":
@@ -82,12 +83,11 @@ class ExInCounter:
         self.test_flag = None
         if dump_option[0] == "p":
             self.kind_of_report = "p"
-            self.report_state = 0
             self.every_n_report = int(dump_option[1:])
         else:
             self.kind_of_report = "h"
-            self.report_state = 0
             self.every_n_report = int(dump_option)
+        self.report_state = 0
         self.cellbarcode_str = "NULL_BC"  # This value should never be used this is just to initialize it and detect if there are bugs downstream
         self.umibarcode_str = "NULL_UB"  # This value should never be used this is just to initialize it and detect if there are bugs downstream
 
@@ -107,38 +107,30 @@ class ExInCounter:
         clip5 = clip3 = 0
         p = pos
         for i, (operation_id, length) in enumerate(cigartuples):
-            if operation_id == 0:  # CIGAR[operation_id] == "BAM_CMATCH"
+            if operation_id == 0:
                 segments.append((p, p + length - 1))
                 p += length
-            elif operation_id == 3:  # A splice || CIGAR[operation_id] == 'BAM_CREF_SKIP'
-                ref_skip = True
-                p += length
-            elif operation_id == 2:  # A deletion || cy.CIGAR[operation_id] == 'BAM_CDEL'
+            elif operation_id == 1:
                 if length <= PATCH_INDELS:
-                    try:
+                    with contextlib.suppress(IndexError):
                         if cigartuples[i + 1][0] == 0 and cigartuples[i - 1][0] == 0:
                             hole_to_remove.add(len(segments) - 1)
-                    except IndexError:
-                        pass
+            elif operation_id == 2:
+                if length <= PATCH_INDELS:
+                    with contextlib.suppress(IndexError):
+                        if cigartuples[i + 1][0] == 0 and cigartuples[i - 1][0] == 0:
+                            hole_to_remove.add(len(segments) - 1)
                 p += length
-            elif (
-                operation_id == 4
-            ):  # bases at 5' or 3' are NOT part of the alignment || CIGAR[operation_id] == 'BAM_CSOFT_CLIP'
+            elif operation_id == 3:
+                ref_skip = True
+                p += length
+            elif operation_id == 4:
                 if p == pos:
                     clip5 = length  # At start of alignment
                 else:
                     clip3 = length  # Must be at end of alignment CIGAR[operation_id] in ["BAM_CINS", "BAM_CHARD_CLIP"]
                 p += length
-            elif operation_id == 1:  # An insertion BAM_CINS
-                if length <= PATCH_INDELS:
-                    try:
-                        if cigartuples[i + 1][0] == 0 and cigartuples[i - 1][0] == 0:
-                            hole_to_remove.add(len(segments) - 1)
-                    except IndexError:
-                        pass
-                # else do nothing
-                # NOTE: maybe we should make so that the reads get discarded
-            elif operation_id == 5:  # BAM_CHARD_CLIP
+            elif operation_id == 5:
                 logger.warning("Hard clip was encountered! All mapping are assumed soft clipped")
 
         # Merge segments separated by small insertions and deletions
@@ -176,8 +168,6 @@ class ExInCounter:
                 raise IOError(
                     "The bam file does not contain cell and umi barcodes appropriatelly formatted. If you are runnin UMI-less data you should use the -U flag."
                 )
-            else:
-                pass
         fin.close()
 
     def peek_umi_only(self, bamfile: str, lines: int = 30) -> None:
@@ -207,8 +197,6 @@ class ExInCounter:
                 raise IOError(
                     "The bam file does not contain umi barcodes appropriatelly formatted. If you are runnin UMI-less data you should use the -U flag."
                 )
-            else:
-                pass
         fin.close()
 
     def _no_extension(self, read: pysam.AlignedSegment) -> str:
@@ -219,17 +207,15 @@ class ExInCounter:
 
     def _extension_Gene(self, read: pysam.AlignedSegment) -> str:
         try:
-            return read.get_tag(self.umibarcode_str) + "_" + read.get_tag("GX")  # catch the error
+            return f"{read.get_tag(self.umibarcode_str)}_{read.get_tag('GX')}"
         except KeyError:
-            return read.get_tag(self.umibarcode_str) + "_withoutGX"
+            return f"{read.get_tag(self.umibarcode_str)}_withoutGX"
 
     def _placeolder_umi(self, read: pysam.AlignedSegment) -> str:
         return "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(PLACEHOLDER_UMI_LEN))
 
     def _extension_chr(self, read: pysam.AlignedSegment) -> str:
-        return (
-            read.get_tag(self.umibarcode_str) + f"_{read.rname}:{read.reference_start // 10000000}"
-        )  # catch the error
+        return f"{read.get_tag(self.umibarcode_str)}_{read.rname}:{read.reference_start // 10000000}"
 
     def _normal_cell_barcode_get(self, read: pysam.AlignedSegment) -> str:
         return read.get_tag(self.cellbarcode_str).split("-")[0]
@@ -265,10 +251,7 @@ class ExInCounter:
         else:
             use_basename = True
         for bamfile in bamfiles:
-            if use_basename:
-                self._current_bamfile = Path(bamfile).name
-            else:
-                self._current_bamfile = str(bamfile)
+            self._current_bamfile = Path(bamfile).name if use_basename else str(bamfile)
             logger.debug(f"Reading {bamfile}")
 
             fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
@@ -317,16 +300,12 @@ class ExInCounter:
                     logger.debug(f"No segments in read: {read.qname}")
 
                 read_object = Read(bc, umi, chrom, strand, pos, segments, clip5, clip3, ref_skipped)
-                if yield_line:
-                    if read_object.span > 3000000:  # Longest locus existing
-                        logger.warning(f"Trashing read, too long span\n{read.tostring(fin)}")
-                    else:
-                        yield read_object, read.tostring(fin)
+                if read_object.span > 3000000:  # Longest locus existing
+                    logger.warning(f"Trashing read, too long span\n{read.tostring(fin)}")
+                elif yield_line:
+                    yield read_object, read.tostring(fin)
                 else:
-                    if read_object.span > 3000000:  # Longest locus existing
-                        logger.warning(f"Trashing read, too long span\n{read.tostring(fin)}")
-                    else:
-                        yield read_object
+                    yield read_object
             fin.close()
             # NOTE Yielding None counts as a flag that the file read has been changed
             if yield_line:
@@ -484,12 +463,14 @@ class ExInCounter:
     def assign_indexes_to_genes(self, features: dict[str, TranscriptModel]) -> None:
         """Assign to each newly encoutered gene an unique index corresponding to the output matrix column ix"""
         logger.debug("Assigning indexes to genes")
-        for _, trmodel in features.items():
+        for trmodel in features.values():
             if trmodel.geneid in self.geneid2ix:
-                if self.genes[trmodel.geneid].start > trmodel.start:
-                    self.genes[trmodel.geneid].start = trmodel.start
-                if self.genes[trmodel.geneid].end < trmodel.end:
-                    self.genes[trmodel.geneid].end = trmodel.end
+                self.genes[trmodel.geneid].start = min(
+                    self.genes[trmodel.geneid].start, trmodel.start
+                )
+                self.genes[trmodel.geneid].end = max(
+                    self.genes[trmodel.geneid].end, trmodel.end
+                )
             else:
                 self.geneid2ix[trmodel.geneid] = len(self.geneid2ix)
                 self.genes[trmodel.geneid] = GeneInfo(
@@ -573,13 +554,10 @@ class ExInCounter:
             # We keep the name of the chromosome removing the chr from the name and removing part after the . if present
             if "chr" in chrom[:4]:
                 chrom = chrom[3:]  # NOTE before it was chrom[3:].split(".")[0]
-            else:
-                pass  # NOTE before it was chrom.split(".")[0]
-
             # A new chromosome/strand encountered
             if chrom + strand != curr_chromstrand:
                 if curr_chromstrand is not None:  # Every time with exception with first and the last chromosome
-                    if not chrom + strand not in self.annotations_by_chrm_strand:
+                    if chrom + strand in self.annotations_by_chrm_strand:
                         # NOTE this is not enough as a check but it will detect with few checks if file is not sorted at all
                         raise IOError(
                             "Genome annotation gtf file is not sorted correctly! Run the following command:\nsort -k1,1 -k7,7 -k4,4n -o [GTF_OUTFILE] [GTF_INFILE]"
@@ -594,20 +572,14 @@ class ExInCounter:
                 curr_chromstrand = chrom + strand
 
             if feature_type in ("exon"):
-                trid = regex_trid.search(tags).group(1)
+                trid = regex_trid.search(tags)[1]
                 _trname_search = regex_trname.search(tags)
-                if _trname_search is None:
-                    trname = trid
-                else:
-                    trname = _trname_search.group(1)
-                geneid = regex_geneid.search(tags).group(1)
+                trname = trid if _trname_search is None else _trname_search[1]
+                geneid = regex_geneid.search(tags)[1]
                 _genename_search = regex_genename.search(tags)
-                if _genename_search is None:
-                    genename = geneid
-                else:
-                    genename = _genename_search.group(1)
+                genename = geneid if _genename_search is None else _genename_search[1]
                 try:
-                    exonno = regex_exonno.search(tags).group(1)
+                    exonno = regex_exonno.search(tags)[1]
                 except AttributeError as err:
                     # NOTE: Don't try to release this constraint, velocyto relies on it for safe calculations! Rather make a utility script that does putative annotation separatelly.
                     raise IOError(
@@ -684,61 +656,59 @@ class ExInCounter:
                 if exonno is None:
                     flag = True
 
-        # If at least one exon was missing the exon number create the entry for all the others
-        if flag:
-            logger.warning(
-                "The entry exon_number was not present in the gtf file. It will be infferred from the position."
-            )
-            regex_trid = re.compile('transcript_id "([^"]+)"')
-            min_info_lines_minus: list[list] = []
-            min_info_lines_plus: list[list] = []
-            for lin in gtf_lines:
-                (
-                    chrom,
-                    feature_class,
-                    feature_type,
-                    start_str,
-                    end_str,
-                    junk,
-                    strand,
-                    junk,
-                    tags,
-                ) = lin.split("\t")
-                if feature_type == "exon":
-                    try:
-                        trid = regex_trid.search(tags).group(1)
-                    except AttributeError as err:
-                        raise AttributeError(f"transcript_id entry not found in line: {lin}") from err
-                    if strand == "-":
-                        min_info_lines_minus.append([trid, int(start_str), int(end_str), lin])
-                    else:
-                        min_info_lines_plus.append([trid, int(start_str), int(end_str), lin])
-
-            min_info_lines_minus = sorted(min_info_lines_minus)
-            min_info_lines_plus = sorted(min_info_lines_plus)
-            current_trid = "None"
-            exon_n = 1
-            modified_lines_plus: list[str] = []
-            for i in min_info_lines_plus:
-                if current_trid != i[0]:
-                    current_trid = i[0]
-                    exon_n = 1
-                else:
-                    exon_n += 1
-                modified_lines_plus.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
-            exon_n = 1
-            modified_lines_minus: list[str] = []
-            for i in min_info_lines_minus[::-1]:
-                if current_trid != i[0]:
-                    current_trid = i[0]
-                    exon_n = 1
-                else:
-                    exon_n += 1
-                modified_lines_plus.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
-
-            return modified_lines_plus + modified_lines_minus
-        else:
+        if not flag:
             return gtf_lines
+        logger.warning(
+            "The entry exon_number was not present in the gtf file. It will be infferred from the position."
+        )
+        regex_trid = re.compile('transcript_id "([^"]+)"')
+        min_info_lines_minus: list[list] = []
+        min_info_lines_plus: list[list] = []
+        for lin in gtf_lines:
+            (
+                chrom,
+                feature_class,
+                feature_type,
+                start_str,
+                end_str,
+                junk,
+                strand,
+                junk,
+                tags,
+            ) = lin.split("\t")
+            if feature_type == "exon":
+                try:
+                    trid = regex_trid.search(tags)[1]
+                except AttributeError as err:
+                    raise AttributeError(f"transcript_id entry not found in line: {lin}") from err
+                if strand == "-":
+                    min_info_lines_minus.append([trid, int(start_str), int(end_str), lin])
+                else:
+                    min_info_lines_plus.append([trid, int(start_str), int(end_str), lin])
+
+        min_info_lines_minus = sorted(min_info_lines_minus)
+        min_info_lines_plus = sorted(min_info_lines_plus)
+        current_trid = "None"
+        exon_n = 1
+        modified_lines_plus: list[str] = []
+        for i in min_info_lines_plus:
+            if current_trid != i[0]:
+                current_trid = i[0]
+                exon_n = 1
+            else:
+                exon_n += 1
+            modified_lines_plus.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
+        exon_n = 1
+        modified_lines_minus: list[str] = []
+        for i in min_info_lines_minus[::-1]:
+            if current_trid != i[0]:
+                current_trid = i[0]
+                exon_n = 1
+            else:
+                exon_n += 1
+            modified_lines_plus.append(f'{i[3][:-1]} exon_number "{exon_n}";\n')
+
+        return modified_lines_plus + modified_lines_minus
 
     def mark_up_introns(self, bamfile: tuple[str], multimap: bool) -> None:
         """Mark up introns that have reads across exon-intron junctions
@@ -763,78 +733,77 @@ class ExInCounter:
 
         if not self.logic.perform_validation_markup:
             return
-        else:
-            # Since I support multiple files (Smart seq2 it makes sense here to load the feature indexes into memory)
-            # NOTE this means that maybe I could do this once at a level above
-            # NOTE if this is not done in count then I need to bring it before the if/else statement
-            self.feature_indexes: DefaultDict[str, FeatureIndex] = defaultdict(FeatureIndex)
-            for (
-                chromstrand_key,
-                annotions_ordered_dict,
-            ) in tqdm(self.annotations_by_chrm_strand.items(), desc="Reading feature indices"):
-                self.feature_indexes[chromstrand_key] = FeatureIndex(
-                    sorted(chain.from_iterable(annotions_ordered_dict.values()))
-                )
+        # Since I support multiple files (Smart seq2 it makes sense here to load the feature indexes into memory)
+        # NOTE this means that maybe I could do this once at a level above
+        # NOTE if this is not done in count then I need to bring it before the if/else statement
+        self.feature_indexes: DefaultDict[str, FeatureIndex] = defaultdict(FeatureIndex)
+        for (
+            chromstrand_key,
+            annotions_ordered_dict,
+        ) in tqdm(self.annotations_by_chrm_strand.items(), desc="Reading feature indices"):
+            self.feature_indexes[chromstrand_key] = FeatureIndex(
+                sorted(chain.from_iterable(annotions_ordered_dict.values()))
+            )
 
-            # VERBOSE: dump_list = []
-            # Read the file
-            currchrom = ""
-            set_chromosomes_seen: set[str] = set()
+        # VERBOSE: dump_list = []
+        # Read the file
+        currchrom = ""
+        set_chromosomes_seen: set[str] = set()
             # TODO: feel like self.iter_alignments should not be a generator as we are currently running through it twice?
-            for r in tqdm(self.iter_alignments(bamfile, unique=not multimap), desc="Ingesting reads"):
-                # Don't consider spliced reads (exonic) in this step
-                # NOTE Can the exon be so short that we get splicing and exon-intron boundary
-                if r is None:
-                    logger.debug("r is None")
-                    # This happens only when there is a change of file
-                    currchrom = ""
-                    set_chromosomes_seen = set()
-                    # I need to reset indexes in position before the next file is restarted
-                    # NOTE this is far from optimal for lots of cells
-                    logger.debug("End of file. Reset index: start scanning from initial position.")
-                    for (
-                        chromstrand_key,
-                        annotions_ordered_dict,
-                    ) in self.annotations_by_chrm_strand.items():
-                        self.feature_indexes[chromstrand_key].reset()
-                    continue
-                if r.is_spliced:
-                    # logger.debug(f"{r.is_spliced=}")
-                    continue
+        for r in tqdm(self.iter_alignments(bamfile, unique=not multimap), desc="Ingesting reads"):
+            # Don't consider spliced reads (exonic) in this step
+            # NOTE Can the exon be so short that we get splicing and exon-intron boundary
+            if r is None:
+                logger.debug("r is None")
+                # This happens only when there is a change of file
+                currchrom = ""
+                set_chromosomes_seen = set()
+                # I need to reset indexes in position before the next file is restarted
+                # NOTE this is far from optimal for lots of cells
+                logger.debug("End of file. Reset index: start scanning from initial position.")
+                for (
+                    chromstrand_key,
+                    annotions_ordered_dict,
+                ) in self.annotations_by_chrm_strand.items():
+                    self.feature_indexes[chromstrand_key].reset()
+                continue
+            if r.is_spliced:
+                # logger.debug(f"{r.is_spliced=}")
+                continue
 
                 # When the chromosome mapping of the read changes, change interval index.
-                if r.chrom != currchrom:
-                    logger.debug(f"{r.chrom=}, {currchrom=}")
-                    if r.chrom in set_chromosomes_seen:
-                        raise IOError(
-                            f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)"
-                        )
-                    set_chromosomes_seen.add(r.chrom)
-                    logger.debug(f"Marking up chromosome {r.chrom}")
-                    currchrom = r.chrom
-                    if currchrom + "+" not in self.annotations_by_chrm_strand:
-                        logger.warning(
-                            f"The .bam file refers to a chromosome '{currchrom}+' not present in the annotation (.gtf) file"
-                        )
-                        iif = FeatureIndex([])
-                    else:
-                        iif = self.feature_indexes[currchrom + "+"]
-                        logger.debug(f"{iif=}")
-                    if currchrom + "-" not in self.annotations_by_chrm_strand:
-                        logger.warning(
-                            f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file"
-                        )
-                        iir = FeatureIndex([])
-                    else:
-                        iir = self.feature_indexes[currchrom + "-"]
-                        logger.debug(f"{iif=}")
+            if r.chrom != currchrom:
+                logger.debug(f"{r.chrom=}, {currchrom=}")
+                if r.chrom in set_chromosomes_seen:
+                    raise IOError(
+                        f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)"
+                    )
+                set_chromosomes_seen.add(r.chrom)
+                logger.debug(f"Marking up chromosome {r.chrom}")
+                currchrom = r.chrom
+                if f"{currchrom}+" not in self.annotations_by_chrm_strand:
+                    logger.warning(
+                        f"The .bam file refers to a chromosome '{currchrom}+' not present in the annotation (.gtf) file"
+                    )
+                    iif = FeatureIndex([])
+                else:
+                    iif = self.feature_indexes[f"{currchrom}+"]
+                    logger.debug(f"{iif=}")
+                if f"{currchrom}-" not in self.annotations_by_chrm_strand:
+                    logger.warning(
+                        f"The .bam file refers to a chromosome '{currchrom}-' not present in the annotation (.gtf) file"
+                    )
+                    iir = FeatureIndex([])
+                else:
+                    iir = self.feature_indexes[f"{currchrom}-"]
+                    logger.debug(f"{iif=}")
 
-                # Consider the correct strand
-                ii = iif if r.strand == "+" else iir
+            # Consider the correct strand
+            ii = iif if r.strand == "+" else iir
 
-                # VERBOSE: # Look for overlap between the intervals and the read
-                # VERBOSE: dump_list += ii.mark_overlapping_ivls(r)
-                ii.mark_overlapping_ivls(r)
+            # VERBOSE: # Look for overlap between the intervals and the read
+            # VERBOSE: dump_list += ii.mark_overlapping_ivls(r)
+            ii.mark_overlapping_ivls(r)
 
             # VERBOSE: import pickle
             # VERBOSE: pickle.dump(dump_list, open("dump_mark_overlapping_ivls.pickle", "wb"))
@@ -893,7 +862,7 @@ class ExInCounter:
         n_is_intron = 0
         n_is_intron_valid = 0
         unique_valid = set()
-        for chromstrand_key, feature_index in tqdm(
+        for _, feature_index in tqdm(
             self.feature_indexes.items(), desc="Count molecules - validate introns"
         ):
             for ivl in feature_index.ivls:
@@ -1026,11 +995,12 @@ class ExInCounter:
         for bcumi, molitem in molitems.items():
             bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
             bcidx = bc2idx[bc]
-            rcode = self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix)
-            if rcode:
+            if rcode := self.logic.count(
+                molitem, bcidx, dict_layers_columns, self.geneid2ix
+            ):
                 failures += 1
                 counter[rcode] += 1
-            # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
+                # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
         if failures > (0.25 * len(molitems)):
             logger.warning(f"More than 20% ({(100*failures / len(molitems)):.1f}%) of molitems trashed, of those:")
             if (x := (100 * counter[1] / len(molitems))) > 0.0:
@@ -1092,9 +1062,10 @@ class ExInCounter:
                                 )  # “info/ivls/strandplus“
                                 info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
 
-                    self.inv_tridstart2ix: dict[str, int] = {}
-                    for i in range(len(info_tr_id)):
-                        self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
+                    self.inv_tridstart2ix: dict[str, int] = {
+                        f"{info_tr_id[i]}_{info_start_end[i][0]}": i
+                        for i in range(len(info_tr_id))
+                    }
                     f.create_dataset(
                         "info/tr_id",
                         data=np.array(info_tr_id, dtype="S24"),
@@ -1175,7 +1146,7 @@ class ExInCounter:
                 count_i: int = 0
                 for mol_bc, molitem in molitems.items():
                     cell_name = mol_bc.split("$")[0]
-                    try:
+                    with contextlib.suppress(StopIteration):
                         for match in next(iter(molitem.mappings_record.items()))[1]:
                             mol[cell_name].append(count_i)
                             pos[cell_name].append(match.segment)
@@ -1183,8 +1154,6 @@ class ExInCounter:
                                 self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"]
                             )
                         count_i += 1
-                    except StopIteration:
-                        pass  # An empty or chimeric molitem ?
                 # Do the last cell and close the file
                 for cell_name in mol.keys():
                     posA = np.array(pos[cell_name], dtype=np.int32)
@@ -1276,11 +1245,10 @@ class ExInCounter:
         # initialize np.ndarray
         shape = (len(self.geneid2ix), len(self.cell_batch))
 
-        dict_layers_columns: dict[str, np.ndarray] = {}
-        for layer_name in self.logic.layers:
-            # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
-            dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
-
+        dict_layers_columns: dict[str, np.ndarray] = {
+            layer_name: sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
+            for layer_name in self.logic.layers
+        }
         bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch)), strict=True))
         # After the whole file has been read, do the actual counting
         for bcumi, molitem in molitems.items():
@@ -1340,9 +1308,10 @@ class ExInCounter:
                                 )  # “info/ivls/strandplus“
                                 info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
 
-                    self.inv_tridstart2ix: dict[str, int] = {}
-                    for i in range(len(info_tr_id)):
-                        self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
+                    self.inv_tridstart2ix: dict[str, int] = {
+                        f"{info_tr_id[i]}_{info_start_end[i][0]}": i
+                        for i in range(len(info_tr_id))
+                    }
                     f.create_dataset(
                         "info/tr_id",
                         data=np.array(info_tr_id, dtype="S24"),
@@ -1423,7 +1392,7 @@ class ExInCounter:
                 count_i: int = 0
                 for mol_bc, molitem in molitems.items():
                     cell_name = mol_bc.split("$")[0]
-                    try:
+                    with contextlib.suppress(StopIteration):
                         for match in next(iter(molitem.mappings_record.items()))[1]:
                             mol[cell_name].append(count_i)
                             pos[cell_name].append(match.segment)
@@ -1431,8 +1400,6 @@ class ExInCounter:
                                 self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"]
                             )
                         count_i += 1
-                    except StopIteration:
-                        pass  # An empty or chimeric molitem ?
                 # Do the last cell and close the file
                 for cell_name in mol.keys():
                     posA = np.array(pos[cell_name], dtype=np.int32)
@@ -1533,11 +1500,10 @@ class ExInCounter:
         # initialize np.ndarray
         shape = (len(self.geneid2ix), len(self.cell_batch))
 
-        dict_layers_columns: dict[str, np.ndarray] = {}
-        for layer_name in self.logic.layers:
-            # dict_layers_columns[layer_name] = np.zeros(shape, dtype=self.loom_numeric_dtype, order="C")
-            dict_layers_columns[layer_name] = sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
-
+        dict_layers_columns: dict[str, np.ndarray] = {
+            layer_name: sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
+            for layer_name in self.logic.layers
+        }
         bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch)), strict=True))
         # After the whole file has been read, do the actual counting
         for bcumi, molitem in molitems.items():
@@ -1597,9 +1563,10 @@ class ExInCounter:
                                 )  # “info/ivls/strandplus“
                                 info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
 
-                    self.inv_tridstart2ix: dict[str, int] = {}
-                    for i in range(len(info_tr_id)):
-                        self.inv_tridstart2ix[f"{info_tr_id[i]}_{info_start_end[i][0]}"] = i
+                    self.inv_tridstart2ix: dict[str, int] = {
+                        f"{info_tr_id[i]}_{info_start_end[i][0]}": i
+                        for i in range(len(info_tr_id))
+                    }
                     f.create_dataset(
                         "info/tr_id",
                         data=np.array(info_tr_id, dtype="S24"),
@@ -1680,7 +1647,7 @@ class ExInCounter:
                 count_i: int = 0
                 for mol_bc, molitem in molitems.items():
                     cell_name = mol_bc.split("$")[0]
-                    try:
+                    with contextlib.suppress(StopIteration):
                         for match in next(iter(molitem.mappings_record.items()))[1]:
                             mol[cell_name].append(count_i)
                             pos[cell_name].append(match.segment)
@@ -1688,8 +1655,6 @@ class ExInCounter:
                                 self.inv_tridstart2ix[f"{match.feature.transcript_model.trid}_{match.feature.start}"]
                             )
                         count_i += 1
-                    except StopIteration:
-                        pass  # An empty or chimeric molitem ?
                 # Do the last cell and close the file
                 for cell_name in mol.keys():
                     posA = np.array(pos[cell_name], dtype=np.int32)

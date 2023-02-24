@@ -97,7 +97,7 @@ def _run(
                 sampleid = f'multi_input_{bamfile[0].name.split(".")[0]}_{id_generator(5)}'
             else:
                 sampleid = f"multi_input_{full_name}_and_others_{id_generator(5)}"
-        elif multi and onefilepercell:
+        elif multi:
             sampleid = f'onefilepercell_{bamfile[0].name.split(".")[0]}_and_others_{id_generator(5)}'
         else:
             sampleid = f'{bamfile[0].name.split(".")[0]}_{id_generator(5)}'
@@ -114,10 +114,9 @@ def _run(
 
     if logic not in logicType:
         raise ValueError(f"{logic} is not a valid logic. Choose one among {', '.join([_.value for _ in logicType])}")
-    else:
-        logger.debug(f"Using logic: {logic}")
-        logic = choose_logic(logic)
-        logic_obj = logic()
+    logger.debug(f"Using logic: {logic}")
+    logic = choose_logic(logic)
+    logic_obj = logic()
 
     if bcfile is None:
         logger.debug("Cell barcodes will be determined while reading the .bam file")
@@ -326,9 +325,11 @@ def _run(
             clusters_pd = clusters_pd[clusters_pd["Barcode"].isin(cell_bcs_order)]
             additional_ca["Clusters"] = clusters_pd["Cluster"].to_numpy(dtype="int16") - 1
 
-    ca = {"CellID": np.array([f"{sampleid}:{v_bc}{gem_grp}" for v_bc in cell_bcs_order])}
-    ca.update(additional_ca)
-
+    ca = {
+        "CellID": np.array(
+            [f"{sampleid}:{v_bc}{gem_grp}" for v_bc in cell_bcs_order]
+        )
+    } | additional_ca
     for key, value in sample.items():
         ca[key] = np.full(len(cell_bcs_order), value)
 
@@ -392,7 +393,7 @@ def _run(
                 },
             )
             logger.debug(f"Successfully wrote to {outfile}")
-        
+
         except TypeError as e:
             logger.error(e)
             sys.exit()

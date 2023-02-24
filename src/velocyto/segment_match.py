@@ -21,16 +21,12 @@ class SegmentMatch:
     @property
     def skip_makes_sense(self) -> bool:
         """If the SKIP in the segment matches some extremity of the feature and therefore can be interpreted as a splice event"""
-        if not self.is_spliced:
-            return True  # NOTE: maybe here I should raise an error because the property is not supposed to be called
-        else:
-            if (
-                abs(self.feature.start - self.segment[0]) <= SPLIC_INACUR
-                or abs(self.feature.end - self.segment[1]) <= SPLIC_INACUR
-            ):
-                return True
-            else:
-                return False
+        return (
+            abs(self.feature.start - self.segment[0]) <= SPLIC_INACUR
+            or abs(self.feature.end - self.segment[1]) <= SPLIC_INACUR
+            if self.is_spliced
+            else True
+        )
 
     def __repr__(self) -> str:
         txt = "<SegmentMatch "
