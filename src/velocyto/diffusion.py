@@ -84,7 +84,7 @@ class Diffusion:
         uv = uv / norms[:, None]  # Convert to unit vector
 
         # Project the velocity vectors onto edges, and clip to zero
-        scalar_projection = np.array([a.dot(b) for a, b in zip(v[v0], uv, strict=True)])  # Shape: (n_edges)
+        scalar_projection = np.array([a.dot(b) for a, b in zip(v[v0], uv)])  # Shape: (n_edges)
         if reverse:
             scalar_projection = -scalar_projection
         scalar_projection += epsilon

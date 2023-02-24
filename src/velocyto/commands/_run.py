@@ -65,6 +65,8 @@ def _run(
 
     loom_numeric_dtype = choose_dtype(loom_numeric_dtype)
 
+    if isinstance(bamfile, str) or isinstance(bamfile, Path):
+        bamfile = (bamfile,)
     if isinstance(bamfile, tuple) and len(bamfile) > 1 and bamfile.suffix in [".bam", ".sam"]:
         multi = True
     elif isinstance(bamfile, tuple) and len(bamfile) == 1:
@@ -374,23 +376,21 @@ def _run(
     if int(loompy.__version__.split(".")[0]) >= 2:
         try:
             # tmp_layers = {"": total.astype("float32", order="C", copy=False)}
-            # tmp_layers.update(
-            #     {
-            #         layer_name: layers[layer_name].astype(loom_numeric_dtype, copy=False)
-            #         for layer_name in logic_obj.layers
-            #     }
-            # )
-            tmp_layers = {"": total.astype("float32", order="C", copy=False)}
+            tmp_layers = {
+                layer_name: layers[layer_name].astype(loom_numeric_dtype, copy=False)
+                for layer_name in logic_obj.layers
+            }
+            # tmp_layers = {"": total.astype("float32", order="C", copy=False)}
             # | {k: tmp_layers[k].astype(loom_numeric_dtype, copy=False) for k in tmp_layers}
             loompy.create(
                 filename=str(outfile),
                 layers=tmp_layers,
                 row_attrs=ra,
                 col_attrs=ca,
-                file_attrs={
-                    "velocyto.__version__": version(__name__),
-                    "velocyto.logic": logic.name, # TODO: this doesn't work.  need to make string of logic type
-                },
+                # file_attrs={
+                #     "velocyto.__version__": version(__name__),
+                #     "velocyto.logic": logic.name, # TODO: this doesn't work.  need to make string of logic type
+                # },
             )
             logger.debug(f"Successfully wrote to {outfile}")
 
@@ -402,8 +402,8 @@ def _run(
             ds = loompy.create(filename=outfile, layers=total, row_attrs=ra, col_attrs=ca)
             for layer_name in logic_obj.layers:
                 ds.set_layer(name=layer_name, layers=layers[layer_name], dtype=loom_numeric_dtype)
-            ds.attrs["velocyto.__version__"] = version()
-            ds.attrs["velocyto.logic"] = logic
+            # ds.attrs["velocyto.__version__"] = version()
+            # ds.attrs["velocyto.logic"] = logic
             ds.close()
         except TypeError:
             sys.exit()

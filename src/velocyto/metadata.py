@@ -4,8 +4,8 @@ from typing import Any, Iterable
 
 class Metadata:
     def __init__(self, keys: list, values: list, types: Iterable) -> None:
-        self.types = dict(zip(keys, types, strict=True))
-        self.dict = dict(zip(keys, values, strict=True))
+        self.types = dict(zip(keys, types))
+        self.dict = dict(zip(keys, values))
         for ix in range(len(keys)):
             setattr(self, keys[ix], values[ix])
 

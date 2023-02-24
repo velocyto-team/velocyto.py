@@ -5,7 +5,7 @@ from rich.traceback import install
 
 from . import __version__, dropest_bc_correct, run, run10x, run_dropest, run_smartseq2
 
-install(show_locals=True)
+install(show_locals=True, width=300, extra_lines=6, word_wrap=True)
 
 logger.remove()
 
