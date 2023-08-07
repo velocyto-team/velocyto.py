@@ -34,6 +34,7 @@ try:
         elif type(v) == ro.methods.RS4:
             if not obj_to_obj:
                 return {k: convert_r_obj(v.slots[k]) for k in tuple(v.slotnames())}
+
             class RS4Object(object):
                 def __repr__(self) -> str:
                     return f"< RS4Object with attributes: {list(self.__dict__.keys())} >"

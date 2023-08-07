@@ -1,4 +1,3 @@
-
 # Should this all be dumped into a JSON file?
 MATCH_INSIDE = 1
 MATCH_OVER5END = 2

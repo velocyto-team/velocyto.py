@@ -15,11 +15,11 @@ import pandas as pd
 import scipy as sp
 from loguru import logger
 
-from .. import version
-from ..constants import BAM_COMPRESSION
-from ..counter import ExInCounter
-from ..metadata import MetadataCollection
-from .common import choose_dtype, choose_logic, id_generator, logicType
+from velocyto import version
+from velocyto.constants import BAM_COMPRESSION
+from velocyto.counter import ExInCounter
+from velocyto.metadata import MetadataCollection
+from velocyto.commands.common import choose_dtype, choose_logic, id_generator, logicType
 
 
 def _run(
@@ -265,7 +265,6 @@ def _run(
         else:
             exincounter.mark_up_introns(bamfile=bamfile, multimap=multimap)
 
-
     # Wait for child process to terminate
     if check_end_process:
         logger.info("Now just waiting that the bam sorting process terminates")
@@ -327,11 +326,7 @@ def _run(
             clusters_pd = clusters_pd[clusters_pd["Barcode"].isin(cell_bcs_order)]
             additional_ca["Clusters"] = clusters_pd["Cluster"].to_numpy(dtype="int16") - 1
 
-    ca = {
-        "CellID": np.array(
-            [f"{sampleid}:{v_bc}{gem_grp}" for v_bc in cell_bcs_order]
-        )
-    } | additional_ca
+    ca = {"CellID": np.array([f"{sampleid}:{v_bc}{gem_grp}" for v_bc in cell_bcs_order])} | additional_ca
     for key, value in sample.items():
         ca[key] = np.full(len(cell_bcs_order), value)
 
@@ -377,8 +372,7 @@ def _run(
         try:
             # tmp_layers = {"": total.astype("float32", order="C", copy=False)}
             tmp_layers = {
-                layer_name: layers[layer_name].astype(loom_numeric_dtype, copy=False)
-                for layer_name in logic_obj.layers
+                layer_name: layers[layer_name].astype(loom_numeric_dtype, copy=False) for layer_name in logic_obj.layers
             }
             # tmp_layers = {"": total.astype("float32", order="C", copy=False)}
             # | {k: tmp_layers[k].astype(loom_numeric_dtype, copy=False) for k in tmp_layers}

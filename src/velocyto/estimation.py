@@ -203,11 +203,11 @@ def _fit1_slope(y: np.ndarray, x: np.ndarray) -> float:
     else:
         result, _ = scipy.optimize.nnls(x[:, None], y)  # Fastest but costrains result >= 0
         return result[0]
-            # Second fastest: m, _ = scipy.optimize.leastsq(lambda m: x*m - y, x0=(0,))
-            # Third fastest: m = scipy.optimize.minimize_scalar(lambda m: np.sum((x*m - y)**2 )).x
-            # Before I was doinf fastest: scipy.optimize.minimize_scalar(lambda m: np.sum((y - m * x)**2), bounds=(0, 3), method="bounded").x
-            # Optionally one could clip m if high value make no sense
-            # m = np.clip(m,0,3)
+        # Second fastest: m, _ = scipy.optimize.leastsq(lambda m: x*m - y, x0=(0,))
+        # Third fastest: m = scipy.optimize.minimize_scalar(lambda m: np.sum((x*m - y)**2 )).x
+        # Before I was doinf fastest: scipy.optimize.minimize_scalar(lambda m: np.sum((y - m * x)**2), bounds=(0, 3), method="bounded").x
+        # Optionally one could clip m if high value make no sense
+        # m = np.clip(m,0,3)
 
 
 def _fit1_slope_weighted(
@@ -235,9 +235,7 @@ def _fit1_slope_weighted(
             method="bounded",
         ).x
     else:
-        m = scipy.optimize.minimize_scalar(
-            lambda m: np.sum(w * (x * m - y) ** 2), bounds=bounds, method="bounded"
-        ).x
+        m = scipy.optimize.minimize_scalar(lambda m: np.sum(w * (x * m - y) ** 2), bounds=bounds, method="bounded").x
     return m
 
 

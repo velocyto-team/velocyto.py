@@ -6,7 +6,7 @@ from sys import stderr
 
 from loguru import logger
 
-from .. import logic
+from velocyto import logic
 
 
 class logicType(str, Enum):
@@ -67,10 +67,9 @@ def choose_dtype(choice: loomdtype) -> str:
 
 
 def init_logger(verbose: int, msg_format: str = None) -> None:
-
     if msg_format is None:
-        msg_format="<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan>·-·<level>{message}</level>"
-    
+        msg_format = "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan>·-·<level>{message}</level>"
+
     logger.add(f"velocyto_{datetime.now().strftime('%d-%m-%Y--%H-%M-%S')}.log", level="DEBUG")
 
     if verbose == 3:

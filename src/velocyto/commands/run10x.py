@@ -1,14 +1,18 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Annotated
 
 import numpy as np
 import typer
 from loguru import logger
 
-from ._run import _run
-from .common import init_logger, logicType, loomdtype
+from velocyto.commands._run import _run
+from velocyto.commands.common import init_logger, logicType, loomdtype
 
-app = typer.Typer()  # name="velocyto-run10x", help="Run velocity analysis on 10X Genomics data")
+app = typer.Typer(
+    rich_markup_mode="markdown", 
+    help="Run velocity analysis on 10X Genomics data",
+    no_args_is_help=True,
+    )
 
 
 @app.callback(invoke_without_command=True)
@@ -18,79 +22,101 @@ app = typer.Typer()  # name="velocyto-run10x", help="Run velocity analysis on 10
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
 def run10x(
-    samplefolder: Path = typer.Argument(
-        ...,
-        exists=True,
-        dir_okay=True,
-        file_okay=False,
-        resolve_path=True,
-        readable=True,
-    ),
-    gtffile: Path = typer.Argument(..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
-    metadatatable: Optional[Path] = typer.Option(
-        None,
-        "-s",
-        "--metadatatable",
-        help="Table containing metadata of the various samples (csv fortmated rows are samples and cols are entries)",
-        resolve_path=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-    ),
-    mask: Optional[Path] = typer.Option(
-        None,
-        "-m",
-        "--mask",
-        help=".gtf file containing intervals to mask",
-        resolve_path=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-    ),
-    logic: logicType = typer.Option(
-        logicType.Permissive10X,
-        "--logic",
-        "-l",
-        help="The logic to use for the filtering",
-    ),
-    multimap: bool = typer.Option(
-        False,
-        "--multimap",
-        "-M",
-        help="""Consider not unique mappings (not reccomended)""",
-        is_flag=True,
-    ),
-    samtools_threads: int = typer.Option(
-        16,
-        "--samtools-threads",
-        "-@",
-        help="The number of threads to use to sort the bam by cellID file using samtools",
-    ),
-    samtools_memory: str = typer.Option(
-        "4G",
-        "--samtools-memory",
-        help="The amount of memory for samtools for each sorting thread. Accepts the same forms as samtools, so use # with K/M/G suffix",
-    ),
-    dtype: loomdtype = typer.Option(
-        loomdtype.uint16,
-        "--dtype",
-        "-t",
-        help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation",
-    ),  # why is this even an option?
-    dump: str = typer.Option(
-        "0",
-        "-d",
-        "--dump",
-        help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed.",
-        is_flag=True,
-    ),
-    verbose: int = typer.Option(
-        0,
-        "--verbose",
-        "-v",
-        help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)",
-        count=True,
-    ),
+    samplefolder: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            dir_okay=True,
+            file_okay=False,
+            resolve_path=True,
+            readable=True,
+        ),
+    ],
+    gtffile: Annotated[
+        Path, typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True)
+    ],
+    metadatatable: Annotated[
+        Optional[Path],
+        typer.Option(
+            "-s",
+            "--metadatatable",
+            help="Table containing metadata of the various samples (csv fortmated rows are samples and cols are entries)",
+            resolve_path=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = None,
+    mask: Annotated[
+        Optional[Path],
+        typer.Option(
+            "-m",
+            "--mask",
+            help=".gtf file containing intervals to mask",
+            resolve_path=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = None,
+    logic: Annotated[
+        logicType,
+        typer.Option(
+            "--logic",
+            "-l",
+            help="The logic to use for the filtering",
+        ),
+    ] = logicType.Permissive10X,
+    multimap: Annotated[
+        bool,
+        typer.Option(
+            "--multimap",
+            "-M",
+            help="""Consider not unique mappings (not reccomended)""",
+            is_flag=True,
+        ),
+    ] = False,
+    samtools_threads: Annotated[
+        int,
+        typer.Option(
+            "--samtools-threads",
+            "-@",
+            help="The number of threads to use to sort the bam by cellID file using samtools",
+        ),
+    ] = 16,
+    samtools_memory: Annotated[
+        str,
+        typer.Option(
+            "--samtools-memory",
+            help="The amount of memory for samtools for each sorting thread. Accepts the same forms as samtools, so use # with K/M/G suffix",
+        ),
+    ] = "4G",
+    dtype: Annotated[
+        loomdtype,
+        typer.Option(
+            "--dtype",
+            "-t",
+            help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation",
+        ),
+    ] = loomdtype.uint16,  # why is this even an option?
+    dump: Annotated[
+        str,
+        typer.Option(
+            "-d",
+            "--dump",
+            help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed.",
+            is_flag=True,
+        ),
+    ] = "0",
+    verbose: Annotated[
+        int,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Set the vebosity level: -v (only warinings) -vv (warinings and info) -vvv (warinings, info and debug)",
+            count=True,
+        ),
+    ] = 0,
     # ctx: typer.Context = typer.Option(
     #     ..., help="Extra options to pass to the job script"
     # ),

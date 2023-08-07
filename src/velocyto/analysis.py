@@ -286,9 +286,7 @@ class VelocytoLoom:
         To perform the filtering use the method `filter_genes`
         """
         if which == "S":
-            if winsorize and min_expr_cells <= (
-                (100 - winsor_perc[1]) * self.S.shape[1] * 0.01
-            ):
+            if winsorize and min_expr_cells <= ((100 - winsor_perc[1]) * self.S.shape[1] * 0.01):
                 min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.S.shape[0] * 0.01)) + 2
                 logger.debug(
                     f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, upgrading to min_expr_cells ={min_expr_cells}"
@@ -349,9 +347,7 @@ class VelocytoLoom:
             self.cv_mean_score[detected_bool] = score
             self.cv_mean_selected = self.cv_mean_score >= nth_score
         else:
-            if winsorize and min_expr_cells <= (
-                (100 - winsor_perc[1]) * self.U.shape[1] * 0.01
-            ):
+            if winsorize and min_expr_cells <= ((100 - winsor_perc[1]) * self.U.shape[1] * 0.01):
                 min_expr_cells = int(np.ceil((100 - winsor_perc[1]) * self.U.shape[0] * 0.01)) + 2
                 logger.debug(
                     f"min_expr_cells is too low for winsorization with upper_perc ={winsor_perc[1]}, upgrading to min_expr_cells ={min_expr_cells}"
@@ -2134,9 +2130,7 @@ class VelocytoLoom:
                 estim_delta_rndm = hi_dim.dot(self.transition_prob_random.T) - hi_dim.dot(
                     (self.embedding_knn.A / self.embedding_knn.sum(1).A).T
                 )
-                cos_proj_rndm = (self.delta_S_rndm * estim_delta_rndm).sum(0) / np.sqrt(
-                    (estim_delta_rndm**2).sum(0)
-                )
+                cos_proj_rndm = (self.delta_S_rndm * estim_delta_rndm).sum(0) / np.sqrt((estim_delta_rndm**2).sum(0))
                 self.scaling_rndm = np.clip(cos_proj_rndm / scaling_penalty, 0, 1)
                 self.delta_embedding_random = self.delta_embedding_random * self.scaling_rndm[:, None]
 
@@ -2924,12 +2918,7 @@ def scatter_viz(x: np.ndarray, y: np.ndarray, *args: Any, **kwargs: Any) -> Any:
             kwargs_new[karg] = varg[ix_x_sort][ix_yx_sort]
         else:
             kwargs_new[karg] = varg
-    return plt.scatter(
-        x[ix_x_sort][ix_yx_sort],
-        y[ix_x_sort][ix_yx_sort],
-        *args_new,
-        **kwargs_new
-    )
+    return plt.scatter(x[ix_x_sort][ix_yx_sort], y[ix_x_sort][ix_yx_sort], *args_new, **kwargs_new)
 
 
 def ixs_thatsort_a2b(a: np.ndarray, b: np.ndarray, check_content: bool = True) -> np.ndarray:

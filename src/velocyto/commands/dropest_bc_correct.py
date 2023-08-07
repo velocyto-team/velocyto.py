@@ -1,28 +1,31 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Annotated
 
 import pysam
 import typer
 from loguru import logger
 
-app = typer.Typer(name="velocyto-run", help="Correct barcodes for DropEst data")
+app = typer.Typer(name="velocyto-run", help="Correct barcodes for DropEst data",rich_markup_mode="markdown", 
+    no_args_is_help=True,)
 
 
 @app.callback(invoke_without_command=True)
 @app.command(name="dropest_bc_correct")
 def dropest_bc_correct(
-    bamfilepath: Path = typer.Argument(
-        ..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
-    ),
-    dropest_out: Path = typer.Argument(
-        ..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True
-    ),
-    corrected_output: Optional[Path] = typer.Option(
-        None,
-        "-o",
-        "--corrected-output",
-        help="The file output of the output bam file. Otherwise the file will be outputted in the same folder of the input with the prefix `correct_`",
-    ),
+    bamfilepath: Annotated[
+        Path, typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True)
+    ],
+    dropest_out: Annotated[
+        Path, typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True)
+    ],
+    corrected_output: Annotated[
+        Optional[Path],
+        typer.Option(
+            "-o",
+            "--corrected-output",
+            help="The file output of the output bam file. Otherwise the file will be outputted in the same folder of the input with the prefix `correct_`",
+        ),
+    ] = None,
 ) -> None:
     """Using the output of DropEst:
     (1) Corrects barcodes directly in the bam file
@@ -38,9 +41,8 @@ def dropest_bc_correct(
 
         from ..r_interface import convert_r_obj
     except Exception:
-        ImportError(
-            "A problem was encountered importing rpy2. To run this `velocyto tools` rpy2 and R need to be installed (the use conda is recommended)"
-        )
+        msg = "A problem was encountered importing rpy2. To run this `velocyto tools` rpy2 and R need to be installed (the use conda is recommended)"
+        ImportError(msg)
 
     parentpath = bamfilepath.parent
     bamfilename = bamfilepath.name

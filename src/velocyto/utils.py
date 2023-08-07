@@ -107,11 +107,7 @@ def spliced_iter(segments_list: list[SegmentMatch], read_len: int = 99) -> Itera
             sm_list = [sm]
             while segments_list[0].is_spliced:
                 sm_list.append(segments_list.pop(0))
-                if (
-                    sum(s.segment[1] - s.segment[0] + 1 for s in sm_list)
-                    + segments_list[0]
-                    > read_len
-                ):
+                if sum(s.segment[1] - s.segment[0] + 1 for s in sm_list) + segments_list[0] > read_len:
                     break
             if len(segments_list) != 2:
                 # just for safety let's ignore those counts otherwise we could make a mess

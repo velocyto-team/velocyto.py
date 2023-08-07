@@ -400,7 +400,6 @@ class ExInCounter:
         curr_chromstrand: str = chromstrand
 
         for line in tqdm(gtf_lines, desc="parsing GTF"):
-
             fields = line.rstrip().split("\t")
             (
                 chrom,
@@ -465,12 +464,8 @@ class ExInCounter:
         logger.debug("Assigning indexes to genes")
         for trmodel in features.values():
             if trmodel.geneid in self.geneid2ix:
-                self.genes[trmodel.geneid].start = min(
-                    self.genes[trmodel.geneid].start, trmodel.start
-                )
-                self.genes[trmodel.geneid].end = max(
-                    self.genes[trmodel.geneid].end, trmodel.end
-                )
+                self.genes[trmodel.geneid].start = min(self.genes[trmodel.geneid].start, trmodel.start)
+                self.genes[trmodel.geneid].end = max(self.genes[trmodel.geneid].end, trmodel.end)
             else:
                 self.geneid2ix[trmodel.geneid] = len(self.geneid2ix)
                 self.genes[trmodel.geneid] = GeneInfo(
@@ -658,9 +653,7 @@ class ExInCounter:
 
         if not flag:
             return gtf_lines
-        logger.warning(
-            "The entry exon_number was not present in the gtf file. It will be infferred from the position."
-        )
+        logger.warning("The entry exon_number was not present in the gtf file. It will be infferred from the position.")
         regex_trid = re.compile('transcript_id "([^"]+)"')
         min_info_lines_minus: list[list] = []
         min_info_lines_plus: list[list] = []
@@ -749,7 +742,7 @@ class ExInCounter:
         # Read the file
         currchrom = ""
         set_chromosomes_seen: set[str] = set()
-            # TODO: feel like self.iter_alignments should not be a generator as we are currently running through it twice?
+        # TODO: feel like self.iter_alignments should not be a generator as we are currently running through it twice?
         for r in tqdm(self.iter_alignments(bamfile, unique=not multimap), desc="Ingesting reads"):
             # Don't consider spliced reads (exonic) in this step
             # NOTE Can the exon be so short that we get splicing and exon-intron boundary
@@ -775,9 +768,7 @@ class ExInCounter:
             if r.chrom != currchrom:
                 logger.debug(f"{r.chrom=}, {currchrom=}")
                 if r.chrom in set_chromosomes_seen:
-                    raise IOError(
-                        f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)"
-                    )
+                    raise IOError(f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)")
                 set_chromosomes_seen.add(r.chrom)
                 logger.debug(f"Marking up chromosome {r.chrom}")
                 currchrom = r.chrom
@@ -841,7 +832,7 @@ class ExInCounter:
         # Analysis is cell wise so the Feature Index swapping is happening often and it is worth to preload everything in memory
         # NOTE: for the features this was already done at markup time, maybe I should just reset them
         self.feature_indexes: DefaultDict[str, FeatureIndex] = defaultdict(FeatureIndex)
-        for (chromstrand_key, annotions_ordered_dict) in tqdm(
+        for chromstrand_key, annotions_ordered_dict in tqdm(
             self.annotations_by_chrm_strand.items(), desc="Count molecules - feature indexes"
         ):
             self.feature_indexes[chromstrand_key] = FeatureIndex(
@@ -862,9 +853,7 @@ class ExInCounter:
         n_is_intron = 0
         n_is_intron_valid = 0
         unique_valid = set()
-        for _, feature_index in tqdm(
-            self.feature_indexes.items(), desc="Count molecules - validate introns"
-        ):
+        for _, feature_index in tqdm(self.feature_indexes.items(), desc="Count molecules - validate introns"):
             for ivl in feature_index.ivls:
                 if ivl.kind == ord("i"):
                     n_is_intron += 1
@@ -995,9 +984,7 @@ class ExInCounter:
         for bcumi, molitem in molitems.items():
             bc = bcumi.split("$")[0]  # extract the bc part from the bc+umi
             bcidx = bc2idx[bc]
-            if rcode := self.logic.count(
-                molitem, bcidx, dict_layers_columns, self.geneid2ix
-            ):
+            if rcode := self.logic.count(molitem, bcidx, dict_layers_columns, self.geneid2ix):
                 failures += 1
                 counter[rcode] += 1
                 # before it was molitem.count(bcidx, spliced, unspliced, ambiguous, self.geneid2ix)
@@ -1063,8 +1050,7 @@ class ExInCounter:
                                 info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
 
                     self.inv_tridstart2ix: dict[str, int] = {
-                        f"{info_tr_id[i]}_{info_start_end[i][0]}": i
-                        for i in range(len(info_tr_id))
+                        f"{info_tr_id[i]}_{info_start_end[i][0]}": i for i in range(len(info_tr_id))
                     }
                     f.create_dataset(
                         "info/tr_id",
@@ -1246,8 +1232,7 @@ class ExInCounter:
         shape = (len(self.geneid2ix), len(self.cell_batch))
 
         dict_layers_columns: dict[str, np.ndarray] = {
-            layer_name: sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
-            for layer_name in self.logic.layers
+            layer_name: sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype) for layer_name in self.logic.layers
         }
         bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
@@ -1309,8 +1294,7 @@ class ExInCounter:
                                 info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
 
                     self.inv_tridstart2ix: dict[str, int] = {
-                        f"{info_tr_id[i]}_{info_start_end[i][0]}": i
-                        for i in range(len(info_tr_id))
+                        f"{info_tr_id[i]}_{info_start_end[i][0]}": i for i in range(len(info_tr_id))
                     }
                     f.create_dataset(
                         "info/tr_id",
@@ -1501,8 +1485,7 @@ class ExInCounter:
         shape = (len(self.geneid2ix), len(self.cell_batch))
 
         dict_layers_columns: dict[str, np.ndarray] = {
-            layer_name: sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype)
-            for layer_name in self.logic.layers
+            layer_name: sp.sparse.lil_array(shape, dtype=self.loom_numeric_dtype) for layer_name in self.logic.layers
         }
         bc2idx: dict[str, int] = dict(zip(self.cell_batch, range(len(self.cell_batch))))
         # After the whole file has been read, do the actual counting
@@ -1564,8 +1547,7 @@ class ExInCounter:
                                 info_chrm.append(v2_ivl.transcript_model.chromstrand[:-1])  # “info/ivls/chrm“
 
                     self.inv_tridstart2ix: dict[str, int] = {
-                        f"{info_tr_id[i]}_{info_start_end[i][0]}": i
-                        for i in range(len(info_tr_id))
+                        f"{info_tr_id[i]}_{info_start_end[i][0]}": i for i in range(len(info_tr_id))
                     }
                     f.create_dataset(
                         "info/tr_id",

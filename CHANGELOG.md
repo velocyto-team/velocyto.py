@@ -1,5 +1,13 @@
 # Changelog
 
+** [0.29.0] - 2023-08-07
+
+*** Changed
+
+- Updated to require Python 3.10 as minimum version
+- Updated to use Typer 0.9.0
+- Updated dependencies
+
 ** [0.28.0] - 2023-02-24
 
 *** Changed

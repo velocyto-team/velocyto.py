@@ -121,3 +121,4 @@ cython_debug/
 *.log
 
 *.pickle
+test.py

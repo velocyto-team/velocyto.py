@@ -170,60 +170,31 @@ class Permissive10X(Logic):
             # No gene is compatible with the observation, do not count
             return 2
         if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
-            return self._extracted_from_count_(
-                geneid2ix, transcript_model, spliced, cell_bcidx
-            )
+            return self._extracted_from_count_(geneid2ix, transcript_model, spliced, cell_bcidx)
         if has_only_span_exin_model:
-            return self._extracted_from_count_(
-                geneid2ix, transcript_model, unspliced, cell_bcidx
-            )
+            return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
         if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
-            return self._extracted_from_count_(
-                geneid2ix, transcript_model, unspliced, cell_bcidx
-            )
+            return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
         if (
-                            has_onlyintron_model
-                            and not has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
-            return self._extracted_from_count_(
-                geneid2ix, transcript_model, unspliced, cell_bcidx
-            )
-        if (
-            has_invalid_mixed_model
-            and not has_valid_mixed_model
-            and not has_onlyintron_model
+            has_onlyintron_model
+            and not has_onlyintron_and_valid_model
+            and not has_mixed_model
             and not has_onlyexo_model
         ):
-            return self._extracted_from_count_(
-                geneid2ix, transcript_model, unspliced, cell_bcidx
-            )
-        if (
-            has_valid_mixed_model
-            and not has_onlyintron_model
-            and not has_onlyexo_model
-        ):
-            return self._extracted_from_count_(
-                geneid2ix, transcript_model, unspliced, cell_bcidx
-            )
+            return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
+        if has_invalid_mixed_model and not has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model:
+            return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
+        if has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model:
+            return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
         if has_onlyintron_model:
             if has_onlyexo_model and not has_mixed_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, ambiguous, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
             if not has_onlyexo_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, unspliced, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
         if not has_onlyintron_model and has_onlyexo_model:
-            return self._extracted_from_count_(
-                geneid2ix, transcript_model, ambiguous, cell_bcidx
-            )
+            return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
         if has_onlyintron_model:
-            return self._extracted_from_count_(
-                geneid2ix, transcript_model, ambiguous, cell_bcidx
-            )
+            return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
         return 4
 
     # TODO Rename this here and in `count`
@@ -280,7 +251,7 @@ class Intermediate10X(Logic):
         spliced = dict_layers_columns["spliced"]
         unspliced = dict_layers_columns["unspliced"]
         ambiguous = dict_layers_columns["ambiguous"]
-            # Check that there are not different possible genes ??
+        # Check that there are not different possible genes ??
         if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
             gene_check: set[str] = set()
 
@@ -342,23 +313,17 @@ class Intermediate10X(Logic):
                 # no gene is compatible with the observation, do not count
                 return
             if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, spliced, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, spliced, cell_bcidx)
             if has_only_span_exin_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, unspliced, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
             if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, unspliced, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
             if (
-                            has_onlyintron_model
-                            and not has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                has_onlyintron_model
+                and not has_onlyintron_and_valid_model
+                and not has_mixed_model
+                and not has_onlyexo_model
+            ):
                 if len(segments_list) != 1:
                     # Non-singleton in non-validated intron
                     gene_ix = geneid2ix[transcript_model.geneid]
@@ -373,31 +338,17 @@ class Intermediate10X(Logic):
             ):
                 # Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant.
                 return
-            if (
-                has_valid_mixed_model
-                and not has_onlyintron_model
-                and not has_onlyexo_model
-            ):
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, unspliced, cell_bcidx
-                )
+            if has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model:
+                return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
             if has_onlyintron_model:
                 if has_onlyexo_model and not has_mixed_model:
-                    return self._extracted_from_count_(
-                        geneid2ix, transcript_model, ambiguous, cell_bcidx
-                    )
+                    return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
                 if not has_onlyexo_model:
-                    return self._extracted_from_count_(
-                        geneid2ix, transcript_model, ambiguous, cell_bcidx
-                    )
+                    return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
             if not has_onlyintron_model and has_onlyexo_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, ambiguous, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
             if has_onlyintron_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, ambiguous, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
 
     # TODO Rename this here and in `count`
     def _extracted_from_count_(self, geneid2ix, transcript_model, arg2, cell_bcidx):
@@ -514,23 +465,17 @@ class ValidatedIntrons10X(Logic):
                 # no gene is compatible with the observation, do not count
                 return
             if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
-                return self._extracted_from_count_78(
-                    geneid2ix, transcript_model, spliced, cell_bcidx
-                )
+                return self._extracted_from_count_78(geneid2ix, transcript_model, spliced, cell_bcidx)
             if has_only_span_exin_model:
-                return self._extracted_from_count_78(
-                    geneid2ix, transcript_model, unspliced, cell_bcidx
-                )
+                return self._extracted_from_count_78(geneid2ix, transcript_model, unspliced, cell_bcidx)
             if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
-                return self._extracted_from_count_78(
-                    geneid2ix, transcript_model, unspliced, cell_bcidx
-                )
+                return self._extracted_from_count_78(geneid2ix, transcript_model, unspliced, cell_bcidx)
             if (
-                            has_onlyintron_model
-                            and not has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                has_onlyintron_model
+                and not has_onlyintron_and_valid_model
+                and not has_mixed_model
+                and not has_onlyexo_model
+            ):
                 # Singleton in non-validated intron
                 return
             if (
@@ -541,31 +486,17 @@ class ValidatedIntrons10X(Logic):
             ):
                 # Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant.
                 return
-            if (
-                has_valid_mixed_model
-                and not has_onlyintron_model
-                and not has_onlyexo_model
-            ):
-                return self._extracted_from_count_78(
-                    geneid2ix, transcript_model, unspliced, cell_bcidx
-                )
+            if has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model:
+                return self._extracted_from_count_78(geneid2ix, transcript_model, unspliced, cell_bcidx)
             if has_onlyintron_model:
                 if has_onlyexo_model and not has_mixed_model:
-                    return self._extracted_from_count_78(
-                        geneid2ix, transcript_model, ambiguous, cell_bcidx
-                    )
+                    return self._extracted_from_count_78(geneid2ix, transcript_model, ambiguous, cell_bcidx)
                 if not has_onlyexo_model:
-                    return self._extracted_from_count_78(
-                        geneid2ix, transcript_model, ambiguous, cell_bcidx
-                    )
+                    return self._extracted_from_count_78(geneid2ix, transcript_model, ambiguous, cell_bcidx)
             if not has_onlyintron_model and has_onlyexo_model:
-                return self._extracted_from_count_78(
-                    geneid2ix, transcript_model, ambiguous, cell_bcidx
-                )
+                return self._extracted_from_count_78(geneid2ix, transcript_model, ambiguous, cell_bcidx)
             if has_onlyintron_model:
-                return self._extracted_from_count_78(
-                    geneid2ix, transcript_model, ambiguous, cell_bcidx
-                )
+                return self._extracted_from_count_78(geneid2ix, transcript_model, ambiguous, cell_bcidx)
 
     # TODO Rename this here and in `count`
     def _extracted_from_count_78(self, geneid2ix, transcript_model, arg2, cell_bcidx):
@@ -617,7 +548,7 @@ class Stricter10X(Logic):
         spliced = dict_layers_columns["spliced"]
         unspliced = dict_layers_columns["unspliced"]
         ambiguous = dict_layers_columns["ambiguous"]
-            # Check that there are not different possible genes ??
+        # Check that there are not different possible genes ??
         if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
             gene_check: set[str] = set()
 
@@ -679,13 +610,9 @@ class Stricter10X(Logic):
                 # no gene is compatible with the observation, do not count
                 return
             if has_onlyexo_model and not has_onlyintron_model and not has_mixed_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, spliced, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, spliced, cell_bcidx)
             if has_only_span_exin_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, unspliced, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
             if has_onlyintron_and_valid_model and not has_mixed_model and not has_onlyexo_model:
                 if len(segments_list) != 1:
                     # Non singleton in validated intron
@@ -694,11 +621,11 @@ class Stricter10X(Logic):
                 # Singleton in validated intron, do not count
                 return
             if (
-                            has_onlyintron_model
-                            and not has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                has_onlyintron_model
+                and not has_onlyintron_and_valid_model
+                and not has_mixed_model
+                and not has_onlyexo_model
+            ):
                 # Singleton in non-validated intron
                 return
             if (
@@ -709,31 +636,17 @@ class Stricter10X(Logic):
             ):
                 # Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant.
                 return
-            if (
-                has_valid_mixed_model
-                and not has_onlyintron_model
-                and not has_onlyexo_model
-            ):
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, unspliced, cell_bcidx
-                )
+            if has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model:
+                return self._extracted_from_count_(geneid2ix, transcript_model, unspliced, cell_bcidx)
             if has_onlyintron_model:
                 if has_onlyexo_model and not has_mixed_model:
-                    return self._extracted_from_count_(
-                        geneid2ix, transcript_model, ambiguous, cell_bcidx
-                    )
+                    return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
                 if not has_onlyexo_model:
-                    return self._extracted_from_count_(
-                        geneid2ix, transcript_model, ambiguous, cell_bcidx
-                    )
+                    return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
             if not has_onlyintron_model and has_onlyexo_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, ambiguous, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
             if has_onlyintron_model:
-                return self._extracted_from_count_(
-                    geneid2ix, transcript_model, ambiguous, cell_bcidx
-                )
+                return self._extracted_from_count_(geneid2ix, transcript_model, ambiguous, cell_bcidx)
 
     # TODO Rename this here and in `count`
     def _extracted_from_count_(self, geneid2ix, transcript_model, arg2, cell_bcidx):
@@ -789,7 +702,7 @@ class ObservedSpanning10X(Logic):
         spliced = dict_layers_columns["spliced"]
         unspliced = dict_layers_columns["unspliced"]
         ambiguous = dict_layers_columns["ambiguous"]
-            # Check that there are not different possible genes ??
+        # Check that there are not different possible genes ??
         if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
             gene_check: set[str] = set()
 
@@ -864,11 +777,11 @@ class ObservedSpanning10X(Logic):
                 # Singleton in validated intron, do not count
                 return
             if (
-                            has_onlyintron_model
-                            and not has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                has_onlyintron_model
+                and not has_onlyintron_and_valid_model
+                and not has_mixed_model
+                and not has_onlyexo_model
+            ):
                 # Singleton in non-validated intron
                 return
             if (
@@ -879,11 +792,7 @@ class ObservedSpanning10X(Logic):
             ):
                 # Not validated and mapping to exon and introns, happens rarely in 10X / irrelevant.
                 return
-            if (
-                has_valid_mixed_model
-                and not has_onlyintron_model
-                and not has_onlyexo_model
-            ):
+            if has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model:
                 # Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.
                 gene_ix = geneid2ix[transcript_model.geneid]
                 unspliced[gene_ix, cell_bcidx] += 1
@@ -949,7 +858,7 @@ class Discordant10X(Logic):
         spliced = dict_layers_columns["spliced"]
         unspliced = dict_layers_columns["unspliced"]
         ambiguous = dict_layers_columns["ambiguous"]
-            # Check that there are not different possible genes ??
+        # Check that there are not different possible genes ??
         if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
             gene_check: set[str] = set()
 
@@ -1026,11 +935,11 @@ class Discordant10X(Logic):
                 unspliced[gene_ix, cell_bcidx] += 1
                 return
             if (
-                            has_onlyintron_model
-                            and not has_onlyintron_and_valid_model
-                            and not has_mixed_model
-                            and not has_onlyexo_model
-                        ):
+                has_onlyintron_model
+                and not has_onlyintron_and_valid_model
+                and not has_mixed_model
+                and not has_onlyexo_model
+            ):
                 # Singleton in non-validated intron
                 gene_ix = geneid2ix[transcript_model.geneid]
                 unspliced[gene_ix, cell_bcidx] += 1
@@ -1045,11 +954,7 @@ class Discordant10X(Logic):
                 gene_ix = geneid2ix[transcript_model.geneid]
                 unspliced[gene_ix, cell_bcidx] += 1
                 return
-            if (
-                has_valid_mixed_model
-                and not has_onlyintron_model
-                and not has_onlyexo_model
-            ):
+            if has_valid_mixed_model and not has_onlyintron_model and not has_onlyexo_model:
                 # Validated and mapping to exon and introns, happens rarely in 10X. Count as unspliced.
                 gene_ix = geneid2ix[transcript_model.geneid]
                 unspliced[gene_ix, cell_bcidx] += 1
@@ -1117,7 +1022,7 @@ class SmartSeq2(Logic):
         ambiguous = dict_layers_columns["ambiguous"]
         spanning = dict_layers_columns["spanning"]
 
-            # Check that there are not different possible genes ??
+        # Check that there are not different possible genes ??
         if len({i.geneid for i in molitem.mappings_record.keys()}) == 1:
             gene_check: set[str] = set()
 

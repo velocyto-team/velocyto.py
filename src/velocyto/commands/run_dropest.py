@@ -1,88 +1,111 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Annotated
 
 import typer
 from loguru import logger
 
-from ._run import _run
-from .common import init_logger, logicType, loomdtype
+from velocyto.commands._run import _run
+from velocyto.commands.common import init_logger, logicType, loomdtype
 
-app = typer.Typer(name="velocyto-dropest", help="Run velocity analysis on DropEst data")
+app = typer.Typer(name="velocyto-dropest", help="Run velocity analysis on DropEst data",rich_markup_mode="markdown", 
+    no_args_is_help=True,)
 
 
 @app.callback(invoke_without_command=True)
 @app.command(help="Runs the velocity analysis on DropEst preprocessed data")
 def run_dropest(
-    bamfile: Path = typer.Argument(..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
-    gtffile: Path = typer.Argument(..., exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True),
-    bcfile: Optional[Path] = typer.Option(
-        None,
-        "-b",
-        "--bcfile",
-        help="Valid barcodes file, to filter the bam. If --bcfile is not specified the file will be searched in the default position outputted by ``velocyto tools dropest_bc_correct``. Otherwise an error will be thrown",
-        resolve_path=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-    ),
-    logic: logicType = typer.Option(
-        logicType.Permissive10X, "-l", "--logic", help="The logic to use for the filtering"
-    ),
-    outputfolder: Optional[Path] = typer.Option(
-        None,
-        "-o",
-        "--outputfolder",
-        help="Output folder, if it does not exist it will be created.",
-        exists=False,
-    ),
-    sampleid: Optional[Path] = typer.Option(
-        None,
-        "--sampleid",
-        "-e",
-        help="The sample name that will be used as a the filename of the output.",
-        exists=False,
-    ),
-    repmask: Optional[Path] = typer.Option(
-        None,
-        "-m",
-        "--repmask",
-        help=".gtf file containing intervals to mask ",
-        resolve_path=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-    ),
-    samtools_threads: int = typer.Option(
-        16,
-        "-@",
-        "--samtools-threads",
-        help="The number of threads to use to sort the bam by cellID file using samtools",
-    ),
-    samtools_memory: str = typer.Option(
-        "4G",
-        "--samtools-memory",
-        help="The amount of memory for samtools for each sorting thread. Accepts the same forms as samtools, so use # with K/M/G suffix",
-    ),
-    dtype: loomdtype = typer.Option(
-        loomdtype.uint32,
-        "-t",
-        "--dtype",
-        help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation",
-    ),
-    dump: str = typer.Option(
-        "0",
-        "-d",
-        "--dump",
-        help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed",
-    ),
-    verbose: int = typer.Option(
-        0,
-        "-v",
-        "--verbose",
-        help="Set the vebosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)",
-        count=True,
-    ),
-    additional_ca: typer.Context = typer.Option(...),
+    bamfile: Annotated[
+        Path, typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True)
+    ],
+    gtffile: Annotated[
+        Path, typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True)
+    ],
+    bcfile: Annotated[
+        Optional[Path],
+        typer.Option(
+            "-b",
+            "--bcfile",
+            help="Valid barcodes file, to filter the bam. If --bcfile is not specified the file will be searched in the default position outputted by ``velocyto tools dropest_bc_correct``. Otherwise an error will be thrown",
+            resolve_path=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = None,
+    logic: Annotated[
+        logicType, typer.Option("-l", "--logic", help="The logic to use for the filtering")
+    ] = logicType.Permissive10X,
+    outputfolder: Annotated[
+        Optional[Path],
+        typer.Option(
+            "-o",
+            "--outputfolder",
+            help="Output folder, if it does not exist it will be created.",
+            exists=False,
+        ),
+    ] = None,
+    sampleid: Annotated[
+        Optional[Path],
+        typer.Option(
+            "--sampleid",
+            "-e",
+            help="The sample name that will be used as a the filename of the output.",
+            exists=False,
+        ),
+    ] = None,
+    repmask: Annotated[
+        Optional[Path],
+        typer.Option(
+            "-m",
+            "--repmask",
+            help=".gtf file containing intervals to mask ",
+            resolve_path=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = None,
+    samtools_threads: Annotated[
+        int,
+        typer.Option(
+            "-@",
+            "--samtools-threads",
+            help="The number of threads to use to sort the bam by cellID file using samtools",
+        ),
+    ] = 16,
+    samtools_memory: Annotated[
+        str,
+        typer.Option(
+            "--samtools-memory",
+            help="The amount of memory for samtools for each sorting thread. Accepts the same forms as samtools, so use # with K/M/G suffix",
+        ),
+    ] = "4G",
+    dtype: Annotated[
+        loomdtype,
+        typer.Option(
+            "-t",
+            "--dtype",
+            help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are expected set uint32 to avoid truncation",
+        ),
+    ] = loomdtype.uint32,
+    dump: Annotated[
+        str,
+        typer.Option(
+            "-d",
+            "--dump",
+            help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a cell every N cells. If p is prepended a more complete (but huge) pickle report is printed",
+        ),
+    ] = "0",
+    verbose: Annotated[
+        int,
+        typer.Option(
+            "-v",
+            "--verbose",
+            help="Set the vebosity level: -v (only warnings) -vv (warnings and info) -vvv (warnings, info and debug)",
+            count=True,
+        ),
+    ] = 0,
+    additional_ca: Annotated[tuple[str], typer.Option()] = None,
 ) -> None:
     """Runs the velocity analysis on DropEst preprocessed data
 

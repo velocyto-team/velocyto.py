@@ -207,9 +207,7 @@ def knn_balance(
                 return_distance=True,
             )
             if constraint is not None
-            else balance_knn_loop(
-                dsi, dist, lsi, maxl, k, return_distance=True
-            )
+            else balance_knn_loop(dsi, dist, lsi, maxl, k, return_distance=True)
         )
     dist = np.ones(dsi.shape, dtype="float64")
     dist[:, 0] = 0

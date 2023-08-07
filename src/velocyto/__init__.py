@@ -10,6 +10,12 @@ from math import isclose
 
 from numpy import arange
 
+from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
+import warnings
+
+warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
+warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+
 # from .analysis import VelocytoLoom, ixs_thatsort_a2b, load_velocyto_hdf5, scatter_viz
 # from .constants import *
 # from .counter import ExInCounter
