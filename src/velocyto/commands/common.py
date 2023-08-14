@@ -53,7 +53,6 @@ def choose_logic(choice: logicType) -> logic.Logic:
         return logic.SmartSeq2
     else:
         logger.error(f"{choice.value} is not a valid logic type")
-        print(f"{choice.value} is invalid. Please choose a valid option.")
         exit()
 
 

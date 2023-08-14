@@ -1,7 +1,6 @@
 import typer
 from loguru import logger
 from rich.console import Console
-from rich.traceback import install
 
 from velocyto import __version__
 from velocyto.commands import dropest_bc_correct, run, run10x, run_dropest, run_smartseq2
@@ -30,6 +29,7 @@ velocyto = typer.Typer(
 
 velocyto.add_typer(run10x.app, name="run10x")
 velocyto.add_typer(run.app, name="run")
+velocyto.add_typer(run_smartseq2.app, name="run_smartseq2")
 velocyto.add_typer(dropest_bc_correct.app, name="dropest_bc_correct")
 
 # velocyto.add_typer(run_smartseq2.app, name="runsmartseq2")

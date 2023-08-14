@@ -6,15 +6,19 @@ import typer
 from velocyto.commands._run import _run
 from velocyto.commands.common import init_logger, loomdtype
 
-app = typer.Typer(name="velocyto-smartseq2", help="Run velocity analysis on SmartSeq2 data", rich_markup_mode="markdown", 
-    no_args_is_help=True,)
+app = typer.Typer(
+    name="velocyto-smartseq2",
+    help="Run velocity analysis on SmartSeq2 data",
+    rich_markup_mode="markdown",
+    no_args_is_help=True,
+)
 
 
 @app.callback(invoke_without_command=True)
 @app.command()
 def run_smartseq2(
     bamfiles: Annotated[
-        Path,
+        tuple[Path],
         typer.Argument(
             exists=True,
             file_okay=True,
@@ -103,7 +107,7 @@ def run_smartseq2(
     additional_ca = {additional_ca[(i * 2)]: additional_ca[(i * 2) + 1] for i in range(len(additional_ca) // 2)}
 
     return _run(
-        bamfile=bamfiles,
+        bam_input=(bamfiles,),
         gtffile=gtffile,
         bcfile=None,
         outputfolder=outputfolder,

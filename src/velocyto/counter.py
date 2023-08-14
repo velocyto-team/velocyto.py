@@ -15,14 +15,18 @@ import scipy as sp
 from loguru import logger
 from tqdm.auto import tqdm
 
-from .constants import LONGEST_INTRON_ALLOWED, LOOM_NUMERIC_DTYPE, PATCH_INDELS, PLACEHOLDER_UMI_LEN
-from .feature import Feature
-from .gene_info import GeneInfo
-from .indexes import FeatureIndex
-from .logic import Logic
-from .molitem import Molitem
-from .read import Read
-from .transcript_model import TranscriptModel
+from velocyto.constants import LONGEST_INTRON_ALLOWED, LOOM_NUMERIC_DTYPE, PATCH_INDELS, PLACEHOLDER_UMI_LEN
+from velocyto.feature import Feature
+from velocyto.gene_info import GeneInfo
+from velocyto.indexes import FeatureIndex
+from velocyto.logic import Logic
+from velocyto.molitem import Molitem
+from velocyto.read import Read
+from velocyto.transcript_model import TranscriptModel
+
+import better_exceptions
+
+better_exceptions.hook()
 
 
 class ExInCounter:
@@ -107,31 +111,34 @@ class ExInCounter:
         clip5 = clip3 = 0
         p = pos
         for i, (operation_id, length) in enumerate(cigartuples):
-            if operation_id == 0:
-                segments.append((p, p + length - 1))
-                p += length
-            elif operation_id == 1:
-                if length <= PATCH_INDELS:
-                    with contextlib.suppress(IndexError):
-                        if cigartuples[i + 1][0] == 0 and cigartuples[i - 1][0] == 0:
-                            hole_to_remove.add(len(segments) - 1)
-            elif operation_id == 2:
-                if length <= PATCH_INDELS:
-                    with contextlib.suppress(IndexError):
-                        if cigartuples[i + 1][0] == 0 and cigartuples[i - 1][0] == 0:
-                            hole_to_remove.add(len(segments) - 1)
-                p += length
-            elif operation_id == 3:
-                ref_skip = True
-                p += length
-            elif operation_id == 4:
-                if p == pos:
-                    clip5 = length  # At start of alignment
-                else:
-                    clip3 = length  # Must be at end of alignment CIGAR[operation_id] in ["BAM_CINS", "BAM_CHARD_CLIP"]
-                p += length
-            elif operation_id == 5:
-                logger.warning("Hard clip was encountered! All mapping are assumed soft clipped")
+            match operation_id:
+                case 0:  # CIGAR[operation_id] == "BAM_CMATCH"
+                    segments.append((p, p + length - 1))
+                    p += length
+                case 1:  # An insertion BAM_CINS
+                    if length <= PATCH_INDELS:
+                        with contextlib.suppress(IndexError):
+                            if cigartuples[i + 1][0] == 0 and cigartuples[i - 1][0] == 0:
+                                hole_to_remove.add(len(segments) - 1)
+                case 2:  # A deletion || cy.CIGAR[operation_id] == 'BAM_CDEL'
+                    if length <= PATCH_INDELS:
+                        with contextlib.suppress(IndexError):
+                            if cigartuples[i + 1][0] == 0 and cigartuples[i - 1][0] == 0:
+                                hole_to_remove.add(len(segments) - 1)
+                    p += length
+                case 3:  # A splice || CIGAR[operation_id] == 'BAM_CREF_SKIP'
+                    ref_skip = True
+                    p += length
+                case 4:  # bases at 5' or 3' are NOT part of the alignment || CIGAR[operation_id] == 'BAM_CSOFT_CLIP'
+                    if p == pos:
+                        clip5 = length  # At start of alignment
+                    else:
+                        clip3 = (
+                            length  # Must be at end of alignment CIGAR[operation_id] in ["BAM_CINS", "BAM_CHARD_CLIP"]
+                        )
+                    p += length
+                case 5:  # BAM_CHARD_CLIP
+                    logger.warning("Hard clip was encountered! All mapping are assumed soft clipped")
 
         # Merge segments separated by small insertions and deletions
         for a, b in enumerate(sorted(hole_to_remove)):  # NOTE maybe sorted is not required realy
@@ -253,14 +260,14 @@ class ExInCounter:
         for bamfile in bamfiles:
             self._current_bamfile = Path(bamfile).name if use_basename else str(bamfile)
             logger.debug(f"Reading {bamfile}")
-
+            self.peek(bamfile)
             fin = pysam.AlignmentFile(bamfile)  # type: pysam.AlignmentFile
             for i, read in enumerate(tqdm(fin, desc="Ingesting bamfile reads with barcodes")):
                 if i % 10000000 == 0:
                     logger.debug(f"Read first {i // 1000000} million reads")
                 if read.is_unmapped:
                     continue
-                # If unique parameter is set to True, skip not unique alignments
+                # If unique parameter is set to True, skip non-unique alignments
                 if unique and read.get_tag("NH") != 1:
                     continue
                 try:
@@ -316,7 +323,7 @@ class ExInCounter:
             f"{counter_skipped_no_barcode} reads were skipped because no apropiate cell or umi barcode was found"
         )
 
-    def read_repeats(self, gtf_file: str, tolerance: int = 5) -> dict[str, list[Feature]]:
+    def read_repeats(self, gtf_file: str, tolerance: int = 5) -> None:
         """Read repeats and merge close ones into highly repetitive areas
 
         Arguments
@@ -329,11 +336,13 @@ class ExInCounter:
 
         Returns
         -------
-        mask_ivls_by_chromstrand: dict[str, list[Feature]]
-            A dictionary key: chromosome+strand value: list of features (repeat intervals)
-            (The reference is returned but an internal attribure self.self.masked_by_chrm_strand is kept)
+        None
+            why return anything?
 
         """
+        # mask_ivls_by_chromstrand: dict[str, list[Feature]]
+        #     A dictionary key: chromosome+strand value: list of features (repeat intervals)
+        #     (The reference is returned but an internal attribure self.self.masked_by_chrm_strand is kept)
         # Example code to sort the gtf file
         # sorted_filename = gtffile.split(".")[0] + "_sorted.gtf"
         # logger.debug(f"Sorting by `sort -k1,1 -k7,7 -k4,4n {gtffile} > {sorted_filename}`")
@@ -456,8 +465,6 @@ class ExInCounter:
             n += len(feature_list)
 
         logger.debug(f"Processed masked annotation .gtf and generated {n} intervals to mask!")
-
-        return self.mask_ivls_by_chromstrand
 
     def assign_indexes_to_genes(self, features: dict[str, TranscriptModel]) -> None:
         """Assign to each newly encoutered gene an unique index corresponding to the output matrix column ix"""
@@ -756,7 +763,7 @@ class ExInCounter:
                 logger.debug("End of file. Reset index: start scanning from initial position.")
                 for (
                     chromstrand_key,
-                    annotions_ordered_dict,
+                    _,
                 ) in self.annotations_by_chrm_strand.items():
                     self.feature_indexes[chromstrand_key].reset()
                 continue
@@ -768,7 +775,8 @@ class ExInCounter:
             if r.chrom != currchrom:
                 logger.debug(f"{r.chrom=}, {currchrom=}")
                 if r.chrom in set_chromosomes_seen:
-                    raise IOError(f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)")
+                    msg = f"Input .bam file should be chromosome-sorted. (Hint: use `samtools sort {bamfile}`)"
+                    raise IOError(msg)
                 set_chromosomes_seen.add(r.chrom)
                 logger.debug(f"Marking up chromosome {r.chrom}")
                 currchrom = r.chrom
@@ -845,8 +853,8 @@ class ExInCounter:
         ):
             self.mask_indexes[chromstrand_key] = FeatureIndex(annotions_list)  # This suould be sorted
 
-        logger.debug(f"Features available for chromosomes : {list(self.feature_indexes.keys())}")
-        logger.debug(f"Mask available for chromosomes : {list(self.mask_indexes.keys())}")
+        logger.debug(f"Features available for chromosomes : {list(self.feature_indexes)}")
+        logger.debug(f"Mask available for chromosomes : {list(self.mask_indexes)}")
 
         # Before counting, report how many features where validated
         logger.debug("Summarizing the results of intron validation.")
@@ -869,48 +877,46 @@ class ExInCounter:
         nth = 0
         # Loop through the aligment of the bamfile
         for r in tqdm(self.iter_alignments(bamfile, unique=not multimap), desc="Count molecules: count"):
-            if nth < 50:
-                if (r is None) or (len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch):
-                    # Perfrom the molecule counting
-                    nth += 1
-                    logger.debug(
-                        f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads"
-                    )
-                    dict_layer_columns, list_bcs = self.count_cell_batch()
+            # if nth < 50:
+            if (r is None) or (len(self.cell_batch) == cell_batch_size and r.bc not in self.cell_batch):
+                # Perfrom the molecule counting
+                nth += 1
+                logger.debug(
+                    f"Counting for batch {nth}, containing {len(self.cell_batch)} cells and {len(self.reads_to_count)} reads"
+                )
+                dict_layer_columns, list_bcs = self.count_cell_batch()
 
-                    # This is to avoid crazy big matrix output if the barcode selection is not chosen
-                    if not self.filter_mode:
-                        logger.warning(
-                            "The barcode selection mode is off, no cell events will be identified by <80 counts"
-                        )
-                        tot_mol = dict_layer_columns["spliced"].sum(0) + dict_layer_columns["unspliced"].sum(0)
-                        cell_bcs_order += list(np.array(list_bcs)[tot_mol > 80])
-                        for layer_name, layer_columns in dict_layer_columns.items():
-                            dict_list_arrays[layer_name].append(layer_columns[:, tot_mol > 80])
-                        logger.warning(f"{np.sum(tot_mol < 80)} of the barcodes where without cell")
-                    else:
-                        # The normal case
-                        cell_bcs_order += list_bcs
-                        for layer_name, layer_columns in dict_layer_columns.items():
-                            dict_list_arrays[layer_name].append(layer_columns)
+                # This is to avoid crazy big matrix output if the barcode selection is not chosen
+                if not self.filter_mode:
+                    logger.warning("The barcode selection mode is off, no cell events will be identified by <80 counts")
+                    tot_mol = dict_layer_columns["spliced"].sum(0) + dict_layer_columns["unspliced"].sum(0)
+                    cell_bcs_order += list(np.array(list_bcs)[tot_mol > 80])
+                    for layer_name, layer_columns in dict_layer_columns.items():
+                        dict_list_arrays[layer_name].append(layer_columns[:, tot_mol > 80])
+                    logger.warning(f"{np.sum(tot_mol < 80)} of the barcodes where without cell")
+                else:
+                    # The normal case
+                    cell_bcs_order += list_bcs
+                    for layer_name, layer_columns in dict_layer_columns.items():
+                        dict_list_arrays[layer_name].append(layer_columns)
 
-                    self.cell_batch = set()
-                    # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
-                    self.reads_to_count = []
-                    for (
-                        chromstrand_key,
-                        annotions_ordered_dict,
-                    ) in self.annotations_by_chrm_strand.items():
-                        self.feature_indexes[chromstrand_key].reset()
-                    for (
-                        chromstrand_key,
-                        annotions_list,
-                    ) in self.mask_ivls_by_chromstrand.items():
-                        self.mask_indexes[chromstrand_key].reset()
+                self.cell_batch = set()
+                # Drop the counted reads (If there are no other reference to it) and reset the indexes to 0
+                self.reads_to_count = []
+                for (
+                    chromstrand_key,
+                    _,
+                ) in self.annotations_by_chrm_strand.items():
+                    self.feature_indexes[chromstrand_key].reset()
+                for (
+                    chromstrand_key,
+                    _,
+                ) in self.mask_ivls_by_chromstrand.items():
+                    self.mask_indexes[chromstrand_key].reset()
 
-                if r is not None:
-                    self.cell_batch.add(r.bc)
-                    self.reads_to_count.append(r)
+            if r is not None:
+                self.cell_batch.add(r.bc)
+                self.reads_to_count.append(r)
         # NOTE: Since iter_allignments is yielding None at each file change (even when only one bamfile) I do not need the following
         # logger.debug(f"Counting molecule for last batch of {len(self.cell_batch)}, total reads {len(self.reads_to_count)}")
         # spliced, unspliced, ambiguous, list_bcs = self.count_cell_batch()
@@ -1277,7 +1283,7 @@ class ExInCounter:
                     info_exino = []
                     info_strandplus = []
                     info_chrm = []
-                    for _k, v_dict_tm in self.annotations_by_chrm_strand.items():
+                    for _, v_dict_tm in self.annotations_by_chrm_strand.items():
                         for v1_tm in v_dict_tm.values():
                             for v2_ivl in v1_tm:
                                 info_tr_id.append(v2_ivl.transcript_model.trid)  # “info/ivls/tr_id“,

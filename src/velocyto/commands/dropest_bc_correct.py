@@ -5,8 +5,12 @@ import pysam
 import typer
 from loguru import logger
 
-app = typer.Typer(name="velocyto-run", help="Correct barcodes for DropEst data",rich_markup_mode="markdown", 
-    no_args_is_help=True,)
+app = typer.Typer(
+    name="velocyto-run",
+    help="Correct barcodes for DropEst data",
+    rich_markup_mode="markdown",
+    no_args_is_help=True,
+)
 
 
 @app.callback(invoke_without_command=True)

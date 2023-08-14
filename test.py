@@ -23,10 +23,10 @@ def main():
 
     samplefolder = Path('/mnt/vault/workspace/analysis/pam')
 
-    umap_file = samplefolder.joinpath("projection.csv")
+    umap_file = samplefolder.joinpath("outs/per_sample_outs/analysis/umap/gene_expression_2_components/projection.csv")
     umap = np.loadtxt(umap_file, usecols=(1, 2), delimiter=",", skiprows=1)
 
-    clusters_file = samplefolder.joinpath("clusters.csv")
+    clusters_file = samplefolder.joinpath("outs/per_sample_outs/analysis/clustering/gene_expression_graphclust/clusters.csv")
     labels = np.loadtxt(clusters_file, usecols=(1,), delimiter=",", skiprows=1)
 
 
@@ -40,7 +40,7 @@ def main():
     _run(
             bamfile=samplefolder.joinpath('subsample_alignments.bam'),
             gtffile=samplefolder.joinpath('genes.gtf'),
-            bcfile=samplefolder.joinpath('barcodes.tsv.gz'),
+            bcfile=Path("/mnt/group/software/cellranger-7.1.0/lib/python/cellranger/barcodes/737K-august-2016.txt"),
             outputfolder=samplefolder.joinpath('velocyto'),
             sampleid="PAM1",
             metadatatable=None,
@@ -50,7 +50,7 @@ def main():
             without_umi=False,
             umi_extension="no",
             multimap=False,
-            test=True,
+            test=False,
             samtools_threads=4,
             samtools_memory="4G",
             dump="0",
@@ -61,5 +61,5 @@ def main():
             is_10X=True,
             samplefolder=samplefolder,
         )
-    
+
 main()

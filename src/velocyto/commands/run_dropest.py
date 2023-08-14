@@ -7,8 +7,12 @@ from loguru import logger
 from velocyto.commands._run import _run
 from velocyto.commands.common import init_logger, logicType, loomdtype
 
-app = typer.Typer(name="velocyto-dropest", help="Run velocity analysis on DropEst data",rich_markup_mode="markdown", 
-    no_args_is_help=True,)
+app = typer.Typer(
+    name="velocyto-dropest",
+    help="Run velocity analysis on DropEst data",
+    rich_markup_mode="markdown",
+    no_args_is_help=True,
+)
 
 
 @app.callback(invoke_without_command=True)
@@ -141,7 +145,7 @@ def run_dropest(
             "The program will run despite the warning but be aware of the possible consequences of not correcting the barcodes"
         )
     return _run(
-        bamfile=(bamfile,),
+        bam_input=(bamfile,),
         gtffile=gtffile,
         bcfile=bcfile,
         outputfolder=outputfolder,

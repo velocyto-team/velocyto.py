@@ -9,8 +9,9 @@ from velocyto.commands.common import UMIExtension, init_logger, logicType, loomd
 app = typer.Typer(
     name="velocyto-run",
     help="Run velocity analysis",
-    rich_markup_mode="markdown", 
-    no_args_is_help=True,)
+    rich_markup_mode="markdown",
+    no_args_is_help=True,
+)
 
 
 @app.callback(invoke_without_command=True)
@@ -31,8 +32,8 @@ def run(
             file_okay=True,
             dir_okay=False,
             readable=True,
-            help=f"Valid barcodes file, to filter the bam. If bcfile is not specified all the cell barcodes will "
-            f"be included. Cell barcodes should be specified in the bcfile as the `CB` tag for each read",
+            help="Valid barcodes file, to filter the bam. If bcfile is not specified all the cell barcodes will "
+            "be included. Cell barcodes should be specified in the bcfile as the `CB` tag for each read",
         ),
     ] = None,
     outputfolder: Annotated[
@@ -58,8 +59,8 @@ def run(
         typer.Option(
             "-s",
             "--metadatatable",
-            help=f"Table containing metadata of the various samples (csv formatted, rows are samples "
-            f"and cols are entries)",
+            help="Table containing metadata of the various samples (csv formatted, rows are samples "
+            "and cols are entries)",
             resolve_path=True,
             file_okay=True,
             dir_okay=False,
@@ -83,9 +84,9 @@ def run(
         typer.Option(
             "-c",
             "--onefilepercell",
-            help=f"If this flag is used every bamfile passed is interpreted as an independent cell, otherwise "
-            f"multiple files are interpreted as batch of different cells to be analyzed together. Important: "
-            f"cell reads distributed over multiple bamfiles is not supported!",
+            help="If this flag is used every bamfile passed is interpreted as an independent cell, otherwise "
+            "multiple files are interpreted as batch of different cells to be analyzed together. Important: "
+            "cell reads distributed over multiple bamfiles is not supported!",
             is_flag=True,
         ),
     ] = False,
@@ -111,11 +112,11 @@ def run(
         typer.Option(
             "-u",
             "--umi-extension",
-            help=f"In case UMI is too short to guarantee uniqueness (without information from the mapping) set "
-            f"this parameter to `chr`, `Gene` or `[N]bp` If set to `chr` the mapping position (binned to "
-            f"10Gb intervals) will be appended to `UB` (ideal for InDrops+dropEst). If set to `Gene` then "
-            f"the `GX` tag will be appended to the `UB` tag. If set to `[N]bp` the first N bases of the "
-            f"sequence will be used to extend `UB` (ideal for STRT).",
+            help="In case UMI is too short to guarantee uniqueness (without information from the mapping) set "
+            "this parameter to `chr`, `Gene` or `[N]bp` If set to `chr` the mapping position (binned to "
+            "10Gb intervals) will be appended to `UB` (ideal for InDrops+dropEst). If set to `Gene` then "
+            "the `GX` tag will be appended to the `UB` tag. If set to `[N]bp` the first N bases of the "
+            "sequence will be used to extend `UB` (ideal for STRT).",
         ),
     ] = False,  # UMIExtension.no,
     multimap: Annotated[
@@ -139,8 +140,8 @@ def run(
         str,
         typer.Option(
             "--samtools-memory",
-            help=f"The amount of memory for samtools for each sorting thread. Accepts the same forms as samtools, "
-            f"so use # with K/M/G suffix",
+            help="The amount of memory for samtools for each sorting thread. Accepts the same forms as samtools, "
+            "so use # with K/M/G suffix",
         ),
     ] = "4G",
     dtype: Annotated[
@@ -148,8 +149,8 @@ def run(
         typer.Option(
             "-t",
             "--dtype",
-            help=f"The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are "
-            f"expected set uint32 to avoid truncation (default run: uint32)",
+            help="The dtype of the loom file layers - if more than 6000 molecules/reads per gene per cell are "
+            "expected set uint32 to avoid truncation (default run: uint32)",
         ),
     ] = loomdtype.uint32,
     dump: Annotated[
@@ -157,8 +158,8 @@ def run(
         typer.Option(
             "-d",
             "--dump",
-            help=f"For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a "
-            f"cell every N cells. If p is prepended a more complete (but huge) pickle report is printed",
+            help="For debugging purposes only: it will dump a molecular mapping report to hdf5. --dump N, saves a "
+            "cell every N cells. If p is prepended a more complete (but huge) pickle report is printed",
             is_flag=True,
         ),
     ] = "0",

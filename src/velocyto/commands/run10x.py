@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Optional, Annotated
 
-import numpy as np
 import typer
 from loguru import logger
 
@@ -9,10 +8,10 @@ from velocyto.commands._run import _run
 from velocyto.commands.common import init_logger, logicType, loomdtype
 
 app = typer.Typer(
-    rich_markup_mode="markdown", 
     help="Run velocity analysis on 10X Genomics data",
+    rich_markup_mode="markdown",
     no_args_is_help=True,
-    )
+)
 
 
 @app.callback(invoke_without_command=True)
@@ -35,6 +34,19 @@ def run10x(
     gtffile: Annotated[
         Path, typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True, resolve_path=True)
     ],
+    barcode_file: Annotated[
+        Optional[Path],
+        typer.Option(
+            "-b",
+            "--barcodes",
+            help="Path to the barcode file appropriate for the 10X chemistry used. Should be included with the "
+            "Cellranger software under 'cellranger-X.X.X/lib/python/cellranger/barcodes/'",
+            resolve_path=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = None,
     metadatatable: Annotated[
         Optional[Path],
         typer.Option(
@@ -143,50 +155,29 @@ def run10x(
     bamfile = list(samplefolder.rglob("sample_alignments.bam"))
     if not bamfile[0].exists():
         logger.error("BAM file was not found.  Are you sure you have the correct sample folder?")
-        print(
+        logger.exception(
             f"BAM file was not found in any subdirectories of {samplefolder}.  Are you sure you have the correct sample folder?"
         )
-        exit()
     elif len(bamfile) > 1:
         logger.error("Too many BAM files found. Which one?")
-        print("multiple matches for `sample_alignemts.bam` were found and now I am confused. Please fix.")
-        exit()
+        logger.exception("multiple matches for `sample_alignemts.bam` were found and now I am confused. Please fix.")
     else:
         bamfile = bamfile[0]
 
-    bcmatches = list(samplefolder.joinpath("outs").rglob("sample_filtered_feature_bc_matrix/barcodes.tsv.gz"))
+    if not barcode_file:
+        barcode_file = list(samplefolder.joinpath("outs").rglob("sample_filtered_feature_bc_matrix/barcodes.tsv.gz"))
 
-    if not bcmatches:
-        logger.error("Can not locate the barcodes.tsv file!")
-    bcfile = bcmatches[0]
+    if not barcode_file[0].exists():
+        logger.error(f"Can not locate the barcode file! Please check {barcode_file}")
+    bcfile = barcode_file[0]
 
     outputfolder = samplefolder.joinpath("velocyto")
     sampleid = samplefolder.stem
     if outputfolder.joinpath(f"{sampleid}.loom").exists():
         raise AssertionError("The output already exist. Aborted!")
 
-    additional_ca = {}
-    try:
-        umap_file = next(
-            samplefolder.joinpath("outs", "per_sample_outs").rglob("umap/gene_expression_2_components/projection.csv")
-        )
-        if umap_file.exists():
-            umap = np.loadtxt(umap_file, usecols=(1, 2), delimiter=",", skiprows=1)
-            additional_ca["_X"] = umap[:, 0].astype("float32")
-            additional_ca["_Y"] = umap[:, 1].astype("float32")
-
-        clusters_file = next(
-            samplefolder.joinpath("outs", "per_sample_outs").rglob("gene_expression_graphclust/clusters.csv")
-        )
-        if clusters_file.exists():
-            labels = np.loadtxt(clusters_file, usecols=(1,), delimiter=",", skiprows=1)
-            additional_ca["Clusters"] = labels.astype("int") - 1
-
-    except Exception:
-        logger.error("Some IO problem in loading cellranger umap/pca/kmeans files occurred!")
-
     return _run(
-        bamfile=(bamfile,),
+        bam_input=(bamfile,),
         gtffile=gtffile,
         bcfile=bcfile,
         outputfolder=outputfolder,
@@ -204,7 +195,6 @@ def run10x(
         dump=dump,
         loom_numeric_dtype=str(dtype).split(".")[-1],
         verbose=verbose,
-        additional_ca=additional_ca,
         is_10X=True,
         samplefolder=samplefolder,
     )
