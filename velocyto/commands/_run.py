@@ -295,4 +295,4 @@ def _run(*, bamfile: Tuple[str], gtffile: str,
         tmp_layers = {"": total.astype("float32", order="C", copy=False)}
         tmp_layers.update({layer_name: layers[layer_name].astype(loom_numeric_dtype, order="C", copy=False) for layer_name in logic_obj.layers})
         loompy.create(filename=outfile, layers=tmp_layers, row_attrs=ra, col_attrs=ca, file_attrs={"velocyto.__version__": vcy.__version__, "velocyto.logic": logic})
-    logging.debug("Terminated Succesfully!")
+    logging.debug("Terminated Successfully!")
