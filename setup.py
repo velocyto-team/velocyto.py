@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
+
+setup(setup_requires=['cython', 'numpy'])
+
 import numpy as np
 import sys
 
