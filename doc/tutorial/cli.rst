@@ -70,7 +70,7 @@ Where ``genes.gtf`` is the genome annotation file provided with the cellranger p
     Execution time is ~3h for a typical sample but might vary significantly by sequencing depth and cpu power. 
 
 
-``run_smartseq2`` - Run on SmartSeq2 samples
+``run-smartseq2`` - Run on SmartSeq2 samples
 --------------------------------------------
 
 ``velocyto`` includes a shortcut to perform the read counting for UMI-less, not stranded, full-length techniques such as SmartSeq2.
@@ -88,12 +88,12 @@ Typically SmartSeq2 bam files are generated and organized by well/cell in a fold
     plateX/A03/A03.bam
     ...
 
-For this reason, ``run_smartseq2`` command accepts multiple inputs so that all the files can be analyzed in one run and all output stored in a single `.loom` file. 
+For this reason, ``run-smartseq2`` command accepts multiple inputs so that all the files can be analyzed in one run and all output stored in a single `.loom` file. 
 For example if we want to run the pipeline on a SmartSeq2 plate whose folder structure is organized as above we would just use wild-card (glob) expansion as follows.
 
 ::
 
-    velocyto run_smartseq2 -o OUTPUT -m repeat_msk.gtf -e MyTissue plateX/*/*.bam mm10_annotation.gtf
+    velocyto run-smartseq2 -o OUTPUT -m repeat_msk.gtf -e MyTissue plateX/*/*.bam mm10_annotation.gtf
 
 Where ``mm10_annotation.gtf`` and ``repeat_msk.gtf`` are the genome annotation and repeat masker files described in the `Preparation` section above.
 Finally note that the output `.loom` file in that case will have an extra layer "spanning".
@@ -105,7 +105,7 @@ Finally note that the output `.loom` file in that case will have an extra layer 
     Execution time might vary significantly by sequencing depth and cpu power but usually does not exceed the 6h for a typical sample 
 
 
-``run_dropest`` - Run on DropSeq, InDrops and other techniques
+``run-dropest`` - Run on DropSeq, InDrops and other techniques
 --------------------------------------------------------------
 
 ``velocyto`` includes a shortcut to perform molecule counting on all the techniques supported by the DropEst pipeline, this includes different versions of DropSeq and InDrops.
@@ -178,7 +178,7 @@ Finally I run velocyto:
 
 ::
 
-    velocyto run_dropest -o ~/mydata/SRR5945695_results -m rep_mask.gtf ~/mydata/SRR5945695_1/correct_SRR5945695_1Aligned.sortedByCoord.out.tagged.bam mm10_annotation.gtf
+    velocyto run-dropest -o ~/mydata/SRR5945695_results -m rep_mask.gtf ~/mydata/SRR5945695_1/correct_SRR5945695_1Aligned.sortedByCoord.out.tagged.bam mm10_annotation.gtf
 
 
 ``run`` - Run on any technique (Advanced use)
