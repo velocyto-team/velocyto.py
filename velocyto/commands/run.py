@@ -24,7 +24,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
                                 file_okay=True,
                                 dir_okay=False,
                                 readable=True,
-                                resolve_path=True))
+                                resolve_path=False))
 @click.argument("gtffile",
                 type=click.Path(exists=True,
                                 file_okay=True,
@@ -36,7 +36,7 @@ def id_generator(size: int=6, chars: str=string.ascii_uppercase + string.digits)
               Cell barcodes should be specified in the bcfile as the `CB` tag for each read""",
               default=None,
               show_default=True,
-              type=click.Path(resolve_path=True,
+              type=click.Path(resolve_path=False,
                               file_okay=True,
                               dir_okay=False,
                               readable=True))
